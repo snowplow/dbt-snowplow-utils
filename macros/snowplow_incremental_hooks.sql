@@ -362,16 +362,42 @@
 {%- endmacro %}
 
 {# Updates the incremental manifest table at the run end with the latest tstamp consumed per model #}
-{% macro update_incremental_manifest_table(package_name, models) -%}
+{% macro update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
-  {{ return(adapter.dispatch('update_incremental_manifest_table', ['snowplow_utils'])(package_name, models)) }}
+  {{ return(adapter.dispatch('update_incremental_manifest_table', ['snowplow_utils'])(manifest_table, base_events_table, models)) }}
 
 {% endmacro %}
 
-{#TODO: Add GBQ and Snowflake support. Can probably simplify with a merge statement #}
-{% macro default__update_incremental_manifest_table(package_name, models) -%}
+{% macro default__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
-  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+  {% if models %}
+
+    {% set last_success_query %}
+      select 
+        model, 
+        last_success 
+
+      from 
+        (select max(collector_tstamp) as last_success from {{ base_events_table }}),
+        ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %})
+
+      where last_success is not null -- if run contains no data don't add to manifest
+    {% endset %}
+
+    merge {{ manifest_table }} m
+    using ( {{ last_success_query }} ) s
+    on m.model = s.model
+    when matched then
+        update set last_success = greatest(m.last_success, s.last_success)
+    when not matched then
+        insert (model, last_success) values(model, last_success)
+
+  {% endif %}
+
+{%- endmacro %}
+
+
+{% macro redshift__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
   {% if models %}
 
@@ -390,18 +416,18 @@
             last_success 
 
           from 
-            (select max(collector_tstamp) as last_success from {{ ref(package_name+'_base_events_this_run') }}),
+            (select max(collector_tstamp) as last_success from {{ base_events_table }}),
             ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %})
 
           where last_success is not null -- if run contains no data don't add to manifest
 
         ) a
-        left join {{ incremental_manifest_table }} b
+        left join {{ manifest_table }} b
         on a.model = b.model
         );
 
-      delete from {{ incremental_manifest_table }} where model in (select model from snowplow_models_last_success);
-      insert into {{ incremental_manifest_table }} (select * from snowplow_models_last_success);
+      delete from {{ manifest_table }} where model in (select model from snowplow_models_last_success);
+      insert into {{ manifest_table }} (select * from snowplow_models_last_success);
 
     end transaction;
 
@@ -440,7 +466,11 @@
 {% macro snowplow_incremental_post_hook(package_name) %}
 
   {% set successful_snowplow_models = snowplow_utils.get_successful_snowplow_models(package_name) -%}
+
+  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+
+  {% set base_events_this_run_table = ref(package_name~'_base_events_this_run') -%}
         
-  {{ snowplow_utils.update_incremental_manifest_table(package_name, successful_snowplow_models) }}                  
+  {{ snowplow_utils.update_incremental_manifest_table(incremental_manifest_table, base_events_this_run_table, successful_snowplow_models) }}                  
 
 {% endmacro %}

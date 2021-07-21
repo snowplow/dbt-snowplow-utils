@@ -44,3 +44,10 @@ seeds:
           start_date: date
           lower_limit: timestamp
           upper_limit: timestamp
+
+      data_update_incremental_manifest_table:
+        +column_types:
+          is_in_manifest: boolean
+          last_success: timestamp
+          collector_tstamp: timestamp
+          expected_last_success: timestamp
