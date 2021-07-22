@@ -238,46 +238,6 @@
 {%- endmacro %}
 
 
-{# Updates the current_incremental_tstamp_table using the sql provided by get_run_limits() #}
-{% macro update_current_incremental_tstamp_table(package_name, models_in_run) -%}
-
-  {{ return(adapter.dispatch('update_current_incremental_tstamp_table', ['snowplow_utils'])(package_name, models_in_run)) }}
-
-{% endmacro %}
-
-
-{% macro default__update_current_incremental_tstamp_table(package_name, models_in_run) -%}
-
-  {% set incremental_tstamp_table = snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) -%}
-
-  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
-
-  {% set run_limits_query = snowplow_utils.get_run_limits(incremental_manifest_table, models_in_run) -%}
-
-  create or replace table {{ incremental_tstamp_table }} as {{ run_limits_query }};
-  commit;
-
-  {{ snowplow_utils.print_run_limits(run_limits_query) }}
-
-{%- endmacro %}
-
-
-{% macro redshift__update_current_incremental_tstamp_table(package_name, models_in_run) -%}
-
-  {% set incremental_tstamp_table = snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) -%}
-
-  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
-
-  {% set run_limits_query = snowplow_utils.get_run_limits(incremental_manifest_table, models_in_run) -%}
-
-  drop table if exists {{ incremental_tstamp_table }};
-  create table {{ incremental_tstamp_table }} as ( {{ run_limits_query }} );
-  commit;
-
-  {{ snowplow_utils.print_run_limits(run_limits_query) }}
-
-{%- endmacro %}
-
 {# Returns an array of enabled models tagged with snowplow_web_incremental using dbts graph object. 
    Throws an error if untagged models are found that depend on the base_events_this_run model#}
 {% macro get_enabled_snowplow_models(package_name) -%}
@@ -456,9 +416,26 @@
 
   {{ snowplow_utils.create_incremental_manifest_table(package_name) }}
 
-  {% set models_in_run = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
+  {%- set models_in_run = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
 
-  {{ snowplow_utils.update_current_incremental_tstamp_table(package_name, models_in_run) }}
+  {% set incremental_tstamp_table = snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) -%}
+
+  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+
+  {% set min_last_success,
+         max_last_success, 
+         models_matched_from_manifest,
+         has_matched_all_models = snowplow_utils.get_incremental_manifest_status(incremental_manifest_table, models_in_run) -%}
+
+  {% set run_limits_query = snowplow_utils.get_run_limits(min_last_success, 
+                                                          max_last_success,
+                                                          models_matched_from_manifest,
+                                                          has_matched_all_models,
+                                                          var("snowplow__start_date","2020-01-01")) -%}
+
+  {{ snowplow_utils.create_table_as_sql(incremental_tstamp_table, run_limits_query, replace=true) }}
+
+  {{ snowplow_utils.print_run_limits(run_limits_query) }}
 
 {% endmacro %}
 
