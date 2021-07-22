@@ -1,5 +1,5 @@
 name: 'snowplow_utils_integration_tests'
-version: '0.1.0'
+version: '0.2.0'
 config-version: 2
 
 profile: 'integration_tests'
@@ -19,4 +19,28 @@ clean-targets:
 
 models:
   snowplow_utils_integration_tests:
+    +schema: "snowplow_int_tests"
 
+
+seeds:
+  +quote_columns: false
+  snowplow_utils_integration_tests:
+    +schema: "snowplow_int_tests"
+
+    incremental_hooks:
+
+      data_get_incremental_manifest_status:
+        +column_types:
+          last_success: timestamp
+      data_get_incremental_manifest_status_expected:
+        +column_types:
+          min_last_success: timestamp
+          max_last_success: timestamp
+
+      data_get_run_limits:
+        +column_types:
+          min_last_success: timestamp
+          max_last_success: timestamp
+          start_date: date
+          lower_limit: timestamp
+          upper_limit: timestamp

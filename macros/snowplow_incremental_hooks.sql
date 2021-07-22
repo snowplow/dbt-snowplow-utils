@@ -114,9 +114,71 @@
 {%- endmacro %}
 
 {# Returns the sql to calculate the lower/upper limits of the run #}
-{% macro get_run_limits(incremental_manifest_table, models_in_run) -%}
+{% macro get_run_limits(min_last_success, max_last_success, models_matched_from_manifest, has_matched_all_models, start_date) -%}
+
+  {% set start_tstamp = snowplow_utils.cast_to_tstamp(start_date) %}
+  {% set min_last_success = snowplow_utils.cast_to_tstamp(min_last_success) %}
+  {% set max_last_success = snowplow_utils.cast_to_tstamp(max_last_success) %}
+
+  {% if not execute %}
+    {{ return('') }}
+  {% endif %}
+
+  {% if models_matched_from_manifest == 0 %}
+    {# If no snowplow models are in the manifest, start from start_tstamp #}
+    {% do snowplow_utils.log_message("Snowplow: No data in manifest. Processing data from start_date") %}
+
+    {% set run_limits_query %}
+      select {{start_tstamp}} as lower_limit,
+             least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }},
+                   {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
+    {% endset %}
+
+  {% elif not has_matched_all_models %}
+    {# If a new Snowplow model is added which isn't already in the manifest, replay all events up to upper_limit #}
+    {% do snowplow_utils.log_message("Snowplow: New Snowplow incremental model. Backfilling") %}
+
+    {% set run_limits_query %}
+      select {{ start_tstamp }} as lower_limit,
+             least({{ max_last_success }},
+                   {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }}) as upper_limit
+    {% endset %}
+
+  {% elif min_last_success != max_last_success %}
+    {# If all models in the run exists in the manifest but are out of sync, replay from the min last success to the max last success #}
+    {% do snowplow_utils.log_message("Snowplow: Snowplow incremental models out of sync. Syncing") %}
+
+    {% set run_limits_query %}
+      select {{ snowplow_utils.timestamp_add('hour', -var("snowplow__lookback_window_hours", 6), min_last_success) }} as lower_limit,
+             least({{ max_last_success }},
+                  {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}) as upper_limit
+    {% endset %}
+
+  {% else %}
+    {# Else standard run of the model #}
+    {% do snowplow_utils.log_message("Snowplow: Standard incremental run") %}
+
+    {% set run_limits_query %}
+      select 
+        {{ snowplow_utils.timestamp_add('hour', -var("snowplow__lookback_window_hours", 6), min_last_success) }} as lower_limit,
+        least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}, 
+              {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
+    {% endset %}
+
+  {% endif %}
+
+  {{ return(run_limits_query) }}
     
-  {% set start_tstamp = "cast('"+ var("snowplow__start_date") + "' as " + dbt_utils.type_timestamp() + ")" %}
+{% endmacro %}
+
+
+{% macro get_incremental_manifest_status(incremental_manifest_table, models_in_run) -%}
+
+  {% if not execute %}
+
+    {{ return(['', '', '', '']) }}
+
+  {% endif %}
 
   {% set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
                                                                   incremental_manifest_table.schema,
@@ -128,7 +190,7 @@
       select min(last_success) as min_last_success,
              max(last_success) as max_last_success,
              coalesce(count(*), 0) as models
-      from {{ incremental_manifest_table }} 
+      from {{ incremental_manifest_table }}
       where model in ({{ snowplow_utils.print_list(models_in_run) }})
     {% endset %}
 
@@ -142,67 +204,20 @@
 
   {% endif %}
 
-    {% set results = run_query(last_success_query) %}
+  {% set results = run_query(last_success_query) %}
 
-    {% if execute %}
+  {% if execute %}
 
-      {% set min_last_success = results.columns[0].values()[0] %}
-      {% set max_last_success = results.columns[1].values()[0] %}
-      {% set models_matched_from_manifest = results.columns[2].values()[0] %}
+    {% set min_last_success = results.columns[0].values()[0] %}
+    {% set max_last_success = results.columns[1].values()[0] %}
+    {% set models_matched_from_manifest = results.columns[2].values()[0] %}
+    {% set has_matched_all_models = true if models_matched_from_manifest == models_in_run|length else false %}
 
-      {% if models_matched_from_manifest == 0 %}
-        {# If no snowplow models are in the manifest, start from start_tstamp #}
-        {% do snowplow_utils.log_message("Snowplow: No data in manifest. Processing data from start_date") %}
+  {% endif %}
 
-        {% set run_limits_query %}
-          select {{start_tstamp}} as lower_limit,
-                 least({{ dbt_utils.dateadd('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }},
-                       {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
-        {% endset %}
+  {{ return([min_last_success, max_last_success, models_matched_from_manifest, has_matched_all_models]) }}
 
-      {% elif models_matched_from_manifest < models_in_run|length %}
-        {# If a new Snowplow model is added which isn't already in the manifest, replay all events up to upper_limit #}
-        {% do snowplow_utils.log_message("Snowplow: New Snowplow incremental model. Backfilling") %}
-
-        {% set run_limits_query %}
-          select {{ start_tstamp }} as lower_limit,
-                 least(max(last_success), {{ dbt_utils.dateadd('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }}) as upper_limit
-          from {{ incremental_manifest_table }} 
-          where model in ({{ snowplow_utils.print_list(models_in_run) }})
-        {% endset %}
-
-      {% elif min_last_success != max_last_success %}
-        {# If all models in the run exists in the manifest but are out of sync, replay from the min last success to the max last success #}
-        {% do snowplow_utils.log_message("Snowplow: Snowplow incremental models out of sync. Syncing") %}
-
-        {% set run_limits_query %}
-          select {{ dbt_utils.dateadd('hour', -var("snowplow__lookback_window_hours", 6), 'min(last_success)') }} as lower_limit,
-                 least(max(last_success), {{ dbt_utils.dateadd('day', var("snowplow__backfill_limit_days", 30), 'min(last_success)') }}) as upper_limit
-          from {{ incremental_manifest_table }} 
-          where model in ({{ snowplow_utils.print_list(models_in_run) }})
-        {% endset %}
-
-      {% else %}
-        {# Else standard run of the model #}
-        {% do snowplow_utils.log_message("Snowplow: Standard incremental run") %}
-
-        {% set run_limits_query %}
-          select 
-            {{ dbt_utils.dateadd('hour', -var("snowplow__lookback_window_hours", 6), 'min(last_success)') }} as lower_limit,
-            least({{ dbt_utils.dateadd('day', var("snowplow__backfill_limit_days", 30), 'min(last_success)') }}, 
-                  {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
-
-          from {{ incremental_manifest_table }} 
-          where model in ({{ snowplow_utils.print_list(models_in_run) }})
-        {% endset %}
-
-      {% endif %}
-
-    {% endif %}
-
-    {{ return(run_limits_query) }}
-    
-{% endmacro %}
+{%- endmacro %}
 
 {# Prints the run limits for the run to the console #}
 {% macro print_run_limits(run_limits_query) -%}
