@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: test_combine_column_versions
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_combine_column_versions')
+
+

@@ -10,6 +10,17 @@
 
 {% endmacro %}
 
+
+{# Creates snowplow manifest schema. This should be automatically handled by dbt but adding for peace of mind #}
+{% macro create_snowplow_manifest_schema() %}
+  
+  {%- set manifest_schema=snowplow_utils.get_snowplow_manifest_schema() -%}
+
+  {% do adapter.create_schema(api.Relation.create(database=target.database, schema=manifest_schema)) %}
+  
+{% endmacro %}
+
+
 {# Returns the incremental manifest table reference. This table contains 1 row/model with the latest tstamp consumed #}
 {% macro get_incremental_manifest_table_relation(package_name) %}
 
@@ -195,15 +206,17 @@
 
 {# Prints the run limits for the run to the console #}
 {% macro print_run_limits(run_limits_query) -%}
+
   {# Derive limits from manifest instead of selecting from limits table since run_query executes during 2nd parse the limits table is yet to be updated. #}
   {% set results = run_query(run_limits_query) %}
-   
+
   {% if execute %}
 
-    {% set lower_limit = results.columns[0].values()[0].strftime("%Y-%m-%d %H:%M:%S") %}
-    {% set upper_limit = results.columns[1].values()[0].strftime("%Y-%m-%d %H:%M:%S") %}
+    {% set lower_limit = snowplow_utils.tstamp_to_str(results.columns[0].values()[0]) %}
+    {% set upper_limit = snowplow_utils.tstamp_to_str(results.columns[1].values()[0]) %}
+    {% set run_limits_message = "Snowplow: Processing data between " + lower_limit + " and " + upper_limit %}
 
-    {% do snowplow_utils.log_message("Snowplow: Processing data between " + lower_limit + " and " + upper_limit) %}
+    {% do snowplow_utils.log_message(run_limits_message) %}
 
   {% endif %}
 
@@ -397,6 +410,8 @@
 
 {# pre-hook for incremental runs #}
 {% macro snowplow_incremental_pre_hook(package_name) %}
+
+  {{ snowplow_utils.create_snowplow_manifest_schema() }}
 
   {{ snowplow_utils.create_incremental_manifest_table(package_name) }}
 
