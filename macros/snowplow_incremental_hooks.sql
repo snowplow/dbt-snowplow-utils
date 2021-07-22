@@ -58,13 +58,6 @@
 {# Creates or mutates incremental manifest table #}
 {% macro create_incremental_manifest_table(package_name) -%}
 
-  {{ return(adapter.dispatch('create_incremental_manifest_table', ['snowplow_utils'])(package_name)) }}
-
-{% endmacro %}
-
-
-{% macro default__create_incremental_manifest_table(package_name) -%}
-
   {% set required_columns = [
      ["model", dbt_utils.type_string()],
      ["last_success", dbt_utils.type_timestamp()],
@@ -78,36 +71,11 @@
 
   {% if incremental_manifest_table_exists -%}
 
-    {%- set columns_to_create = [] -%}
-
-    {# map to lower to cater for snowflake returning column names as upper case #}
-    {%- set existing_columns = adapter.get_columns_in_relation(incremental_manifest_table)|map(attribute='column')|map('lower')|list -%}
-
-    {%- for required_column in required_columns -%}
-      {%- if required_column[0] not in existing_columns -%}
-        {%- do columns_to_create.append(required_column) -%}
-      {%- endif -%}
-    {%- endfor -%}
-
-    {%- for column in columns_to_create -%}
-      alter table {{ incremental_manifest_table }}
-      add column {{ column[0] }} {{ column[1] }}
-      default null;
-    {% endfor -%}
-
-    {%- if columns_to_create|length > 0 %}
-      commit;
-    {% endif -%}
+    {{ snowplow_utils.alter_table_sql(incremental_manifest_table, required_columns) }}
 
   {%- else -%}
 
-    create table if not exists {{ incremental_manifest_table }}
-    (
-    {% for column in required_columns %}
-        {{ column[0] }} {{ column[1] }}{% if not loop.last %},{% endif %}
-    {% endfor %}
-    );
-    commit;
+    {{ snowplow_utils.create_table_sql(incremental_manifest_table, required_columns) }}
 
   {%- endif -%}
 

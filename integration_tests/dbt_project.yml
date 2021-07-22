@@ -78,3 +78,17 @@ seeds:
           +column_types:
             id: integer
             start_tstamp: timestamp
+
+    cross_db_utils:
+      data_alter_table_sql_expected:
+        +column_types:
+          last_success: timestamp
+          description: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+      data_create_table_sql_expected:
+        +column_types:
+          model: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+          id: integer
+          last_success: timestamp
+          description: "{{ 'string' if target.type == 'bigquery' else 'varchar' }}"
+
+

@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: test_alter_table_sql
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('data_alter_table_sql_expected')
+  - name: test_create_table_sql
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('data_create_table_sql_expected')
+
