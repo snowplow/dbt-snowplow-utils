@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: test_app_id_filter
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_app_id_filter')
