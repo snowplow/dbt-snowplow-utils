@@ -51,3 +51,30 @@ seeds:
           last_success: timestamp
           collector_tstamp: timestamp
           expected_last_success: timestamp
+
+    materializations:
+      data_snowplow_incremental:
+        +column_types:
+          run: integer
+          id: integer
+          start_tstamp: timestamp
+      redshift:
+        enabled: "{{ target.type == 'redshift' | as_bool() }}"
+        data_snowplow_incremental_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+        data_snowplow_incremental_w_lookback_disabled_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+      bigquery:
+        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+        data_snowplow_incremental_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+        data_snowplow_incremental_w_lookback_disabled_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp

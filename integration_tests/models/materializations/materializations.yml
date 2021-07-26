@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: test_snowplow_incremental
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('data_snowplow_incremental_expected')
+  - name: test_snowplow_incremental_w_lookback_disabled
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('data_snowplow_incremental_w_lookback_disabled_expected')
+
