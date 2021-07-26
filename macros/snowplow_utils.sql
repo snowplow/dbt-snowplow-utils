@@ -6,11 +6,11 @@
 {% endmacro %}
 
 {# Filters on app_id if provided #}
-{% macro app_id_filter() %}
+{% macro app_id_filter(app_ids) %}
 
-  {%- if var('snowplow__app_id', [])|length -%} 
+  {%- if app_ids|length -%} 
 
-    app_id in ({{ snowplow_utils.print_list(var('snowplow__app_id', [])) }}) --filter on app_id if provided
+    app_id in ('{{ app_ids|join("','") }}') --filter on app_id if provided
 
   {%- else -%}
 
