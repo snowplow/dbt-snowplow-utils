@@ -1,8 +1,6 @@
-[![early-release]][tracker-classificiation]
-[![License][license-image]][license]
-[![Discourse posts][discourse-image]][discourse]
+[![early-release]][tracker-classificiation] [![License][license-image]][license] [![Discourse posts][discourse-image]][discourse]
 
-![snowplow-logo](assets/snowplow_logo.png)
+![snowplow-logo](https://raw.githubusercontent.com/snowplow/dbt-snowplow-utils/main/assets/snowplow_logo.png)
 # snowplow-utils
 
 To be used in conjunction with the [snowplow-web package][snowplow-web].
