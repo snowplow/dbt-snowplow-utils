@@ -1,3 +1,8 @@
-snowplow-utils (2021-07-26)
+snowplow-utils 0.1.1 (2021-07-26)
+---------------------------------------
+Fix app_id_filter macro (Close #4)
+Fix README formatting for dbt hub (Close #3)
+
+snowplow-utils 0.1.0 (2021-07-26)
 ---------------------------------------
 Add snowplow-utils v0.1.0 (Close #2)
