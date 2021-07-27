@@ -10,7 +10,7 @@
 
   {%- if var('snowplow__app_id', [])|length -%} 
 
-    app_id in ({{ snowplow_utils.print_list(app_id_list) }}) --filter on app_id if provided
+    app_id in ({{ snowplow_utils.print_list(var('snowplow__app_id', [])) }}) --filter on app_id if provided
 
   {%- else -%}
 
