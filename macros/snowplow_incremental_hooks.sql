@@ -240,11 +240,16 @@
 
 {# Returns an array of enabled models tagged with snowplow_web_incremental using dbts graph object. 
    Throws an error if untagged models are found that depend on the base_events_this_run model#}
-{% macro get_enabled_snowplow_models(package_name) -%}
+{% macro get_enabled_snowplow_models(package_name, graph_object=none, models_to_run=var("models_to_run","")) -%}
   
-  {# If models_to_run var passed as part of a job, convert space seperated list of models to list and set to selected_models #}
-  {% if var("models_to_run","")|length %}
-    {% set selected_models = var("models_to_run","").split(" ") %}
+  {# Override dbt graph object if graph_object is passed. Testing purposes #}
+  {% if graph_object is not none %}
+    {% set graph = graph_object %}
+  {% endif %}
+  
+  {# models_to_run optionally passed using dbt ls command. This returns a string of models to be run. Split into list #}
+  {% if models_to_run|length %}
+    {% set selected_models = models_to_run.split(" ") %}
   {% else %}
     {% set selected_models = none %}
   {% endif %}
@@ -283,7 +288,6 @@
       Prints warning for models that reference snowplow_base_events_this_run but are untagged as 'snowplow_web_incremental'
       Without this tagging these models will not be inserted into the manifest, breaking the incremental logic.
       Only catches first degree dependencies rather than all downstream models
-      This could be an error rather than warning?!
     #}
       {%- do exceptions.raise_compiler_error("Snowplow Warning: Untagged models referencing '"+package_name+"_base_events_this_run'. Please refer to the Snowplow docs on tagging. " 
       + "Models: "+ ', '.join(untagged_snowplow_models)) -%}
