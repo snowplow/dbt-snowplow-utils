@@ -81,13 +81,17 @@
 {# Drops the input table #}
 {% macro snowplow_destroy_table(table) %}
 
-  {% set table_name_str = table.include(database=false)|string %}
+  {% set table_relation = adapter.get_relation(table.database,
+                                               table.schema,
+                                               table.name) %}
 
-  {% do adapter.drop_relation(table) %}
+  {% if table_relation %}
 
-  {% if execute %}
+    {% set table_name_str = table.include(database=false)|string %}
 
-    {% do  snowplow_utils.log_message("Snowplow: Dropped table: "+table_name_str) %}
+    {% do adapter.drop_relation(table_relation) %}
+
+    {% do snowplow_utils.log_message("Snowplow: Dropped table: "+table_name_str) %}
 
   {% endif %}
 
@@ -97,30 +101,15 @@
 {% macro snowplow_teardown_all(package_name) %}
 
   {# Using ref to identify correct schema #}
-  {%- set base_sessions_lifecycle_ref = ref(package_name+'_base_sessions_lifecycle_manifest') -%}
-
-  {%- set base_sessions_lifecycle_relation = adapter.get_relation(base_sessions_lifecycle_ref.database,
-                                                                  base_sessions_lifecycle_ref.schema,
-                                                                  base_sessions_lifecycle_ref.name) -%}
-
-  {%- set user_manifest_ref = ref(package_name+'_users_manifest') -%}
-
-  {%- set user_manifest_relation = adapter.get_relation(user_manifest_ref.database,
-                                                        user_manifest_ref.schema,
-                                                        user_manifest_ref.name) -%}
-  
+  {%- set base_sessions_lifecycle = ref(package_name+'_base_sessions_lifecycle_manifest') -%}
 
   {%- set tables_to_drop = [snowplow_utils.get_incremental_manifest_table_relation(package_name),
                             snowplow_utils.get_current_incremental_tstamp_table_relation(package_name),
-                            base_sessions_lifecycle_relation,
-                            user_manifest_relation] -%}
+                            base_sessions_lifecycle] -%}
 
   {%- for table in tables_to_drop -%}
-    {%- if table is not none -%}
-      {# If initial run base_sessions_lifecycle doesn't exist i.e. table is none #}
-      {{ snowplow_utils.snowplow_destroy_table(table) }}
-    {%- endif -%}
-{% endfor -%}
+    {{ snowplow_utils.snowplow_destroy_table(table) }}
+  {% endfor -%}
 
 {% endmacro %}
 
