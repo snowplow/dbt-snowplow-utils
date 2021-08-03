@@ -300,26 +300,26 @@
 
 {%- endmacro %}
 
-{# Returns an array of successfully executed models tagged with snowplow_web_incremental #}
-{% macro get_successful_snowplow_models(package_name) -%}
+{# Returns an array of successfully executed models by name #}
+{% macro get_successful_models(models=[], run_results=results) -%}
 
-  {% set enabled_snowplow_models = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
-
-  {% set successful_snowplow_models = [] %}
+  {% set successful_models = [] %}
 
   {% if execute %}
 
-    {% for res in results -%}
+    {% for res in run_results -%}
+
+      {% set is_model_to_include = true if not models|length or res.node.name in models else false %}
     
-      {% if res.status == 'success' and res.node.name in enabled_snowplow_models  %}
+      {% if res.status == 'success' and is_model_to_include  %}
     
-        {%- do successful_snowplow_models.append(res.node.name) -%}
+        {%- do successful_models.append(res.node.name) -%}
 
       {% endif %}
       
     {% endfor %}
 
-    {{ return(successful_snowplow_models) }}
+    {{ return(successful_models) }}
 
   {% endif %}
 
@@ -445,8 +445,10 @@
 
 {# post-hook for incremental runs #}
 {% macro snowplow_incremental_post_hook(package_name) %}
+  
+  {% set enabled_snowplow_models = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
 
-  {% set successful_snowplow_models = snowplow_utils.get_successful_snowplow_models(package_name) -%}
+  {% set successful_snowplow_models = snowplow_utils.get_successful_models(models=enabled_snowplow_models) -%}
 
   {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
 
