@@ -3,6 +3,8 @@
    2 - Find subset of enabled and tagged models using the dbt ls command. Performed via bash script
    3 - Test error message for untagged models. Performed by changing 'tag_var' via bash script. #}
 
+{{ config(tags=["requires_script"]) }}
+
 {% set dummy_graph={
     'nodes':
     {

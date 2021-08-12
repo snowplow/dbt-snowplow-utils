@@ -2,7 +2,8 @@
 -- Easier to construct RECORDs in sql than string in csv.
 -- BQ Only 
 
-{{ config(enabled= target.type == 'bigquery' | as_bool() )}}
+{{ config(enabled=(target.type == 'bigquery' | as_bool()),
+          tags=["requires_script"] )}}
 
 
 with data as (

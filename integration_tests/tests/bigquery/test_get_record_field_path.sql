@@ -1,3 +1,5 @@
+{{ config(enabled=(target.type == 'bigquery' | as_bool()) )}}
+
 {# TODO: Add test for compiler error when column is not of dtype record
          Improve test by query table containing records to validate paths actually execute #}
 
