@@ -1,6 +1,7 @@
 -- BQ Only 
 {{ config(enabled=(target.type == 'bigquery' | as_bool()),
-          materialized='table')
+          materialized='table',
+          tags=["requires_script"])
 }}
 
 

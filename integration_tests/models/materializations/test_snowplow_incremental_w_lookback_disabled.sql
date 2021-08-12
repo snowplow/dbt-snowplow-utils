@@ -13,6 +13,7 @@
       "data_type": "timestamp",
       "granularity": "day"
     },
+    tags=["requires_script"]
   ) 
 }}
 
