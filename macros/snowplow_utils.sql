@@ -114,7 +114,7 @@
 {% endmacro %}
 
 {# Deletes specified models from the incremental_manifest table #}
-{% macro snowplow_delete_from_manifest(package_name, models) %}
+{% macro snowplow_delete_from_manifest(package_name, models, incremental_manifest_table=none) %}
 
   {% if not execute %}
     {{ return(False) }}
@@ -123,8 +123,11 @@
   {%- if models is string -%}
     {%- set models = [models] -%}
   {%- endif -%}
-    
-  {%- set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+
+  {# incremental_manifest_table karg allows for testing #}
+  {% if incremental_manifest_table is none %}
+    {%- set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+  {% endif %}
 
   {%- set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
                                                                   incremental_manifest_table.schema,
@@ -152,6 +155,8 @@
   {%- endif -%}
 
   {% set delete_statement %}
+    -- We don't need transaction but Redshift needs commit statement while BQ does not. By using transaction we cover both.
+    begin;
     delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
     commit;
   {% endset %}
