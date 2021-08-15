@@ -40,11 +40,12 @@
 
     {# base_sessions_lifecycle not included in manifest so query directly. Otherwise use the manifest for performance #}
     {%- if node_identifier == base_sessions_lifecycle_identifier -%}
-
+      {#Technically should be max(end_tstsamp) but table is partitioned on start_tstamp so cheaper to use.
+        Worst case we update the manifest during a backfill when we dont need to, which should be v rare. #}
       {% set has_been_processed_query %}
         select 
           case when 
-            (select upper_limit from {{ snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) }}) <= (select max(end_tstamp) from {{this}}) 
+            (select upper_limit from {{ snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) }}) <= (select max(start_tstamp) from {{this}}) 
           then false 
         else true end
       {% endset %}
