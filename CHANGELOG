@@ -1,3 +1,21 @@
+snowplow-utils 0.2.0 (2021-08-20)
+---------------------------------------
+Update READMEs (Close #21)
+Update dbt_utils URL to new dbt-labs repo (Close #20)
+Improve is_run_with_new_events performance (Close #19)
+Refactor & add tests snowplow_delete_from_manifest (Close #18)
+Refactor create_incremental_manifest_table (Close #17)
+Add integrations_tests script (Close #16)
+Replace get_successful_snowplow_models (Close #15)
+Fix snowplow_teardown_all macro (Close #14)
+Refactor & add tests get_enabled_snowplow_models (Close #13)
+Remove update_current_incremental_tstamp_table (Close #12)
+Add BigQuery support to snowplow_incremental (Close #7)
+Refactor & add tests app_id_filter (Close #11)
+Refactor & add tests update_incremental_manifest_table (Close #10)
+Refactor & add tests get_run_limits (Close #9)
+Add functionality to support BigQuery (Close #8)
+
 snowplow-utils 0.1.1 (2021-07-26)
 ---------------------------------------
 Fix app_id_filter macro (Close #4)
