@@ -3,10 +3,16 @@
 {%- endset -%}
 
 {# fetch test data set as dict. dict form {column_name: (tuple_of_results) #}
-{%- set test_data = dbt_utils.get_query_results_as_dict(data_query) -%}
+{%- set raw_test_data = dbt_utils.get_query_results_as_dict(data_query) -%}
+
+{# Snowflake returns keys as uppercase. Iterate and set to lowercase #}
+{% set test_data = {} %}
+{% for key, value in raw_test_data.items() %}
+  {% do test_data.update({key.lower(): value}) %}
+{% endfor %}
 
 {% for i in range(test_data.min_last_success|length) %}
-
+  
   {# iteratively pass each row of test data into get_run_limits() and execute returned query #}
   {%- set results = run_query(snowplow_utils.get_run_limits(test_data.min_last_success[i],
                                                            test_data.max_last_success[i], 

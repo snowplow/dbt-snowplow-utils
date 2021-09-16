@@ -7,6 +7,9 @@
   {% endif %}
 
   {%- set columns = adapter.get_columns_in_relation(relation) -%}
+  
+  {# get_columns_in_relation returns uppercase cols for snowflake so uppercase column_prefix #}
+  {%- set column_prefix = column_prefix.upper() if target.type == 'snowflake' else column_prefix -%}
 
   {%- set matched_columns = [] -%}
 

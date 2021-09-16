@@ -306,24 +306,28 @@
 
     {% set last_success_query %}
       select 
-        model, 
-        last_success 
+        b.model, 
+        a.last_success 
 
       from 
-        (select max(collector_tstamp) as last_success from {{ base_events_table }}),
-        ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %})
+        (select max(collector_tstamp) as last_success from {{ base_events_table }}) a,
+        ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
-      where last_success is not null -- if run contains no data don't add to manifest
+      where a.last_success is not null -- if run contains no data don't add to manifest
     {% endset %}
 
-    merge {{ manifest_table }} m
+    merge into {{ manifest_table }} m
     using ( {{ last_success_query }} ) s
     on m.model = s.model
     when matched then
         update set last_success = greatest(m.last_success, s.last_success)
     when not matched then
-        insert (model, last_success) values(model, last_success)
+        insert (model, last_success) values(model, last_success);
 
+    {% if target.type == 'snowflake' %}
+      commit;
+    {% endif %}
+    
   {% endif %}
 
 {%- endmacro %}
