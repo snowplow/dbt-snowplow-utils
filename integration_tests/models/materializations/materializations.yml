@@ -3,10 +3,15 @@ version: 2
 models:
   - name: test_snowplow_incremental
     tests:
+      # equality uses distinct operator therefore dedupes so also add row count check.
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('data_snowplow_incremental_expected')
       - dbt_utils.equality:
           compare_model: ref('data_snowplow_incremental_expected')
   - name: test_snowplow_incremental_w_lookback_disabled
     tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('data_snowplow_incremental_w_lookback_disabled_expected')
       - dbt_utils.equality:
           compare_model: ref('data_snowplow_incremental_w_lookback_disabled_expected')
 
