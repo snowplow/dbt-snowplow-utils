@@ -66,7 +66,9 @@
     {% set results = run_query(has_been_processed_query) %}
 
     {% if execute %}
-      {% set has_new_events = results.columns[0].values()[0] %}
+      {% set has_new_events = results.columns[0].values()[0] | as_bool() %}
+      {# Snowflake: dbt 0.18 returns bools as ints. Ints are not accepted as predicates in Snowflake. Cast to be safe. #}
+      {% set has_new_events = 'cast('~has_new_events~' as boolean)' %}
     {% endif %}
 
   {% else %}

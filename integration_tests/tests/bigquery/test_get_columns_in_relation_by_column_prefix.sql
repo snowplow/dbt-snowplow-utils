@@ -10,7 +10,12 @@
 	{% do actual_match_column_names.append(col.name) %}
 {% endfor %}
 
-{% set expected_matched_column_names = ['a_1','a_2','a_3'] %}
+{# Snowflake cols returned as uppercase #}
+{% if target.type == 'snowflake' %}
+	{% set expected_matched_column_names = ['A_1','A_2','A_3'] %}
+{% else %}
+	{% set expected_matched_column_names = ['a_1','a_2','a_3'] %}
+{% endif %}
 
 {% if actual_match_column_names == expected_matched_column_names %}
 	select 1 limit 0 -- Test passes if no rows returned
