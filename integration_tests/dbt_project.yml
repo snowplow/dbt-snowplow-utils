@@ -20,6 +20,10 @@ clean-targets:
 models:
   snowplow_utils_integration_tests:
     +schema: "snowplow_int_tests"
+    materializations:
+      snowflake_delete_insert:
+        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+
 
 
 seeds:
@@ -78,6 +82,8 @@ seeds:
           +column_types:
             id: integer
             start_tstamp: timestamp
+      snowflake:
+        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
 
     cross_db_utils:
       data_alter_table_sql_expected:

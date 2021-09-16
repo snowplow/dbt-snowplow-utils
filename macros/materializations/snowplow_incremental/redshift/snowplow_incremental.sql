@@ -1,10 +1,12 @@
-
 {% materialization snowplow_incremental, default -%}
 
-  {% set unique_key = config.get('unique_key') %}
-  {% set upsert_date_key = config.get('upsert_date_key') %}
-  {% set disable_upsert_lookback = config.get('disable_upsert_lookback') %}
   {% set full_refresh_mode = flags.FULL_REFRESH %}
+
+  {# Required keys. Throws error if not present #}
+  {%- set unique_key = config.require('unique_key') -%}
+  {%- set upsert_date_key = config.require('upsert_date_key') -%}
+  
+  {% set disable_upsert_lookback = config.get('disable_upsert_lookback') %}
 
   {% set target_relation = this %}
   {% set existing_relation = load_relation(this) %}
@@ -33,11 +35,14 @@
       {% do adapter.expand_target_column_types(
              from_relation=tmp_relation,
              to_relation=target_relation) %}
-      {% set build_sql = snowplow_utils.snowplow_incremental_upsert(tmp_relation,
+      {%- set dest_columns = adapter.get_columns_in_relation(target_relation) -%}
+      {% set build_sql = snowplow_utils.snowplow_delete_insert(
+                                                     tmp_relation,
                                                      target_relation,
-                                                     unique_key=unique_key,
-                                                     upsert_date_key=upsert_date_key,
-                                                     disable_upsert_lookback=disable_upsert_lookback) %}
+                                                     unique_key,
+                                                     upsert_date_key,
+                                                     dest_columns,
+                                                     disable_upsert_lookback) %}
   {% endif %}
 
   {% call statement("main") %}
@@ -58,36 +63,3 @@
   {{ return({'relations': [target_relation]}) }}
 
 {%- endmaterialization %}
-
-
-{% macro snowplow_incremental_upsert(tmp_relation, target_relation, unique_key=none, upsert_date_key=none, disable_upsert_lookback=none, statement_name="main") %}
-    {%- set dest_columns = adapter.get_columns_in_relation(target_relation) -%}
-    {%- set dest_cols_csv = dest_columns | map(attribute='quoted') | join(', ') -%}
-
-    {%- if unique_key is not none and upsert_date_key is not none -%}
-    delete
-    from {{ target_relation }}
-    where ({{ unique_key }}) in (
-        select ({{ unique_key }})
-        from {{ tmp_relation }}
-    )
-    and {{ upsert_date_key }} >=
-
-    {%- if disable_upsert_lookback -%} 
-      (select min({{ upsert_date_key }}) as lower_limit from {{ tmp_relation }} );
-    {%- else -%}
-      (select 
-        {{ dbt_utils.dateadd(datepart='day',
-                             interval= -var("snowplow__upsert_lookback_days", 30),
-                             from_date_or_timestamp="min("+upsert_date_key+")") }} as lower_limit
-       from {{ tmp_relation }} );
-    {%- endif %}
-
-    {%- endif %}
-
-    insert into {{ target_relation }} ({{ dest_cols_csv }})
-    (
-       select {{ dest_cols_csv }}
-       from {{ tmp_relation }}
-    );
-{%- endmacro %}
