@@ -64,8 +64,8 @@ seeds:
           run: integer
           id: integer
           start_tstamp: timestamp
-      redshift:
-        enabled: "{{ target.type == 'redshift' | as_bool() }}"
+      default:
+        enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
         data_snowplow_incremental_expected:
           +column_types:
             id: integer

@@ -338,7 +338,7 @@
 {%- endmacro %}
 
 
-{% macro redshift__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
+{% macro postgres__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
   {% if models %}
 
@@ -352,13 +352,13 @@
 
         from (
 
-          select 
-            model, 
-            last_success 
+          select
+            model,
+            last_success
 
-          from 
-            (select max(collector_tstamp) as last_success from {{ base_events_table }}),
-            ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %})
+          from
+            (select max(collector_tstamp) as last_success from {{ base_events_table }}) as ls,
+            ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) as mod
 
           where last_success is not null -- if run contains no data don't add to manifest
 
