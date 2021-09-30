@@ -84,8 +84,21 @@ seeds:
           +column_types:
             id: integer
             start_tstamp: timestamp
+<<<<<<< HEAD
       snowflake:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+=======
+      postgres:
+        enabled: "{{ target.type == 'postgres' | as_bool() }}"
+        data_snowplow_incremental_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+        data_snowplow_incremental_w_lookback_disabled_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+>>>>>>> 42de037... add support for postgres
 
     cross_db_utils:
       data_alter_table_sql_expected:

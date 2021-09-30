@@ -18,6 +18,14 @@ create table {{ dest_table }} as ( {{ as_query }} );
 
 {%- endmacro %}
 
+{% macro postgres__create_table_as_sql(dest_table, as_query, replace) -%}
+{% if replace %}
+drop table if exists {{ dest_table }};
+{% endif %}
+create table {{ dest_table }} as ( {{ as_query }} );
+
+{%- endmacro %}
+
 
 {# Given a set of required columns, returns the missing columns in relation
    TODO: Add warning if column order of required columns will not be preserved #}

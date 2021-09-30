@@ -1,5 +1,5 @@
-{# Tests both RS (delete/insert) and BQ/Snowflake (merge) snowplow_incremental materialization 
-   upsert_date_key: RS only. Key used to limit the table scan
+{# Tests both RS, PG (delete/insert) and BQ/Snowflake (merge) snowplow_incremental materialization 
+   upsert_date_key: RS, PG only. Key used to limit the table scan
    partition_by: BQ only. Key used to limit table scan
    TODO: Add tests that change the granularity of the partition #}
 
