@@ -1,0 +1,5 @@
+version: 2
+
+models:
+  - name: fail_model
+    description: The models in this dir are dummy models to be used to test get_successful_models macro
