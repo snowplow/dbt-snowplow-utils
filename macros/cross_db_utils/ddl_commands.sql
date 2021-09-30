@@ -10,7 +10,8 @@ create {% if replace %} or replace {% endif %} table {{ dest_table }} as {{ as_q
 
 {%- endmacro %}
 
-{% macro redshift__create_table_as_sql(dest_table, as_query, replace) -%}
+
+{% macro postgres__create_table_as_sql(dest_table, as_query, replace) -%}
 {% if replace %}
 drop table if exists {{ dest_table }};
 {% endif %}
