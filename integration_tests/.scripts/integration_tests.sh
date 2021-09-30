@@ -39,6 +39,10 @@ for db in ${DATABASES[@]}; do
 
   echo "Snowplow utils integration tests: Run script based tests"
 
+  echo "Snowplow-utils integration tests: Testing get_successful_models"
+
+  bash test_get_successful_models.sh -d $db || exit 1;
+
   echo "Snowplow-utils integration tests: Testing materializations"
 
   bash test_materializations.sh -d $db -s false || exit 1; # don't re-seed
