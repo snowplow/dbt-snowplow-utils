@@ -1,26 +1,54 @@
 [![early-release]][tracker-classificiation] [![License][license-image]][license] [![Discourse posts][discourse-image]][discourse]
 
 ![snowplow-logo](https://raw.githubusercontent.com/snowplow/dbt-snowplow-utils/main/assets/snowplow_logo.png)
+
 # snowplow-utils
 
 To be used in conjunction with the [snowplow-web package][snowplow-web].
 
 Includes:
-- Custom incremental materialization, 'snowplow_incremental'.
+
+- Custom incremental materialization, `snowplow_incremental`.
+- Utils to assist with modeling Snowplow data.
 - Pre and post hooks to handle incremental processing of events.
 - Various helper macros used throughout the snowplow-web package.
 
+## Contents
+
+**[Macros](#macros)**
+
+- [get_columns_in_relation_by_column_prefix](#get_columns_in_relation_by_column_prefix-source)
+- [combine_column_versions](#combine_column_versions-source)
+- [is_run_with_new_events](#is_run_with_new_events-source)
+- [snowplow_delete_from_manifest](#snowplow_delete_from_manifest-source)
+- [snowplow_teardown_all](#snowplow_teardown_all-source)
+- [get_value_by_target](#get_value_by_target-source)
+- [n_timedeltas_ago](#n_timedeltas_ago-source)
+
+**[Materializations](#materializations)**
+
+- [snowplow_incremental](#snowplow_incremental)
+  - [Redshift](#redshift-source)
+  - [BigQuery](#bigquery-source)
+  - [Snowflake](#snowflake-source)
+
 ## Macros
-There are many macros contained in this package, with the majority designed for use internally at Snowplow. There are however a selection that were intended for public use and that can assist you in modelling Snowplow data. The documentation for these macros can be found below.
+
+There are many macros contained in this package, with the majority designed for use internally at Snowplow.
+
+There are however a selection that were intended for public use and that can assist you in modelling Snowplow data. The documentation for these macros can be found below.
 
 ### get_columns_in_relation_by_column_prefix ([source](macros/bigquery/combine_column_versions.sql))
+
 This macro returns an array of column names within a relation that start with the given column prefix. This is useful when you have multiple versions of a column within a table and want to dynamically identify all versions.
 
-Arguments:
- - `relation`: The relation from which to search for matching columns.
- - `column_prefix`: The column prefix to search for.
+**Arguments:**
 
-Usage:
+- `relation`: The relation from which to search for matching columns.
+- `column_prefix`: The column prefix to search for.
+
+**Usage:**
+
 ```sql
 {% set matched_columns = snowplow_utils.get_columns_in_relation_by_column_prefix(
                           relation=ref('snowplow_web_base_events_this_run'),
@@ -32,28 +60,34 @@ Usage:
 # Renders to something like:
 ['custom_context_1_0_1','custom_context_1_0_2','custom_context_1_0_3']
 ```
-The order of the matched columns is donated by their ordinal position. 
+
+The order of the matched columns is donated by their ordinal position.
 
 ### combine_column_versions ([source](macros/bigquery/combine_column_versions.sql))
-*BigQuery Only.* This macro is designed for primarily for combining versions of custom context or an unstructured event column from the Snowplow events table in BigQuery. 
+
+*BigQuery Only.* This macro is designed primarily for combining versions of custom context or an unstructured event column from the Snowplow events table in BigQuery.
 
 As your schemas for such columns evolve, multiple versions of the same column will be created in your events table e.g. `custom_context_1_0_0`, `custom_context_1_0_1`. These columns contain nested fields i.e. are of a datatype `RECORD`. When modeling Snowplow data it can be useful to combine or coalesce each nested field across all versions of the column for a continuous view over time.
 
-Note: 
-- Only first level fields are un-nested and combined by this macro i.e. any nested `RECORD` columns will not be unpacked.
-- If the `RECORD` column is of the mode `REPEATED`, only the first element in the array will be used.
+- Only first level fields are un-nested and combined by this macro i.e. any
+nested `RECORD` columns will not be unpacked.
+- If the `RECORD` column is of the mode `REPEATED`, only the first element in
+the array will be used.
 
-Arguments:
+**Arguments:**
+
 - `relation`: The relation from which to search for matching columns.
 - `column_prefix`: The column prefix to search for.
 - `source_fields`: Optional. The subset of fields within the column to return.
 - `renamed_fields`: Optional. An array of names to rename the `source_fields` to. If you pass this arg you must also pass the `source_fields` arg. They must be of the same length and order.
-- `relation_alias`: Optional. The relation's assigned alias. If passed, this will be appended to the full path for each field. For example, if `relation_alias=a`, the full path would be `a.col_1.field_1`. This can be useful when you have multiple relations within your model with the same columns. 
+- `relation_alias`: Optional. The relation's assigned alias. If passed, this will be appended to the full path for each field. For example, if `relation_alias=a`, the full path would be `a.col_1.field_1`. This can be useful when you have multiple relations within your model with the same columns.
 
-Returns:
+**Returns:**
+
 - An array, with each item being a string of coalesced paths to a field across each version of the column. The order of the coalesce is determined by the version of the column, with the latest taking precedent.
 
-Usage:
+**Usage:**
+
 ```sql
 {%- set combined_fields = snowplow_utils.combine_column_versions(
                                 relation=ref('snowplow_web_base_events_this_run'),
@@ -78,15 +112,21 @@ from {{ ref('snowplow_web_base_events_this_run') }}
 ```
 
 ### is_run_with_new_events ([source](macros/snowplow_utils.sql))
-This macro is designed for use with Snowplow data modelling packages like snowplow-web. It can be used in any incremental models, to effectively block the incremental model from being updated with old data which it has already consumed. This saves cost as well as preventing historical data from being overwritten with partially complete data (due to a batch back-fill for instance). The macro utilizes the `snowplow_web_incremental_manifest` table to determine whether the model from which the macro is called, i.e. `{{ this }}`, has already consumed the data in the given run. If it has, it returns `false`. If the data in the run contains new data, `true` is returned.
 
-Arguments:
+This macro is designed for use with Snowplow data modelling packages like `snowplow-web`. It can be used in any incremental models, to effectively block the incremental model from being updated with old data which it has already consumed. This saves cost as well as preventing historical data from being overwritten with partially complete data (due to a batch back-fill for instance).
+
+The macro utilizes the `snowplow_web_incremental_manifest` table to determine whether the model from which the macro is called, i.e. `{{ this }}`, has already consumed the data in the given run. If it has, it returns `false`. If the data in the run contains new data, `true` is returned.
+
+**Arguments:**
+
 - `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
 
-Returns:
+**Returns:**
+
 - Boolean. `true` if the run contains new events previously not consumed by `this`, `false` otherwise.
 
-Usage:
+**Usage:**
+
 ```sql
 {{ 
   config(
@@ -97,20 +137,25 @@ Usage:
 }}
 
 select
-	...
+  ...
 
 from {{ ref('snowplow_web_base_events_this_run' ) }}
 where {{ snowplow_utils.is_run_with_new_events('snowplow_web') }} --returns false if run doesn't contain new events.
 ```
 
 ### snowplow_delete_from_manifest ([source](macros/snowplow_utils.sql))
-The snowplow-web package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model. This can be performed as part of the run-start operation of the snowplow-web package, as described in the [docs][snowplow-web-docs]. You can however perform this operation independently using the `snowplow_delete_from_manifest` macro.
 
-Arguments:
+The `snowplow-web` package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model. 
+
+This can be performed as part of the run-start operation of the snowplow-web package, as described in the [docs][snowplow-web-docs]. You can however perform this operation independently using the `snowplow_delete_from_manifest` macro.
+
+**Arguments:**
+
 - `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
 - `models`: Either an array of models to delete, or a string for a single model.
 
-Usage:
+**Usage:**
+
 ```bash
 dbt run-operation snowplow_delete_from_manifest --args "{package_name: snowplow_web, models: ['snowplow_web_page_views','snowplow_web_sessions']}"
 # or
@@ -118,7 +163,9 @@ dbt run-operation snowplow_delete_from_manifest --args "{package_name: snowplow_
 ```
 
 ### snowplow_teardown_all ([source](macros/snowplow_utils.sql))
+
 This macro will drop all the manifest tables and run limit tables used by the snowplow-web package. These include:
+
 - `snowplow_manifest.snowplow_web_incremental_manifest`
 - `snowplow_manifest.snowplow_web_current_incremental_tstamp`
 - `snowplow_manifest.snowplow_web_base_sessions_lifecycle_manifest`
@@ -127,15 +174,76 @@ This macro is optionally executed as part of the run-start operation of the snow
 
 **Note: Use with caution. The information in these manifests is critical for the snowplow-web package to operate**
 
-Arguments:
+**Arguments:**
+
 - `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
 
-Usage:
+**Usage:**
+
 ```bash
 dbt run-operation snowplow_teardown_all --args "{package_name: snowplow_web}"
 ```
 
+### get_value_by_target ([source](macros/utils/get_value_by_target.sql))
+
+This macro is designed to dynamically return values based on the target (`target.name`) you are running against. Your target names are defined in your [profiles.yml](https://docs.getdbt.com/reference/profiles.yml) file. This can be useful for dynamically changing variables within your project, depending on whether you are running in dev or prod.
+
+**Arguments:**
+
+- `dev_value`: The value to be returned if running against your dev target, as defined by `dev_target_name`.
+- `default_value`: The default value to return, if not running against your dev target.
+- `dev_target_name`: Default: `dev`. The name of your dev target as defined in your `profiles.yml` file.
+
+**Usage:**
+
+```yml
+# dbt_project.yml
+...
+vars:
+  snowplow_web:
+    snowplow__backfill_limit_days: "{{ snowplow_utils.get_value_by_target(dev_value=1, default_value=30, dev_target_name='dev') }}"
+```
+
+**Returns:**
+
+- `dev_value` if running against your dev target, otherwise `default_value`.
+
+### n_timedeltas_ago ([source](macros/utils/n_timedeltas_ago.sql))
+
+This macro takes the current timestamp and subtracts `n` units, as defined by the `timedelta_attribute`, from it. This is achieved using the Python datetime module, rather than querying your database.
+
+**Arguments:**
+
+- `n`: The number of timedeltas to subtract from the current timestamp.
+- `timedelta_attribute`: The type of units to subtract. This can be any valid attribute of the [timedelta](https://docs.python.org/3/library/datetime.html#timedelta-objects) object.
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.n_timedeltas_ago(1, 'weeks') }}
+```
+
+**Returns:**
+
+- Current timestamp minus `n` units.
+
+By combining this with the `get_value_by_target` macro, you can dynamically set dates depending on your environment:
+
+```yml
+# dbt_project.yml
+...
+vars:
+  snowplow_web:
+    snowplow__start_date: "{{ snowplow_utils.get_value_by_target(
+                                      dev_value=snowplow_utils.n_timedeltas_ago(1, 'weeks'),
+                                      default_value='2020-01-01', 
+                                      dev_target_name='dev') }}"
+```
+
 ## Materializations
+
+### snowplow_incremental
+
 This package provides a custom incremental materialization, `snowplow_incremental`. This builds upon the out-of-the-box incremental materialization provided by dbt, by limiting the length of the table scans on the destination table. This improves both performance and reduces cost. The following methodology is used to calculate the limit of the table scan:
 
 - The minimum date is found in the `tmp_relation`, based on the `upsert_date_key`
@@ -145,31 +253,41 @@ This package provides a custom incremental materialization, `snowplow_incrementa
 As is the case with the native dbt incremental materialization, the strategy varies between adapters.
 
 ### Redshift ([source](macros/materializations/snowplow_incremental/redshift/snowplow_incremental.sql))
+
 Like the native materialization, the `snowplow_incremental` materialization strategy is delete and insert however a limit has been imposed on how far to scan the destination table in order to improve performance:
 
 ```sql
+with vars as (
+  select 
+    dateadd('day', -{{ snowplow__upsert_lookback_days }}, min({{ upsert_date_key }})) as lower_limit,
+    max(upsert_date_key) as upper_limit
+  from {{ tmp_relation }}
+)
+
 delete
 from {{ destination_table }}
 where {{ unique_key }} in (select {{ unique_key }} from {{ tmp_relation }})
-and {{ upsert_date_key }} >= (select dateadd('day', -{{ snowplow__upsert_lookback_days }}, min({{ upsert_date_key }})) as lower_limit from {{ tmp_relation }});
+and {{ upsert_date_key }} between (select lower_limit from vars) and (select upper_limit from vars);
 
 insert into {{ destination_table }}
 (select * from {{ tmp_relation }});
 ```
 
-This materialization can be implemented as follows:
+**Usage:**
+
 ```sql
 {{ 
   config(
     materialized='snowplow_incremental',
-    unique_key='page_veiw_id', # The primary key of your model
-    upsert_date_key='start_tstamp', # The date key to be used for the look back
+    unique_key='page_veiw_id', # Required: the primary key of your model
+    upsert_date_key='start_tstamp' # Required: The date key to be used to calculate the limits
     disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
   ) 
 }}
 ```
 
 ### BigQuery ([source](macros/materializations/snowplow_incremental/bigquery/snowplow_incremental.sql))
+
 Like the native materialization, the `snowplow_incremental` materialization strategy is [merge](https://docs.getdbt.com/reference/resource-configs/bigquery-configs#the-merge-strategy) however limits are calculated to allow for partition pruning on the destination table saving cost:
 
 ```sql
@@ -205,26 +323,57 @@ when matched then update ...
 when not matched then insert ...
 ```
 
-This materialization can be implemented as follows:
+**Usage:**
+
 ```sql
 {{ 
   config(
     materialized='snowplow_incremental',
-    unique_key='page_view_id', # The primary key of your model
+    unique_key='page_view_id', # Required: the primary key of your model
     partition_by = {
       "field": "start_tstamp",
       "data_type": "timestamp",
-      "granularity": "day"
-    }, # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
+      "granularity": "day" # Only introduced in dbt v0.19.0+. Defaults to 'day' for dbt v0.18 or earlier
+    } # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
     disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
   ) 
 }}
 ```
+
 **Note you must provide the `partition_by` clause to use this materialization. All `data_types` are supported except `int64`.**
 
-### Notes 
+### Snowflake ([source](macros/materializations/snowplow_incremental/snowflake/snowplow_incremental.sql))
+
+Like the native materialization, the `snowplow_incremental` materialization's default strategy is [merge][dbt-snowflake-merge-strategy], however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in a similar fashion to BigQuery as outlined above.
+
+**Usage:**
+
+```sql
+{{ 
+  config(
+    materialized='snowplow_incremental',
+    unique_key='page_view_id', # Required: the primary key of your model
+    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
+    cluster_by='to_date(start_tstamp)' # Optional.
+  ) 
+}}
+```
+
+If you have duplicates in your source table, you may find that the merge command returns an error. This is because duplicates produce non-deterministic results as outlined in [Snowflake's docs][snowflake-merge-duplicates]. If you experience this we suggest using the `delete+insert` strategy provided in the `snowplow_incremental` materialization.
+
+To update all incremental models in the package to use this strategy please add the following to your `dbt_project.yml` file:
+
+```yml
+models:
+    +incremental_strategy: "delete+insert"
+```
+
+*Note: During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can effect this.*
+
+### Notes
+
 - If using this the `snowplow_incremental` materialization, **the native dbt `is_incremental()` macro will not recognize the model as incremental**. Please use the `snowplow_utils.snowplow_is_incremental()` macro instead, which operates in the same way.
-- `snowplow__upsert_lookback_days` defaults to 30 days. If you set `snowplow__upsert_lookback_days` to too short a period, duplicates can occur in your incremental table. 
+- `snowplow__upsert_lookback_days` defaults to 30 days. If you set `snowplow__upsert_lookback_days` to too short a period, duplicates can occur in your incremental table.
 
 # Join the Snowplow community
 
@@ -252,8 +401,9 @@ limitations under the License.
 [tracker-classificiation]: https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/tracker-maintenance-classification/
 [early-release]: https://img.shields.io/static/v1?style=flat&label=Snowplow&message=Early%20Release&color=014477&labelColor=9ba0aa&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAeFBMVEVMaXGXANeYANeXANZbAJmXANeUANSQAM+XANeMAMpaAJhZAJeZANiXANaXANaOAM2WANVnAKWXANZ9ALtmAKVaAJmXANZaAJlXAJZdAJxaAJlZAJdbAJlbAJmQAM+UANKZANhhAJ+EAL+BAL9oAKZnAKVjAKF1ALNBd8J1AAAAKHRSTlMAa1hWXyteBTQJIEwRgUh2JjJon21wcBgNfmc+JlOBQjwezWF2l5dXzkW3/wAAAHpJREFUeNokhQOCA1EAxTL85hi7dXv/E5YPCYBq5DeN4pcqV1XbtW/xTVMIMAZE0cBHEaZhBmIQwCFofeprPUHqjmD/+7peztd62dWQRkvrQayXkn01f/gWp2CrxfjY7rcZ5V7DEMDQgmEozFpZqLUYDsNwOqbnMLwPAJEwCopZxKttAAAAAElFTkSuQmCC
 
-
 [discourse-image]: https://img.shields.io/discourse/posts?server=https%3A%2F%2Fdiscourse.snowplowanalytics.com%2F
 [discourse]: http://discourse.snowplowanalytics.com/
 [snowplow-web]: https://github.com/snowplow/dbt-snowplow-web
 [snowplow-web-docs]: https://snowplow.github.io/dbt-snowplow-web/#!/overview/snowplow_web
+[dbt-snowflake-merge-strategy]: https://docs.getdbt.com/reference/resource-configs/snowflake-configs#merge-behavior-incremental-models
+[snowflake-merge-duplicates]: https://docs.snowflake.com/en/sql-reference/sql/merge.html#duplicate-join-behavior
