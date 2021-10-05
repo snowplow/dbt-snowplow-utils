@@ -1,3 +1,14 @@
+snowplow-utils 0.3.0 (2021-10-11)
+---------------------------------------
+Update README (Close #31)
+Update integration tests for Github Actions (Close #32)
+Remove create_snowplow_manifest_schema step (Close #30)
+Fix get_successful_models for dbt 0.18.0 (Close #23)
+Add dynamic variables based on target name (Close #28)
+Add Snowflake support to snowplow_incremental (Close #27)
+Fix BigQuery snowplow_incremental expected dataset (Close #25)
+Add Snowflake support to macros (Close #26)
+
 snowplow-utils 0.2.0 (2021-08-20)
 ---------------------------------------
 Update READMEs (Close #21)
