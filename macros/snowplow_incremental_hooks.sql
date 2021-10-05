@@ -11,16 +11,6 @@
 {% endmacro %}
 
 
-{# Creates snowplow manifest schema. This should be automatically handled by dbt but adding for peace of mind #}
-{% macro create_snowplow_manifest_schema() %}
-  
-  {%- set manifest_schema=snowplow_utils.get_snowplow_manifest_schema() -%}
-
-  {% do adapter.create_schema(api.Relation.create(database=target.database, schema=manifest_schema)) %}
-  
-{% endmacro %}
-
-
 {# Returns the incremental manifest table reference. This table contains 1 row/model with the latest tstamp consumed #}
 {% macro get_incremental_manifest_table_relation(package_name) %}
 
@@ -402,8 +392,6 @@
 
 {# pre-hook for incremental runs #}
 {% macro snowplow_incremental_pre_hook(package_name) %}
-
-  {{ snowplow_utils.create_snowplow_manifest_schema() }}
 
   {{ snowplow_utils.create_incremental_manifest_table(package_name) }}
 
