@@ -1,3 +1,7 @@
+snowplow-utils 0.3.1 (2021-10-12)
+---------------------------------------
+Fix snowplow_merge for dbt 0.19.2 (Close #33)
+
 snowplow-utils 0.3.0 (2021-10-11)
 ---------------------------------------
 Update README (Close #31)
