@@ -3,7 +3,7 @@
 {%- endmacro %}
 
 
-{% macro bigquery__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) %}
+{% macro default__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) %}
     
     {# partition_by supplied as upsert_date_key for BigQuery. Rename for clarity #} 
     {%- set partition_by = upsert_date_key -%}
