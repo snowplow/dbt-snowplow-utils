@@ -338,45 +338,6 @@
 {%- endmacro %}
 
 
-{% macro redshift__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
-
-  {% if models %}
-
-    begin transaction;
-      --temp table to find the greatest last_success per model.
-      --this protects against partial backfills causing the last_success to move back in time.
-      create temporary table snowplow_models_last_success as (
-        select
-          a.model,
-          greatest(a.last_success, b.last_success) as last_success
-
-        from (
-
-          select 
-            model, 
-            last_success 
-
-          from 
-            (select max(collector_tstamp) as last_success from {{ base_events_table }}),
-            ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %})
-
-          where last_success is not null -- if run contains no data don't add to manifest
-
-        ) a
-        left join {{ manifest_table }} b
-        on a.model = b.model
-        );
-
-      delete from {{ manifest_table }} where model in (select model from snowplow_models_last_success);
-      insert into {{ manifest_table }} (select * from snowplow_models_last_success);
-
-    end transaction;
-
-    drop table snowplow_models_last_success;
-  {% endif %}
-
-{%- endmacro %}
-
 {% macro postgres__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
   {% if models %}
