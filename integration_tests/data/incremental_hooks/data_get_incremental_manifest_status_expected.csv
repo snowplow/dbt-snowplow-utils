@@ -1,4 +1,3 @@
 test_case,min_last_success,max_last_success,models_matched_from_manifest,has_matched_all_models
 all model_in_run exist in manifest,2020-01-01 00:00:00,2020-01-03 00:00:00,3,true
 some model_in_run exist in manifest,2020-01-02 00:00:00,2020-01-02 00:00:00,1,false
-no manifest,,,0,false

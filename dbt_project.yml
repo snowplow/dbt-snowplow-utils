@@ -17,6 +17,3 @@ target-path: "target"
 clean-targets:
     - "target"
     - "dbt_modules"
-
-vars:
-    snowplow__manifest_custom_schema: "snowplow_manifest"
