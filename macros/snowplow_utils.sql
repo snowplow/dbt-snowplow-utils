@@ -33,6 +33,9 @@
    If it has, returns false. This blocks the model from updating with old data #}
 {% macro is_run_with_new_events(package_name) %}
 
+  {%- set new_event_limits_relation = snowplow_utils.get_new_event_limits_table_relation(package_name) -%}
+  {%- set incremental_manifest_relation = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+
   {% if snowplow_utils.snowplow_is_incremental() %}
 
     {%- set node_identifier = this.identifier -%}
@@ -45,7 +48,7 @@
       {% set has_been_processed_query %}
         select 
           case when 
-            (select upper_limit from {{ snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) }}) <= (select max(start_tstamp) from {{this}}) 
+            (select upper_limit from {{ new_event_limits_relation }}) <= (select max(start_tstamp) from {{this}}) 
           then false 
         else true end
       {% endset %}
@@ -55,8 +58,8 @@
       {% set has_been_processed_query %}
         select 
           case when 
-            (select upper_limit from {{ snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) }}) 
-            <= (select last_success from {{ snowplow_utils.get_incremental_manifest_table_relation(package_name) }} where model = '{{node_identifier}}') 
+            (select upper_limit from {{ new_event_limits_relation }}) 
+            <= (select last_success from {{ incremental_manifest_relation }} where model = '{{node_identifier}}') 
           then false 
         else true end
       {% endset %}
@@ -81,51 +84,18 @@
 
 {% endmacro %}
 
-{# Drops the input table #}
-{% macro snowplow_destroy_table(table) %}
-
-  {% set table_relation = adapter.get_relation(table.database,
-                                               table.schema,
-                                               table.name) %}
-
-  {% if table_relation %}
-
-    {% set table_name_str = table.include(database=false)|string %}
-
-    {% do adapter.drop_relation(table_relation) %}
-
-    {% do snowplow_utils.log_message("Snowplow: Dropped table: "+table_name_str) %}
-
-  {% endif %}
-
-{% endmacro %}
-
-{# Drops all manifest tables #}
-{% macro snowplow_teardown_all(package_name) %}
-
-  {# Using ref to identify correct schema #}
-  {%- set base_sessions_lifecycle = ref(package_name+'_base_sessions_lifecycle_manifest') -%}
-
-  {%- set tables_to_drop = [snowplow_utils.get_incremental_manifest_table_relation(package_name),
-                            snowplow_utils.get_current_incremental_tstamp_table_relation(package_name),
-                            base_sessions_lifecycle] -%}
-
-  {%- for table in tables_to_drop -%}
-    {{ snowplow_utils.snowplow_destroy_table(table) }}
-  {% endfor -%}
-
-{% endmacro %}
-
 {# Deletes specified models from the incremental_manifest table #}
 {% macro snowplow_delete_from_manifest(package_name, models, incremental_manifest_table=none) %}
-
-  {% if not execute %}
-    {{ return(False) }}
-  {% endif %}
   
+  /* Depends on: {{ snowplow_utils.get_incremental_manifest_table_relation(package_name) }} */
+
   {%- if models is string -%}
     {%- set models = [models] -%}
   {%- endif -%}
+
+  {% if not models|length or not execute %}
+    {{ return('') }}
+  {% endif %}
 
   {# incremental_manifest_table karg allows for testing #}
   {% if incremental_manifest_table is none %}
@@ -164,8 +134,6 @@
     commit;
   {% endset %}
 
-  {%- do run_query(delete_statement) -%}
-
   {%- if matched_models|length -%}
     {% do snowplow_utils.log_message("Snowplow: Deleted models "+snowplow_utils.print_list(matched_models)+" from the manifest") %}
   {%- endif -%}
@@ -173,6 +141,8 @@
   {%- if unmatched_models|length -%}
     {% do snowplow_utils.log_message("Snowplow: Models "+snowplow_utils.print_list(unmatched_models)+" do not exist in the manifest") %}
   {%- endif -%}
+
+  {{ return(delete_statement) }}
 
 {% endmacro %}
 

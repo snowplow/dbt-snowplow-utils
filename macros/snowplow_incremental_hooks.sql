@@ -1,75 +1,21 @@
-{% macro get_snowplow_manifest_schema() %}
-  {# Derive full schema name from generate_schema_name macro in root project if exists #}
-  {% if context.get(project_name, {}).get('generate_schema_name') %}
-    {% set schema_name = context[project_name].generate_schema_name(var("snowplow__manifest_custom_schema","snowplow_manifest")) %}
-    {{ return(schema_name) }}
-  {% else %}
-    {% set schema_name = generate_schema_name(var("snowplow__manifest_custom_schema","snowplow_manifest")) %}
-    {{ return(schema_name) }}
-  {% endif %}
-
-{% endmacro %}
-
-
 {# Returns the incremental manifest table reference. This table contains 1 row/model with the latest tstamp consumed #}
 {% macro get_incremental_manifest_table_relation(package_name) %}
 
-  {%- set manifest_schema=snowplow_utils.get_snowplow_manifest_schema() -%}
-
-  {%- set incremental_manifest_table =
-    api.Relation.create(
-        database=target.database,
-        schema=manifest_schema,
-        identifier=package_name+'_incremental_manifest',
-        type='table'
-  ) -%}
+  {%- set incremental_manifest_table = ref(package_name~'_incremental_manifest') -%}
 
   {{ return(incremental_manifest_table) }}
 
 {% endmacro %}
 
-{# Returns the current incremental table reference. This table contains lower and upper tstamp limits of the current run #}
-{% macro get_current_incremental_tstamp_table_relation(package_name) %}
+{# Returns the new events limits table reference. This table contains lower and upper tstamp limits of the current run #}
+{% macro get_new_event_limits_table_relation(package_name) %}
 
-  {%- set manifest_schema=snowplow_utils.get_snowplow_manifest_schema() -%}
+  {%- set new_event_limits_table = ref(package_name~'_base_new_event_limits') -%}
 
-  {%- set current_incremental_tstamp_table =
-    api.Relation.create(
-        database=target.database,
-        schema=manifest_schema,
-        identifier=package_name+'_current_incremental_tstamp',
-        type='table'
-  ) -%}
-
-  {{ return(current_incremental_tstamp_table) }}
+  {{ return(new_event_limits_table) }}
 
 {% endmacro %}
 
-{# Creates or mutates incremental manifest table #}
-{% macro create_incremental_manifest_table(package_name) -%}
-
-  {% set required_columns = [
-     ["model", dbt_utils.type_string()],
-     ["last_success", dbt_utils.type_timestamp()],
-  ] -%}
-
-  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
-
-  {% set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
-                                                                  incremental_manifest_table.schema,
-                                                                  incremental_manifest_table.name) -%}
-
-  {% if incremental_manifest_table_exists -%}
-
-    {{ snowplow_utils.alter_table_sql(incremental_manifest_table, required_columns) }}
-
-  {%- else -%}
-
-    {{ snowplow_utils.create_table_sql(incremental_manifest_table, required_columns) }}
-
-  {%- endif -%}
-
-{%- endmacro %}
 
 {# Returns the sql to calculate the lower/upper limits of the run #}
 {% macro get_run_limits(min_last_success, max_last_success, models_matched_from_manifest, has_matched_all_models, start_date) -%}
@@ -138,29 +84,13 @@
 
   {% endif %}
 
-  {% set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
-                                                                  incremental_manifest_table.schema,
-                                                                  incremental_manifest_table.name) -%}
-
-  {% if incremental_manifest_table_exists -%}
-
-    {% set last_success_query %}
-      select min(last_success) as min_last_success,
-             max(last_success) as max_last_success,
-             coalesce(count(*), 0) as models
-      from {{ incremental_manifest_table }}
-      where model in ({{ snowplow_utils.print_list(models_in_run) }})
-    {% endset %}
-
-  {% elif not incremental_manifest_table_exists %}
-    
-    {% set last_success_query %}
-      select cast(null as {{ dbt_utils.type_timestamp() }}) as min_last_success,
-             cast(null as {{ dbt_utils.type_timestamp() }}) as max_last_success,
-             0 as models
-    {% endset %} 
-
-  {% endif %}
+  {% set last_success_query %}
+    select min(last_success) as min_last_success,
+           max(last_success) as max_last_success,
+           coalesce(count(*), 0) as models
+    from {{ incremental_manifest_table }}
+    where model in ({{ snowplow_utils.print_list(models_in_run) }})
+  {% endset %}
 
   {% set results = run_query(last_success_query) %}
 
@@ -178,7 +108,11 @@
 {%- endmacro %}
 
 {# Prints the run limits for the run to the console #}
-{% macro print_run_limits(run_limits_query) -%}
+{% macro print_run_limits(run_limits_relation) -%}
+
+  {% set run_limits_query %}
+    select lower_limit, upper_limit from {{ run_limits_relation }}
+  {% endset %}
 
   {# Derive limits from manifest instead of selecting from limits table since run_query executes during 2nd parse the limits table is yet to be updated. #}
   {% set results = run_query(run_limits_query) %}
@@ -376,47 +310,6 @@
   {% endif %}
 
 {%- endmacro %}
-
-{# Calls functions to teardown all snowplow manifest tables or remove models from the manifest. Executes on-run-start  #}
-{% macro snowplow_run_start_cleanup(package_name, teardown_all, models_to_remove) %}
-  
-  {%- if teardown_all -%}
-    {%- do snowplow_utils.snowplow_teardown_all(package_name) -%}
-  {%- endif -%}
-
-  {%- if models_to_remove|length -%}
-    {%- do snowplow_utils.snowplow_delete_from_manifest(package_name, models_to_remove) -%}
-  {%- endif -%}
-
-{% endmacro %}
-
-{# pre-hook for incremental runs #}
-{% macro snowplow_incremental_pre_hook(package_name) %}
-
-  {{ snowplow_utils.create_incremental_manifest_table(package_name) }}
-
-  {%- set models_in_run = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
-
-  {% set incremental_tstamp_table = snowplow_utils.get_current_incremental_tstamp_table_relation(package_name) -%}
-
-  {% set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
-
-  {% set min_last_success,
-         max_last_success, 
-         models_matched_from_manifest,
-         has_matched_all_models = snowplow_utils.get_incremental_manifest_status(incremental_manifest_table, models_in_run) -%}
-
-  {% set run_limits_query = snowplow_utils.get_run_limits(min_last_success, 
-                                                          max_last_success,
-                                                          models_matched_from_manifest,
-                                                          has_matched_all_models,
-                                                          var("snowplow__start_date","2020-01-01")) -%}
-
-  {{ snowplow_utils.create_table_as_sql(incremental_tstamp_table, run_limits_query, replace=true) }}
-
-  {{ snowplow_utils.print_run_limits(run_limits_query) }}
-
-{% endmacro %}
 
 {# post-hook for incremental runs #}
 {% macro snowplow_incremental_post_hook(package_name) %}
