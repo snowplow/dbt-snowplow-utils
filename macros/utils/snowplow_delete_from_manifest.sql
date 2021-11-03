@@ -1,7 +1,5 @@
 {# Deletes specified models from the incremental_manifest table #}
-{% macro snowplow_delete_from_manifest(package_name, models, incremental_manifest_table=none) %}
-  
-  /* Depends on: {{ snowplow_utils.get_incremental_manifest_table_relation(package_name) }} */
+{% macro snowplow_delete_from_manifest(models, incremental_manifest_table) %}
 
   {%- if models is string -%}
     {%- set models = [models] -%}
@@ -9,11 +7,6 @@
 
   {% if not models|length or not execute %}
     {{ return('') }}
-  {% endif %}
-
-  {# incremental_manifest_table karg allows for testing #}
-  {% if incremental_manifest_table is none %}
-    {%- set incremental_manifest_table = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
   {% endif %}
 
   {%- set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
@@ -48,6 +41,8 @@
     commit;
   {% endset %}
 
+  {%- do run_query(delete_statement) -%}
+
   {%- if matched_models|length -%}
     {% do snowplow_utils.log_message("Snowplow: Deleted models "+snowplow_utils.print_list(matched_models)+" from the manifest") %}
   {%- endif -%}
@@ -56,6 +51,11 @@
     {% do snowplow_utils.log_message("Snowplow: Models "+snowplow_utils.print_list(unmatched_models)+" do not exist in the manifest") %}
   {%- endif -%}
 
-  {{ return(delete_statement) }}
+{% endmacro %}
+
+{# Package specific macro. Makes the API less cumbersome for the user #}
+{% macro snowplow_web_delete_from_manifest(models) %}
+
+  {{ snowplow_utils.snowplow_delete_from_manifest(models, ref('snowplow_web_incremental_manifest')) }}
 
 {% endmacro %}
