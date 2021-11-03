@@ -38,7 +38,7 @@ There are many macros contained in this package, with the majority designed for 
 
 There are however a selection that were intended for public use and that can assist you in modelling Snowplow data. The documentation for these macros can be found below.
 
-### get_columns_in_relation_by_column_prefix ([source](macros/bigquery/combine_column_versions.sql))
+### get_columns_in_relation_by_column_prefix ([source](macros/utils/get_columns_in_relation_by_column_prefix.sql))
 
 This macro returns an array of column names within a relation that start with the given column prefix. This is useful when you have multiple versions of a column within a table and want to dynamically identify all versions.
 
@@ -63,7 +63,7 @@ This macro returns an array of column names within a relation that start with th
 
 The order of the matched columns is donated by their ordinal position.
 
-### combine_column_versions ([source](macros/bigquery/combine_column_versions.sql))
+### combine_column_versions ([source](macros/utils/bigquery/combine_column_versions.sql))
 
 *BigQuery Only.* This macro is designed primarily for combining versions of custom context or an unstructured event column from the Snowplow events table in BigQuery.
 
@@ -111,7 +111,7 @@ from {{ ref('snowplow_web_base_events_this_run') }}
 
 ```
 
-### is_run_with_new_events ([source](macros/snowplow_utils.sql))
+### is_run_with_new_events ([source](macros/utils/is_run_with_new_events.sql))
 
 This macro is designed for use with Snowplow data modelling packages like `snowplow-web`. It can be used in any incremental models, to effectively block the incremental model from being updated with old data which it has already consumed. This saves cost as well as preventing historical data from being overwritten with partially complete data (due to a batch back-fill for instance).
 
@@ -143,7 +143,7 @@ from {{ ref('snowplow_web_base_events_this_run' ) }}
 where {{ snowplow_utils.is_run_with_new_events('snowplow_web') }} --returns false if run doesn't contain new events.
 ```
 
-### snowplow_delete_from_manifest ([source](macros/snowplow_utils.sql))
+### snowplow_delete_from_manifest ([source](macros/utils/snowplow_delete_from_manifest.sql))
 
 The `snowplow-web` package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model. 
 

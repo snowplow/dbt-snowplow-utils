@@ -1,5 +1,4 @@
 {{ config(pre_hook="{{ snowplow_utils.snowplow_delete_from_manifest(
-														package_name=none,
 														models=var('models_to_delete',[]),
 														incremental_manifest_table=ref('data_snowplow_delete_from_manifest_staging')) }}",
 					tags=["requires_script"]) }}

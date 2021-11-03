@@ -6,7 +6,7 @@ The `./scripts` directory contains several scripts. A selection of macros & mate
 - Need to be executed several times in order to be tested correctly i.e. an incremental materialization.
 - To test they are throwing the correct compiler error. The error code is interpreted in bash.
 
-Tests that require dedicated scripts are tagged with `requires_script` within the model for example [expected_combine_column_versions](models/bigquery/expected_combine_column_versions.sql). This tag ensures they are excluded from the standard testing procedure:
+Tests that require dedicated scripts are tagged with `requires_script` within the model for example [expected_combine_column_versions](models/utils/bigquery/expected_combine_column_versions.sql). This tag ensures they are excluded from the standard testing procedure:
 
 ```bash
 dbt seed --full-refresh
@@ -27,6 +27,3 @@ Supported warehouses:
 - all (iterates through all supported warehouses)
 
 The `.scripts/test_XXX.sh` scripts are the dedicated scripts and can be run on an individual basis.
-
-
-
