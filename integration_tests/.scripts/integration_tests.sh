@@ -47,10 +47,6 @@ for db in ${DATABASES[@]}; do
 
   bash test_materializations.sh -d $db -s false || exit 1; # don't re-seed
 
-  echo "Snowplow-utils integration tests: Testing combine_column_versions"
-
-  bash test_combine_column_versions.sh -d $db || exit 1;
-
   echo "Snowplow-utils integration tests: Testing get_enabled_snowplow_models"
 
   bash test_get_enabled_snowplow_models.sh -d $db || exit 1;

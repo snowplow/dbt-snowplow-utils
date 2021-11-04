@@ -2,28 +2,41 @@
 -- Easier to construct RECORDs in sql than string in csv.
 -- BQ Only 
 
-{{ config(enabled=(target.type == 'bigquery' | as_bool()),
-          tags=["requires_script"] )}}
+{{ config(enabled=(target.type == 'bigquery' | as_bool()) )}}
 
 
 with data as (
-  select 1 as x, 5 as y, 2 as z
+  select
+    1 as id,
+    [
+      struct('John' as first_name, 'Scott' as last_name),
+      struct('Jane' as first_name, 'Scott' as last_name)
+    ] as staff_v2,
+    [
+      struct('Bill' as first_name, 30 as age),
+      struct('Ben' as first_name, 55 as age)
+    ] as staff_v1,
+    struct(
+        'Bookshelf Speaker' as name,
+        struct(
+            '100W' as power_rating,
+            '25dB' as volume,
+            [
+              struct('stand' as name, 22 as price),
+              struct('cable' as name, 10 as price)
+            ] as accessories
+        ) as specs
+    ) as product_v2,
+    struct(
+        'Floorstanding Speaker' as name,
+        struct(
+            '50W' as power_rating,
+            [
+              struct('remote' as name, 22 as price)
+            ] as accessories
+        ) as specs
+    ) as product_v1
+
 )
 
-, prep as (
-select 
-  x, 
-  array_agg(struct(y, z)) as array_of_structs_1,
-  array_agg(struct(y+1 as y, z+1 as z)) as array_of_structs_2
-from data 
-group by x
-)
-
-select 
-    x,
-    array_of_structs_1,
-    array_of_structs_2,
-    array_of_structs_1[safe_offset(0)] as simple_struct_1,
-    array_of_structs_2[safe_offset(0)] as simple_struct_2,
-
-from prep
+select * from data
