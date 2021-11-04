@@ -19,6 +19,11 @@ clean-targets:
 # test_get_successful_models requires the run_results object which is only present on run-end
 on-run-end: "{{ test_get_successful_models(enabled=var('enabled_test_get_successful_models', false)) }}"
 
+vars:
+  snowplow_utils_integration_tests:
+    # Disables compiler errors during testing. Returns error message string instead, which we can test against.
+    snowplow__disable_errors: true 
+
 models:
   snowplow_utils_integration_tests:
     +schema: "snplw_utils_int_tests"
