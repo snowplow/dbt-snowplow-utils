@@ -1,7 +1,7 @@
 {% macro return_base_new_event_limits(base_events_this_run) -%}
 
   {% if not execute %}
-    {{ return(['','','',''])}}
+    {{ return(['','',''])}}
   {% endif %}
   
   {% set limit_query %} 
@@ -9,11 +9,8 @@
       lower_limit, 
       upper_limit,
       {{ snowplow_utils.timestamp_add('day', 
-                                     -var("snowplow__session_lookback_days", 365),
-                                     'lower_limit') }} as session_lookback_limit,
-      {{ snowplow_utils.timestamp_add('day', 
                                      -var("snowplow__max_session_days", 3),
-                                     'lower_limit') }} as lower_limit_minus_max_session_days
+                                     'lower_limit') }} as session_lookback_limit
 
     from {{ base_events_this_run }} 
     {% endset %}
@@ -25,9 +22,8 @@
     {% set lower_limit = snowplow_utils.cast_to_tstamp(results.columns[0].values()[0]) %}
     {% set upper_limit = snowplow_utils.cast_to_tstamp(results.columns[1].values()[0]) %}
     {% set session_lookback_limit = snowplow_utils.cast_to_tstamp(results.columns[2].values()[0]) %}
-    {% set lower_limit_minus_max_session_days = snowplow_utils.cast_to_tstamp(results.columns[3].values()[0]) %}
 
-  {{ return([lower_limit, upper_limit, session_lookback_limit, lower_limit_minus_max_session_days]) }}
+  {{ return([lower_limit, upper_limit, session_lookback_limit]) }}
 
   {% endif %}
 {%- endmacro %}
