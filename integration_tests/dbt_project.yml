@@ -21,7 +21,7 @@ on-run-end: "{{ test_get_successful_models(enabled=var('enabled_test_get_success
 
 models:
   snowplow_utils_integration_tests:
-    +schema: "snowplow_int_tests"
+    +schema: "snplw_utils_int_tests"
     materializations:
       snowflake_delete_insert:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
@@ -31,7 +31,7 @@ models:
 seeds:
   +quote_columns: false
   snowplow_utils_integration_tests:
-    +schema: "snowplow_int_tests"
+    +schema: "snplw_utils_int_tests"
 
     incremental_hooks:
 
