@@ -49,13 +49,6 @@
       {{ build_sql }}
   {% endcall %}
 
-  {% if existing_relation is none or existing_relation.is_view or full_refresh_mode %}
-        {#- create_indexes is only in dbt >= 0.20.0 -#}
-        {% if create_indexes is defined %}
-            {% do adapter.dispatch('create_indexes')(target_relation) %}
-        {% endif %}
-  {% endif %}
-
   {{ run_hooks(post_hooks, inside_transaction=True) }}
 
   -- `COMMIT` happens here
