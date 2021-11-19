@@ -20,15 +20,14 @@ Includes:
 - [get_columns_in_relation_by_column_prefix](#get_columns_in_relation_by_column_prefix-source)
 - [combine_column_versions](#combine_column_versions-source)
 - [is_run_with_new_events](#is_run_with_new_events-source)
-- [snowplow_delete_from_manifest](#snowplow_delete_from_manifest-source)
-- [snowplow_teardown_all](#snowplow_teardown_all-source)
+- [snowplow_web_delete_from_manifest](#snowplow_delete_from_manifest-source)
 - [get_value_by_target](#get_value_by_target-source)
 - [n_timedeltas_ago](#n_timedeltas_ago-source)
 
 **[Materializations](#materializations)**
 
 - [snowplow_incremental](#snowplow_incremental)
-  - [Redshift](#redshift-source)
+  - [Redshift & Postgres](#redshift--postgres-source)
   - [BigQuery](#bigquery-source)
   - [Snowflake](#snowflake-source)
 
@@ -40,12 +39,16 @@ There are however a selection that were intended for public use and that can ass
 
 ### get_columns_in_relation_by_column_prefix ([source](macros/utils/get_columns_in_relation_by_column_prefix.sql))
 
-This macro returns an array of column names within a relation that start with the given column prefix. This is useful when you have multiple versions of a column within a table and want to dynamically identify all versions.
+This macro returns an array of column objects within a relation that start with the given column prefix. This is useful when you have multiple versions of a column within a table and want to dynamically identify all versions.
 
 **Arguments:**
 
 - `relation`: The relation from which to search for matching columns.
 - `column_prefix`: The column prefix to search for.
+
+**Returns:**
+
+- An array of [column objects][dbt-column-objects]. The name of each column can be accessed with the name property.
 
 **Usage:**
 
@@ -55,32 +58,43 @@ This macro returns an array of column names within a relation that start with th
                           column_prefix='custom_context_1_0_'
                           ) %}
 
-{{ matched_columns }}
+{% for column in matched_columns %}
+  {{ column.name }}
+{% endfor %}
 
 # Renders to something like:
-['custom_context_1_0_1','custom_context_1_0_2','custom_context_1_0_3']
+'custom_context_1_0_1'
+'custom_context_1_0_2'
+'custom_context_1_0_3'
 ```
 
-The order of the matched columns is donated by their ordinal position.
+The order of the matched columns is denoted by their ordinal position.
 
 ### combine_column_versions ([source](macros/utils/bigquery/combine_column_versions.sql))
 
 *BigQuery Only.* This macro is designed primarily for combining versions of custom context or an unstructured event column from the Snowplow events table in BigQuery.
 
-As your schemas for such columns evolve, multiple versions of the same column will be created in your events table e.g. `custom_context_1_0_0`, `custom_context_1_0_1`. These columns contain nested fields i.e. are of a datatype `RECORD`. When modeling Snowplow data it can be useful to combine or coalesce each nested field across all versions of the column for a continuous view over time.
+As your schemas for such columns evolve, multiple versions of the same column will be created in your events table e.g. `custom_context_1_0_0`, `custom_context_1_0_1`. These columns contain nested fields i.e. are of a datatype `RECORD`. When modeling Snowplow data it can be useful to combine or coalesce each nested field across all versions of the column for a continuous view over time. This macro mitigates the need to update your coalesce statement each time a new version of the column is created.
 
-- Only first level fields are un-nested and combined by this macro i.e. any
-nested `RECORD` columns will not be unpacked.
-- If the `RECORD` column is of the mode `REPEATED`, only the first element in
-the array will be used.
+Fields can be selected using 3 methods:
+
+- Select all fields. Default.
+- Select by field name using the `required_fields` arg.
+- Select all fields at a given level/depth of nesting e.g. all 1st level fields. Uses the `nested_level` arg.
+
+By default any returned fields will be assigned an alias matching the field name e.g. `coalesce(<col_v2>.product, <col_v1>.product) as product`. For heavily nested fields, the alias will be field's path with `.` replaced with `_` e.g. for a field `product.size.height` will have an alias `product_size_height`. A custom alias can be supplied with the `required_fields` arg (see below).
 
 **Arguments:**
 
 - `relation`: The relation from which to search for matching columns.
 - `column_prefix`: The column prefix to search for.
-- `source_fields`: Optional. The subset of fields within the column to return.
-- `renamed_fields`: Optional. An array of names to rename the `source_fields` to. If you pass this arg you must also pass the `source_fields` arg. They must be of the same length and order.
-- `relation_alias`: Optional. The relation's assigned alias. If passed, this will be appended to the full path for each field. For example, if `relation_alias=a`, the full path would be `a.col_1.field_1`. This can be useful when you have multiple relations within your model with the same columns.
+- `required_fields`: Optional. List of fields to return. For fields nested deeper than the 1st level specify the path using dot notation e.g. `product.name`. To use a custom field alias, pass a tuple containing the field name and alias e.g. `(<field_name>, <field_alias>)`.
+- `nested_level`: Optional. The level from which to return fields e.g. `1` to return all 1st level fields. Behaviour can be changed to comparison using `level_filter` arg.
+- `level_filter`: Default `equalto`. Accepted values `equalto`, `lessthan`, `greaterthan`. Used in conjunction with `nested_level` to determine which fields to return.
+- `relation_alias`: Optional. The alias of the relation containing the column. If passed the alias will be prepended to the full path for each field e.g. `<relation_alias>.<column>.<field>`. Useful when your desired column occurs in multiple relations within your model.
+- `include_field_alias`: Default `True`. Determines whether to included the field alias in the final coalesced field e.g. `coalesce(...) as <field_alias>`. Useful when using the field as part of a join.
+- `array_index`: Default 0. If the column is of mode `REPEATED` i.e. an array, this determines the element to take. All Snowplow context columns are arrays, typically with only a single element.
+- `max_nested_level`: Default 15. Imposes a hard stop for recursions on heavily nested data.
 
 **Returns:**
 
@@ -88,28 +102,79 @@ the array will be used.
 
 **Usage:**
 
+The following examples assumes two 'product' context columns with the following schemas:
+
+![Example nested fields](./assets/nested_fields.png)
+
+**All fields**
+
 ```sql
-{%- set combined_fields = snowplow_utils.combine_column_versions(
+{%- set all_fields = snowplow_utils.combine_column_versions(
                                 relation=ref('snowplow_web_base_events_this_run'),
-                                column_prefix='custom_context_1_',
-                                source_fields=['field_a', 'field_b']
+                                column_prefix='product_v'
                                 ) -%}
 
 select
-{% for field in combined_fields %}
+{% for field in all_fields %}
   {{field}} {%- if not loop.last %},{% endif %}
 {% endfor %}
 
-from {{ ref('snowplow_web_base_events_this_run') }}
-
-# Renders to something like:
+# Renders to:
 select
-  coalesce(custom_context_1_0_1[safe_offset(0)].field_a, custom_context_1_0_0[safe_offset(0)].field_a) as field_a,
-  coalesce(custom_context_1_0_1[safe_offset(0)].field_b, custom_context_1_0_0[safe_offset(0)].field_b) as field_b
-
-from {{ ref('snowplow_web_base_events_this_run') }}
-
+  coalesce(product_v2[safe_offset(0)].name, product_v1[safe_offset(0)].name) as name,
+  coalesce(product_v2[safe_offset(0)].specs, product_v1[safe_offset(0)].specs) as specs,
+  coalesce(product_v2[safe_offset(0)].specs.power_rating, product_v1[safe_offset(0)].specs.power_rating) as specs_power_rating,
+  coalesce(product_v2[safe_offset(0)].specs.volume) as specs_volume,
+  coalesce(product_v2[safe_offset(0)].specs.accessories, product_v1[safe_offset(0)].specs.accessories) as specs_accessories
 ```
+
+Note fields within `accessories` are not unnested as `accessories` is of mode `REPEATED`. See limitations section below.
+
+**Fields filtered by name**
+
+```sql
+{%- set required_fields = snowplow_utils.combine_column_versions(
+                                relation=ref('snowplow_web_base_events_this_run'),
+                                column_prefix='product_v',
+                                required_fields=['name', ('specs.power_rating', 'product_power_rating')]
+                                ) -%}
+
+select
+{% for field in required_fields %}
+  {{field}} {%- if not loop.last %},{% endif %}
+{% endfor %}
+
+# Renders to:
+select
+  coalesce(product_v2[safe_offset(0)].name, product_v1[safe_offset(0)].name) as name,
+  coalesce(product_v2[safe_offset(0)].specs.power_rating, product_v1[safe_offset(0)].specs.power_rating) as product_power_rating
+```
+
+Note we have renamed the power rating field by passing a tuple of the field name and desired field alias.
+
+**Fields filtered by level**
+
+```sql
+{%- set fields_by_level = snowplow_utils.combine_column_versions(
+                                relation=ref('snowplow_web_base_events_this_run'),
+                                column_prefix='product_v',
+                                nested_level=1
+                                ) -%}
+
+select
+{% for field in fields_by_level %}
+  {{field}} {%- if not loop.last %},{% endif %}
+{% endfor %}
+
+# Renders to:
+select
+  coalesce(product_v2[safe_offset(0)].name, product_v1[safe_offset(0)].name) as name,
+  coalesce(product_v2[safe_offset(0)].specs, product_v1[safe_offset(0)].specs) as specs
+```
+
+**Limitations**
+
+- If a field is of the data type `RECORD` and a mode `REPEATED`, i.e. an array of structs, it's sub/nested fields will not be unnested.
 
 ### is_run_with_new_events ([source](macros/utils/is_run_with_new_events.sql))
 
@@ -143,45 +208,22 @@ from {{ ref('snowplow_web_base_events_this_run' ) }}
 where {{ snowplow_utils.is_run_with_new_events('snowplow_web') }} --returns false if run doesn't contain new events.
 ```
 
-### snowplow_delete_from_manifest ([source](macros/utils/snowplow_delete_from_manifest.sql))
+### snowplow_web_delete_from_manifest ([source](macros/utils/snowplow_delete_from_manifest.sql))
 
-The `snowplow-web` package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model. 
+The `snowplow-web` package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model.
 
-This can be performed as part of the run-start operation of the snowplow-web package, as described in the [docs][snowplow-web-docs]. You can however perform this operation independently using the `snowplow_delete_from_manifest` macro.
+This can be performed as part of the run-start operation of the snowplow-web package, as described in the [docs][snowplow-web-docs]. You can however perform this operation independently using the `snowplow_web_delete_from_manifest` macro.
 
 **Arguments:**
 
-- `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
 - `models`: Either an array of models to delete, or a string for a single model.
 
 **Usage:**
 
 ```bash
-dbt run-operation snowplow_delete_from_manifest --args "{package_name: snowplow_web, models: ['snowplow_web_page_views','snowplow_web_sessions']}"
+dbt run-operation snowplow_web_delete_from_manifest --args "models: ['snowplow_web_page_views','snowplow_web_sessions']"
 # or
-dbt run-operation snowplow_delete_from_manifest --args "{package_name: snowplow_web, models: snowplow_web_page_views}"
-```
-
-### snowplow_teardown_all ([source](macros/snowplow_utils.sql))
-
-This macro will drop all the manifest tables and run limit tables used by the snowplow-web package. These include:
-
-- `snowplow_manifest.snowplow_web_incremental_manifest`
-- `snowplow_manifest.snowplow_web_current_incremental_tstamp`
-- `snowplow_manifest.snowplow_web_base_sessions_lifecycle_manifest`
-
-This macro is optionally executed as part of the run-start operation of the snowplow-web package, as described in the [docs][snowplow-web-docs]. You can however perform this operation independently using the `snowplow_teardown_all` macro.
-
-**Note: Use with caution. The information in these manifests is critical for the snowplow-web package to operate**
-
-**Arguments:**
-
-- `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
-
-**Usage:**
-
-```bash
-dbt run-operation snowplow_teardown_all --args "{package_name: snowplow_web}"
+dbt run-operation snowplow_web_delete_from_manifest --args "models: snowplow_web_page_views"
 ```
 
 ### get_value_by_target ([source](macros/utils/get_value_by_target.sql))
@@ -252,7 +294,7 @@ This package provides a custom incremental materialization, `snowplow_incrementa
 
 As is the case with the native dbt incremental materialization, the strategy varies between adapters.
 
-### Redshift ([source](macros/materializations/snowplow_incremental/redshift/snowplow_incremental.sql))
+### Redshift & Postgres ([source](macros/materializations/snowplow_incremental/default/snowplow_incremental.sql))
 
 Like the native materialization, the `snowplow_incremental` materialization strategy is delete and insert however a limit has been imposed on how far to scan the destination table in order to improve performance:
 
@@ -407,3 +449,4 @@ limitations under the License.
 [snowplow-web-docs]: https://snowplow.github.io/dbt-snowplow-web/#!/overview/snowplow_web
 [dbt-snowflake-merge-strategy]: https://docs.getdbt.com/reference/resource-configs/snowflake-configs#merge-behavior-incremental-models
 [snowflake-merge-duplicates]: https://docs.snowflake.com/en/sql-reference/sql/merge.html#duplicate-join-behavior
+[dbt-column-objects]: https://docs.getdbt.com/reference/dbt-classes#column
