@@ -1,3 +1,14 @@
+snowplow-utils 0.4.0 (2021-11-29)
+---------------------------------------
+Update README (Close #45, Close #35)
+Refactor combine_column_versions (Close #44)
+Add CI Action (Close #43)
+Improve filtering for long sessions (Close #42)
+Refactor snowplow_delete_from_manifest (Close #46)
+Restructure snowplow-utils project (Close #41)
+Transition DDL manifest creation to native dbt (Close #40)
+Add support for Postgres (Close #39)
+
 snowplow-utils 0.3.1 (2021-10-12)
 ---------------------------------------
 Fix snowplow_merge for dbt 0.19.2 (Close #33)
