@@ -1,7 +1,7 @@
 {# Updates the incremental manifest table at the run end with the latest tstamp consumed per model #}
 {% macro update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
-  {{ return(adapter.dispatch('update_incremental_manifest_table', ['snowplow_utils'])(manifest_table, base_events_table, models)) }}
+  {{ return(adapter.dispatch('update_incremental_manifest_table', 'snowplow_utils')(manifest_table, base_events_table, models)) }}
 
 {% endmacro %}
 
@@ -76,9 +76,3 @@
   {% endif %}
 
 {%- endmacro %}
-
-{% macro redshift__update_incremental_manifest_table(manifest_table, base_events_table, models) %}
-
-    {{ return(snowplow_utils.postgres__update_incremental_manifest_table(manifest_table, base_events_table, models)) }}
-
-{% endmacro %}

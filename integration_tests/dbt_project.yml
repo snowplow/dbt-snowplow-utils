@@ -15,6 +15,7 @@ target-path: "target"
 clean-targets:
     - "target"
     - "dbt_modules"
+    - "dbt_packages"
 
 # test_get_successful_models requires the run_results object which is only present on run-end
 on-run-end: "{{ test_get_successful_models(enabled=var('enabled_test_get_successful_models', false)) }}"
@@ -30,7 +31,18 @@ models:
     materializations:
       snowflake_delete_insert:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+    utils:
+      bigquery:
+        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
 
+tests:
+  snowplow_utils_integration_tests:
+    materializations:
+      snowflake_delete_insert:
+        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+    utils:
+      bigquery:
+        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
 
 
 seeds:

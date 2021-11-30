@@ -2,9 +2,6 @@
 -- Easier to construct RECORDs in sql than string in csv.
 -- BQ Only 
 
-{{ config(enabled=(target.type == 'bigquery' | as_bool()) )}}
-
-
 with data as (
   select
     1 as id,
