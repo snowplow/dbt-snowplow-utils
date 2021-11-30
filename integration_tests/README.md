@@ -24,6 +24,8 @@ bash integration_tests.sh -d {warehouse}
 Supported warehouses:
 - redshift
 - bigquery
+- snowflake
+- postgres
 - all (iterates through all supported warehouses)
 
 The `.scripts/test_XXX.sh` scripts are the dedicated scripts and can be run on an individual basis.

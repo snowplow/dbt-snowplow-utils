@@ -1,5 +1,5 @@
 {% macro get_snowplow_upsert_limits_sql(tmp_relation, upsert_date_key, disable_upsert_lookback) -%}
-  {{ adapter.dispatch('get_snowplow_upsert_limits_sql', ['snowplow_utils'])(tmp_relation, upsert_date_key, disable_upsert_lookback) }}
+  {{ adapter.dispatch('get_snowplow_upsert_limits_sql', 'snowplow_utils')(tmp_relation, upsert_date_key, disable_upsert_lookback) }}
 {%- endmacro %}
 
 

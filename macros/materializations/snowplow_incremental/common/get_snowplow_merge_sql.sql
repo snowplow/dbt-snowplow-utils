@@ -1,5 +1,5 @@
 {% macro get_snowplow_merge_sql(target, source, unique_key, dest_columns, predicates, include_sql_header) -%}
-  {{ adapter.dispatch('get_snowplow_merge_sql', ['snowplow_utils'])(target, source, unique_key, dest_columns, predicates, include_sql_header) }}
+  {{ adapter.dispatch('get_snowplow_merge_sql', 'snowplow_utils')(target, source, unique_key, dest_columns, predicates, include_sql_header) }}
 {%- endmacro %}
 
 {% macro default__get_snowplow_merge_sql(target, source, unique_key, dest_columns, predicates, include_sql_header) -%}

@@ -1,5 +1,5 @@
 {% macro snowplow_validate_get_incremental_strategy(config) -%}
-  {{ adapter.dispatch('snowplow_validate_get_incremental_strategy', ['snowplow_utils'])(config) }}
+  {{ adapter.dispatch('snowplow_validate_get_incremental_strategy', 'snowplow_utils')(config) }}
 {%- endmacro %}
 
 
