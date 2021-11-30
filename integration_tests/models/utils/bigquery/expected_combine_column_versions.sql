@@ -1,6 +1,3 @@
--- BQ Only 
-{{ config(enabled=(target.type == 'bigquery' | as_bool()) )}}
-
 
 with prep as (
   select   

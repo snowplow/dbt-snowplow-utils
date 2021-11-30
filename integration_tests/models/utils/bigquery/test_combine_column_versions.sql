@@ -1,6 +1,3 @@
--- BQ Only 
-{{ config(enabled=(target.type == 'bigquery' | as_bool()) )}}
-
 
 {# Test 1: Select all fields from array of structs, taking second element.
    Test 2: Select subset of fields from nested structs & rename

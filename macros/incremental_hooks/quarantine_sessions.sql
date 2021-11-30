@@ -1,6 +1,6 @@
 {% macro quarantine_sessions(package_name, max_session_length, src_relation=this) %}
   
-  {{ return(adapter.dispatch('quarantine_sessions', ['snowplow_utils'])(package_name, max_session_length, src_relation=this)) }}
+  {{ return(adapter.dispatch('quarantine_sessions', 'snowplow_utils')(package_name, max_session_length, src_relation=this)) }}
 
 {% endmacro %}
 
@@ -37,12 +37,6 @@
     drop table {{ sessions_to_quarantine_tmp }};
 
   commit;
-
-{% endmacro %}
-
-{% macro redshift__quarantine_sessions(package_name, max_session_length, src_relation=this) %}
-  
-  {{ snowplow_utils.postgres__quarantine_sessions(package_name, max_session_length, src_relation) }}
 
 {% endmacro %}
 

@@ -14,4 +14,3 @@ models:
           compare_model: ref('data_snowplow_incremental_delete_insert_w_lookback_disabled_expected')
       - dbt_utils.equality:
           compare_model: ref('data_snowplow_incremental_delete_insert_w_lookback_disabled_expected')
-
