@@ -1,3 +1,7 @@
+snowplow-utils 0.4.1 (2021-12-06)
+---------------------------------------
+Fix for unexpired sessions (Close #48)
+
 snowplow-utils 0.4.0 (2021-11-29)
 ---------------------------------------
 Update README (Close #45, Close #35)
