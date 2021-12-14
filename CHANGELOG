@@ -1,3 +1,7 @@
+snowplow-utils 0.5.0 (2021-12-16)
+---------------------------------------
+Add dbt v1 compatibility (Close #52)
+
 snowplow-utils 0.4.1 (2021-12-06)
 ---------------------------------------
 Fix for unexpired sessions (Close #48)
