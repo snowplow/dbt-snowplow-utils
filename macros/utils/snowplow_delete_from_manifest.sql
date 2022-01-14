@@ -59,3 +59,9 @@
   {{ snowplow_utils.snowplow_delete_from_manifest(models, ref('snowplow_web_incremental_manifest')) }}
 
 {% endmacro %}
+
+{% macro snowplow_mobile_delete_from_manifest(models) %}
+
+  {{ snowplow_utils.snowplow_delete_from_manifest(models, ref('snowplow_mobile_incremental_manifest')) }}
+
+{% endmacro %}
