@@ -4,7 +4,7 @@
 
 # snowplow-utils
 
-To be used in conjunction with the [snowplow-web package][snowplow-web].
+To be used in conjunction with the [snowplow-web][snowplow-web] and [snowplow-mobile][snowplow-mobile] packages.
 
 Includes:
 
@@ -20,7 +20,8 @@ Includes:
 - [get_columns_in_relation_by_column_prefix](#get_columns_in_relation_by_column_prefix-source)
 - [combine_column_versions](#combine_column_versions-source)
 - [is_run_with_new_events](#is_run_with_new_events-source)
-- [snowplow_web_delete_from_manifest](#snowplow_delete_from_manifest-source)
+- [snowplow_web_delete_from_manifest](#snowplow_web_delete_from_manifest-source)
+- [snowplow_mobile_delete_from_manifest](#snowplow_mobile_delete_from_manifest-source)
 - [get_value_by_target](#get_value_by_target-source)
 - [n_timedeltas_ago](#n_timedeltas_ago-source)
 
@@ -180,11 +181,11 @@ select
 
 This macro is designed for use with Snowplow data modelling packages like `snowplow-web`. It can be used in any incremental models, to effectively block the incremental model from being updated with old data which it has already consumed. This saves cost as well as preventing historical data from being overwritten with partially complete data (due to a batch back-fill for instance).
 
-The macro utilizes the `snowplow_web_incremental_manifest` table to determine whether the model from which the macro is called, i.e. `{{ this }}`, has already consumed the data in the given run. If it has, it returns `false`. If the data in the run contains new data, `true` is returned.
+The macro utilizes the `snowplow_[platform]_incremental_manifest` table to determine whether the model from which the macro is called, i.e. `{{ this }}`, has already consumed the data in the given run. If it has, it returns `false`. If the data in the run contains new data, `true` is returned.
 
 **Arguments:**
 
-- `package_name`: The modeling package name i.e. `snowplow-web` (`snowplow-mobile` to follow).
+- `package_name`: The modeling package name i.e. `snowplow-mobile`.
 
 **Returns:**
 
@@ -196,7 +197,7 @@ The macro utilizes the `snowplow_web_incremental_manifest` table to determine wh
 {{ 
   config(
     materialized='snowplow_incremental',
-    unique_key='page_view_id',
+    unique_key='screen_view_id',
     upsert_date_key='start_tstamp'
   ) 
 }}
@@ -204,8 +205,8 @@ The macro utilizes the `snowplow_web_incremental_manifest` table to determine wh
 select
   ...
 
-from {{ ref('snowplow_web_base_events_this_run' ) }}
-where {{ snowplow_utils.is_run_with_new_events('snowplow_web') }} --returns false if run doesn't contain new events.
+from {{ ref('snowplow_mobile_base_events_this_run' ) }}
+where {{ snowplow_utils.is_run_with_new_events('snowplow_mobile') }} --returns false if run doesn't contain new events.
 ```
 
 ### snowplow_web_delete_from_manifest ([source](macros/utils/snowplow_delete_from_manifest.sql))
@@ -224,6 +225,24 @@ This can be performed as part of the run-start operation of the snowplow-web pac
 dbt run-operation snowplow_web_delete_from_manifest --args "models: ['snowplow_web_page_views','snowplow_web_sessions']"
 # or
 dbt run-operation snowplow_web_delete_from_manifest --args "models: snowplow_web_page_views"
+```
+
+### snowplow_mobile_delete_from_manifest ([source](macros/utils/snowplow_delete_from_manifest.sql))
+
+The `snowplow-mobile` package makes use of a centralised manifest system to record the current state of the package. There may be times when you want to remove the metadata associated with particular models from the manifest, for instance to replay events through a particular model.
+
+This can be performed as part of the run-start operation of the snowplow-mobile package, as described in the [docs][snowplow-mobile-docs]. You can however perform this operation independently using the `snowplow_mobile_delete_from_manifest` macro.
+
+**Arguments:**
+
+- `models`: Either an array of models to delete, or a string for a single model.
+
+**Usage:**
+
+```bash
+dbt run-operation snowplow_mobile_delete_from_manifest --args "models: ['snowplow_mobile_screen_views','snowplow_mobile_sessions']"
+# or
+dbt run-operation snowplow_mobile_delete_from_manifest --args "models: snowplow_mobile_screen_views"
 ```
 
 ### get_value_by_target ([source](macros/utils/get_value_by_target.sql))
@@ -275,7 +294,7 @@ By combining this with the `get_value_by_target` macro, you can dynamically set 
 # dbt_project.yml
 ...
 vars:
-  snowplow_web:
+  snowplow_mobile:
     snowplow__start_date: "{{ snowplow_utils.get_value_by_target(
                                       dev_value=snowplow_utils.n_timedeltas_ago(1, 'weeks'),
                                       default_value='2020-01-01', 
@@ -446,7 +465,9 @@ limitations under the License.
 [discourse-image]: https://img.shields.io/discourse/posts?server=https%3A%2F%2Fdiscourse.snowplowanalytics.com%2F
 [discourse]: http://discourse.snowplowanalytics.com/
 [snowplow-web]: https://github.com/snowplow/dbt-snowplow-web
+[snowplow-mobile]: https://github.com/snowplow/dbt-snowplow-mobile
 [snowplow-web-docs]: https://snowplow.github.io/dbt-snowplow-web/#!/overview/snowplow_web
+[snowplow-mobile-docs]: https://snowplow.github.io/dbt-snowplow-mobile/#!/overview/snowplow_mobile
 [dbt-snowflake-merge-strategy]: https://docs.getdbt.com/reference/resource-configs/snowflake-configs#merge-behavior-incremental-models
 [snowflake-merge-duplicates]: https://docs.snowflake.com/en/sql-reference/sql/merge.html#duplicate-join-behavior
 [dbt-column-objects]: https://docs.getdbt.com/reference/dbt-classes#column
