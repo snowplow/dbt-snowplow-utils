@@ -1,4 +1,4 @@
-{% macro combine_column_versions(relation, column_prefix, required_fields=[], nested_level=none, level_filter='equalto', relation_alias=none, include_field_alias=true, array_index=0, max_nested_level=15) %}
+{% macro combine_column_versions(relation, column_prefix, required_fields=[], nested_level=none, level_filter='equalto', relation_alias=none, include_field_alias=true, array_index=0, max_nested_level=15, column_mode=none) %}
   
   {# Create field_alias if not supplied i.e. is not tuple #}
   {% set required_fields_tmp = required_fields %}
@@ -23,6 +23,9 @@
   {# Flatten fields within each column version. Returns nested arrays of dicts. #}
   {# Dict: {'field_name': str, 'field_alias': str, 'flattened_path': str, 'nested_level': int #}
   {% for column in matched_columns|sort(attribute='name', reverse=true) %}
+
+    {# TODO: Find method to update object #}
+    {% do column.update({'mode': column_mode}) if column_mode is not none %}
 
     {% set flattened_fields = snowplow_utils.flatten_fields(fields=column.fields,
                                                             parent=column,
