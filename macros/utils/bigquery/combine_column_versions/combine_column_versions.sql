@@ -24,14 +24,12 @@
   {# Dict: {'field_name': str, 'field_alias': str, 'flattened_path': str, 'nested_level': int #}
   {% for column in matched_columns|sort(attribute='name', reverse=true) %}
 
-    {# TODO: Find method to update object #}
-    {% do column.update({'mode': column_mode}) if column_mode is not none %}
-
     {% set flattened_fields = snowplow_utils.flatten_fields(fields=column.fields,
                                                             parent=column,
                                                             path=column.name,
                                                             array_index=array_index,
-                                                            level_limit=level_limit
+                                                            level_limit=level_limit,
+                                                            column_mode=column_mode
                                                             ) %}
 
     {% do flattened_fields_by_col_version.append(flattened_fields) %}
