@@ -30,7 +30,7 @@
                                                               required_fields=['specs.volume']) %}
 
 {% set test_5_actual = snowplow_utils.combine_column_versions(relation=ref('data_combine_column_versions'),
-                                                              column_prefix='address_v',
+                                                              column_prefix='addresses',
                                                               array_index=1,
                                                               column_mode='NULLABLE') %}
 
@@ -43,7 +43,9 @@ with prep as (
       -- Test 3
       {{ test_3_actual|join(',\n') }},
       -- Test 4
-      {{ test_4_actual|join(',') }} as product_volume
+      {{ test_4_actual|join(',') }} as product_volume,
+
+      {{ test_5_actual|join(',\n') }}
 
    from {{ ref('data_combine_column_versions') }} a
 )
