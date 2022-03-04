@@ -32,7 +32,23 @@ with data as (
               struct('remote' as name, 22 as price)
             ] as accessories
         ) as specs
-    ) as product_v1
+    ) as product_v1,
+    [struct(
+        'current' as status,
+        '123 First Avenue' as address,
+        'Seattle' as city,
+        'WA' as state,
+        '11111' as zip,
+        '1' as numberOfYears
+    )] as address_v2,
+    [struct(
+        'previous' as status,
+        '321 Main Street' as address,
+        'Hoboken' as city,
+        'NJ' as state,
+        '44444' as zip,
+        '3' as numberOfYears
+    )] as address_v1
 
 )
 

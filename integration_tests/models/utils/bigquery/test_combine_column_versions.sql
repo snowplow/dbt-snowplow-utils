@@ -29,6 +29,11 @@
                                                               include_field_alias=false,
                                                               required_fields=['specs.volume']) %}
 
+{% set test_5_actual = snowplow_utils.combine_column_versions(relation=ref('data_combine_column_versions'),
+                                                              column_prefix='address_v',
+                                                              array_index=1,
+                                                              column_mode='NULLABLE') %}
+
 with prep as (
    select
       -- Test 1
