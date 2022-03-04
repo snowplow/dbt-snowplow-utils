@@ -9,7 +9,14 @@
 
     {# If parent column is an array then take element [array_index].  #}
     {# If we do not decide to override the behaviour, then we still use safe_offset. Otherwise we use . #}
-    {% set behaviour_bool = (parent.mode == 'REPEATED' and (column_mode == 'REPEATED' or column_mode is none))  %}
+    {% if parent.mode == 'REPEATED' and (column_mode == 'REPEATED' or column_mode is none) %}
+      {% set behaviour_bool = True %}
+    {% elif column_mode is in ['REQUIRED', 'NULLABLE'] %}
+      {% set behaviour_bool = False %}
+    {# If we have unexpected input, we just ignore it and continue as normal #}
+    {% else %}
+      {% set behaviour_bool = parent.mode == 'REPEATED' %}
+    {% endif %}
     {% set delimiter = '[safe_offset(%s)].'|format(array_index) if behaviour_bool else '.' %}
     {% set path = path~delimiter~field.name %}
     {% set field_name = field_name~'.'~field.name if field_name != '' else field_name~field.name %}
