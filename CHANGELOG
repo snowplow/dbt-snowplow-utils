@@ -1,3 +1,9 @@
+snowplow-utils 0.7.0 (2022-03-09)
+---------------------------------------
+Add support for dbt v1.0.0+ (Close #63)
+Bump copyright to 2022 (Close #60)
+Support dbt_utils 0.8.0 (Close #58)
+
 snowplow-utils 0.6.0 (2022-01-31)
 ---------------------------------------
 Add snowplow_mobile_delete_from_manifest macro (Close #54)
