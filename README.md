@@ -24,6 +24,8 @@ Includes:
 - [snowplow_mobile_delete_from_manifest](#snowplow_mobile_delete_from_manifest-source)
 - [get_value_by_target](#get_value_by_target-source)
 - [n_timedeltas_ago](#n_timedeltas_ago-source)
+- [type_string](#type_string-source)
+- [type_max_string](#type_max_string-source)
 
 **[Materializations](#materializations)**
 
@@ -300,6 +302,39 @@ vars:
                                       default_value='2020-01-01', 
                                       dev_target_name='dev') }}"
 ```
+
+### type_string ([source](macros/utils/cross_db/datatypes.sql))
+
+This macro takes the length of a string type as defined by the `max_characters` variable, and generates a varchar of that specified length for each supported database. While for most databases this does not affect performance, it can affect storage when compared to using a varchar of the maximum length.
+
+**Arguments:**
+
+- `max_characters`: The length of the varchar you want to create
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.type_string(16) }}
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with a specified length (BQ doesn't have a varchar type)
+
+### type_max_string ([source](macros/utils/cross_db/datatypes.sql))
+
+This macro generates a varchar of the maximum length for each supported database. While for most databases this does not affect performance, it can affect storage when compared to using a varchar of a predefined length.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.type_max_string() }}
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with the maximum allowed length 
 
 ## Materializations
 
