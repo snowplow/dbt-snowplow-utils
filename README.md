@@ -26,6 +26,10 @@ Includes:
 - [n_timedeltas_ago](#n_timedeltas_ago-source)
 - [type_string](#type_string-source)
 - [type_max_string](#type_max_string-source)
+- [timestamp_diff](#timestamp_diff-source)
+- [timestamp_add](#timestamp_add-source)
+- [cast_to_tstamp](#cast_to_tstamp-source)
+- [to_unixtstamp](#to_unixtstamp-source)
 
 **[Materializations](#materializations)**
 
@@ -335,6 +339,84 @@ This macro generates a varchar of the maximum length for each supported database
 **Returns:**
 
 - The database equivalent of a string datatype with the maximum allowed length 
+
+### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+This macro mimics the utility of the dbt_utils version however for BigQuery it ensures that the timestamp difference is calculated, similar to the other DB engines which is not the case in the dbt_utils macro. This macro calculates the difference between two dates. Note: The datepart argument is database-specific.
+
+**Arguments:**
+
+- `first_stamp`: The earlier timestamp to subtract by
+- `second_tstamp`: The later timestamp to subtract from
+- `datepart`: The unit of time that the result is denoted it
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.timestamp_diff('2022-01-10 10:23:02', '2022-01-14 09:40:56', 'day') }}
+```
+
+**Returns:**
+
+- The timestamp difference between two fields denoted in the requested unit
+
+### timestamp_add ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+This macro mimics the utility of the dbt_utils version however for BigQuery it ensures that the timestamp difference is calculated, similar to the other DB engines which is not the case in the dbt_utils macro. This macro adds a date/time interval to the supplied date/timestamp. Note: The datepart argument is database-specific.
+
+
+**Arguments:**
+
+- `datepart`: The date/time type of interval to be added
+- `interval`: The amount of time of the datepart to be added
+- `tstamp`: The timestamp to add the interval to
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.timestamp_add('day', 5, '2022-02-01 10:05:32') }}
+```
+
+**Returns:**
+
+- The new timestamp that results in adding the interval to the provided timestamp.
+
+### cast_to_tstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+This macro casts a column to a timestamp across databases. It is an adaptation of the `dbt_utils.type_timestamp()` macro.
+
+**Arguments:**
+
+- `tstamp_literal`: The column that is to be cast to a tstamp data type
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.cast_to_tstamp('events.collector_tstamp') }}
+```
+
+**Returns:**
+
+- The field as a timestamp
+
+### to_unixtstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+This macro casts a column to a unix timestamp across databases.
+
+**Arguments:**
+
+- `tstamp`: The column that is to be cast to a unix timestamp
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.to_unixtstamp('events.collector_tstamp') }}
+```
+
+**Returns:**
+
+- The field as a unix timestamp
+
 
 ## Materializations
 
