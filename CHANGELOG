@@ -1,3 +1,8 @@
+snowplow-utils 0.8.0 (2022-03-11)
+---------------------------------------
+Add a type_string macro to generate a varchar type (Close #65)
+Add cross_db macro documentation (Close #66)
+
 snowplow-utils 0.7.0 (2022-03-09)
 ---------------------------------------
 Add support for dbt v1.0.0+ (Close #63)
