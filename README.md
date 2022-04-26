@@ -17,26 +17,32 @@ Includes:
 
 **[Macros](#macros)**
 
-- [get_columns_in_relation_by_column_prefix](#get_columns_in_relation_by_column_prefix-source)
-- [combine_column_versions](#combine_column_versions-source)
-- [is_run_with_new_events](#is_run_with_new_events-source)
-- [snowplow_web_delete_from_manifest](#snowplow_web_delete_from_manifest-source)
-- [snowplow_mobile_delete_from_manifest](#snowplow_mobile_delete_from_manifest-source)
-- [get_value_by_target](#get_value_by_target-source)
-- [n_timedeltas_ago](#n_timedeltas_ago-source)
-- [type_string](#type_string-source)
-- [type_max_string](#type_max_string-source)
-- [timestamp_diff](#timestamp_diff-source)
-- [timestamp_add](#timestamp_add-source)
-- [cast_to_tstamp](#cast_to_tstamp-source)
-- [to_unixtstamp](#to_unixtstamp-source)
+- [snowplow-utils](#snowplow-utils)
+  - [Contents](#contents)
+  - [Macros](#macros)
+    - [get_columns_in_relation_by_column_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
+    - [combine_column_versions (source)](#combine_column_versions-source)
+    - [is_run_with_new_events (source)](#is_run_with_new_events-source)
+    - [snowplow_web_delete_from_manifest (source)](#snowplow_web_delete_from_manifest-source)
+    - [snowplow_mobile_delete_from_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
+    - [get_value_by_target (source)](#get_value_by_target-source)
+    - [n_timedeltas_ago (source)](#n_timedeltas_ago-source)
+    - [set_query_tag (source)](#set_query_tag-source)
+    - [type_string (source)](#type_string-source)
+    - [type_max_string (source)](#type_max_string-source)
+    - [timestamp_diff (source)](#timestamp_diff-source)
+    - [timestamp_add (source)](#timestamp_add-source)
+    - [cast_to_tstamp (source)](#cast_to_tstamp-source)
+    - [to_unixtstamp (source)](#to_unixtstamp-source)
+  - [Materializations](#materializations)
+    - [snowplow_incremental](#snowplow_incremental)
+    - [Redshift & Postgres (source)](#redshift--postgres-source)
+    - [BigQuery (source)](#bigquery-source)
+    - [Snowflake (source)](#snowflake-source)
+    - [Notes](#notes)
+- [Join the Snowplow community](#join-the-snowplow-community)
+- [Copyright and license](#copyright-and-license)
 
-**[Materializations](#materializations)**
-
-- [snowplow_incremental](#snowplow_incremental)
-  - [Redshift & Postgres](#redshift--postgres-source)
-  - [BigQuery](#bigquery-source)
-  - [Snowflake](#snowflake-source)
 
 ## Macros
 
@@ -306,6 +312,25 @@ vars:
                                       default_value='2020-01-01', 
                                       dev_target_name='dev') }}"
 ```
+
+### set_query_tag ([source](macros/utils/set_query_tag.sql))
+
+This macro takes a provided statement as argument and generates the SQL command to set this statement as the query_tag for Snowflake databases, and does nothing otherwise. It can be used to safely set the query_tag regardless of database type.
+
+**Arguments:**
+
+- `statement`: The query_tag that you want to set in your Snowflake session.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.set_query_tag('snowplow_query_tag') }}
+```
+
+**Returns:**
+
+- The SQL statement which will update the query tag in Snowflake, or nothing in other databases.
 
 ### type_string ([source](macros/utils/cross_db/datatypes.sql))
 
