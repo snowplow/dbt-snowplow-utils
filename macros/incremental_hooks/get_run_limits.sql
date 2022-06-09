@@ -20,7 +20,7 @@
     {% endset %}
 
   {% elif not has_matched_all_models %}
-    {# If a new Snowplow model is added which isn't already in the manifest, replay all events up to upper_limit #}
+    {# If a new Snowplow model is added which isnt already in the manifest, replay all events up to upper_limit #}
     {% do snowplow_utils.log_message("Snowplow: New Snowplow incremental model. Backfilling") %}
 
     {% set run_limits_query %}

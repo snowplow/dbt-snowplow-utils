@@ -90,3 +90,30 @@
   {{ return(upsert_limits_sql) }}
 
 {%- endmacro %}
+
+{% macro databricks__get_snowplow_upsert_limits_sql(tmp_relation, upsert_date_key, disable_upsert_lookback) -%}
+  
+  {% set upsert_limits_sql -%}
+
+    {% if disable_upsert_lookback %}
+
+      select 
+        min({{ upsert_date_key }}) as lower_limit,
+        max({{ upsert_date_key }}) as upper_limit
+      from {{ tmp_relation }}
+      ;
+    {% else %}
+      select 
+        {{ dbt_utils.dateadd('day', 
+                              -var("snowplow__upsert_lookback_days", 30),
+                              'min('~upsert_date_key~')') }} as lower_limit,
+        max({{ upsert_date_key }}) as upper_limit
+      from {{ tmp_relation }}
+      ;
+    {% endif %}
+
+  {%- endset %}
+
+  {{ return(upsert_limits_sql) }}
+
+{%- endmacro %}

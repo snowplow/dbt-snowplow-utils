@@ -101,3 +101,13 @@ seeds:
             start_tstamp: timestamp
       snowflake:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+      databricks:
+        enabled: "{{ target.type == 'databricks' | as_bool() }}"
+        data_snowplow_incremental_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp
+        data_snowplow_incremental_w_lookback_disabled_expected:
+          +column_types:
+            id: integer
+            start_tstamp: timestamp

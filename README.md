@@ -38,6 +38,7 @@ Includes:
     - [snowplow_incremental](#snowplow_incremental)
     - [Redshift & Postgres (source)](#redshift--postgres-source)
     - [BigQuery (source)](#bigquery-source)
+    - [Databricks (source)](#databricks-source)
     - [Snowflake (source)](#snowflake-source)
     - [Notes](#notes)
 - [Join the Snowplow community](#join-the-snowplow-community)
@@ -533,17 +534,41 @@ when not matched then insert ...
   config(
     materialized='snowplow_incremental',
     unique_key='page_view_id', # Required: the primary key of your model
-    partition_by = {
+    partition_by = snowplow_utils.get_partition_by(bigquery_partition_by={
       "field": "start_tstamp",
       "data_type": "timestamp",
       "granularity": "day" # Only introduced in dbt v0.19.0+. Defaults to 'day' for dbt v0.18 or earlier
-    } # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
+    }) # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
     disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
   ) 
 }}
 ```
 
 **Note you must provide the `partition_by` clause to use this materialization. All `data_types` are supported except `int64`.**
+
+### Databricks ([source](macros/materializations/snowplow_incremental/databricks/snowplow_incremental.sql))
+
+Like the default materialization, the `snowplow_incremental` materialization strategy is [merge](https://github.com/databricks/dbt-databricks/blob/main/dbt/include/databricks/macros/materializations/incremental/incremental.sql) however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in a similar manner to BigQuery as outlined above.
+
+
+**Usage:**
+
+```sql
+{{ 
+  config(
+    materialized='snowplow_incremental',
+    unique_key='page_view_id', # Required: the primary key of your model
+    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
+    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
+    tblproperties={
+      "delta.autoOptimize.optimizeWrite": "true",
+      "delta.autoOptimize.autoCompact" : "true"
+    } # Optional. Will set the autoOptimize parameters for the table
+  ) 
+}}
+```
+
+**Note you must provide the `upsert_date_key` clause to use this materialization.**
 
 ### Snowflake ([source](macros/materializations/snowplow_incremental/snowflake/snowplow_incremental.sql))
 
@@ -571,11 +596,11 @@ models:
     +incremental_strategy: "delete+insert"
 ```
 
-*Note: During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can effect this.*
+*Note: During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can affect this.*
 
 ### Notes
 
-- If using this the `snowplow_incremental` materialization, **the native dbt `is_incremental()` macro will not recognize the model as incremental**. Please use the `snowplow_utils.snowplow_is_incremental()` macro instead, which operates in the same way.
+- If using the `snowplow_incremental` materialization, **the native dbt `is_incremental()` macro will not recognize the model as incremental**. Please use the `snowplow_utils.snowplow_is_incremental()` macro instead, which operates in the same way.
 - `snowplow__upsert_lookback_days` defaults to 30 days. If you set `snowplow__upsert_lookback_days` to too short a period, duplicates can occur in your incremental table.
 
 # Join the Snowplow community

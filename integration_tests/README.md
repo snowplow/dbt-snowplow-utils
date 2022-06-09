@@ -26,6 +26,7 @@ Supported warehouses:
 - bigquery
 - snowflake
 - postgres
+- databricks
 - all (iterates through all supported warehouses)
 
 The `.scripts/test_XXX.sh` scripts are the dedicated scripts and can be run on an individual basis.
