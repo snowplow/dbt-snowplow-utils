@@ -1,5 +1,5 @@
-{# Tests both RS/PG (delete/insert) and BQ/Snowflake (merge) snowplow_incremental materialization 
-   upsert_date_key: RS/PG only. Key used to limit the table scan
+{# Tests both RS/PG (delete/insert) and BQ/Snowflake/Databricks (merge) snowplow_incremental materialization 
+   upsert_date_key: RS/PG/Databricks only. Key used to limit the table scan
    partition_by: BQ only. Key used to limit table scan
    TODO: Add tests that change the granularity of the partition #}
 
@@ -8,10 +8,10 @@
     materialized='snowplow_incremental',
     unique_key='id',
     upsert_date_key='start_tstamp',
-    partition_by = {
+    partition_by = snowplow_utils.get_partition_by(bigquery_partition_by={
       "field": "start_tstamp",
       "data_type": "timestamp"
-    },
+    }),
     tags=["requires_script"]
   ) 
 }}
@@ -44,5 +44,3 @@ with data as (
   where run = 1
 
 {% endif %}
-
-
