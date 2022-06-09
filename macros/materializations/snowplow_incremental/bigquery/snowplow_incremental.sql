@@ -22,7 +22,7 @@
   {%- set existing_relation = load_relation(this) %}
   {%- set tmp_relation = make_temp_relation(this) %}
 
-  {# Validate early so we don't run SQL if the strategy is invalid or missing keys #}
+  {# Validate early so we dont run SQL if the strategy is invalid or missing keys #}
   {% set strategy = snowplow_utils.snowplow_validate_get_incremental_strategy(config) -%}
 
   {%- set cluster_by = config.get('cluster_by', none) -%}

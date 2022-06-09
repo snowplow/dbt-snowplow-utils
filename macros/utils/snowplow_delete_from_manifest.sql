@@ -35,10 +35,14 @@
   {%- endif -%}
 
   {% set delete_statement %}
-    -- We don't need transaction but Redshift needs commit statement while BQ does not. By using transaction we cover both.
-    begin;
-    delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
-    commit;
+    {%- if target.type == 'databricks' -%}
+      delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
+    {%- else -%}
+      -- We don't need transaction but Redshift needs commit statement while BQ does not. By using transaction we cover both.
+      begin;
+      delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
+      commit;
+    {%- endif -%}
   {% endset %}
 
   {%- do run_query(delete_statement) -%}

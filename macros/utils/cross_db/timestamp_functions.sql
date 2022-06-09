@@ -61,3 +61,7 @@
 {%- macro bigquery__to_unixtstamp(tstamp) -%}
     unix_seconds({{ tstamp }})
 {%- endmacro %}
+
+{%- macro databricks__to_unixtstamp(tstamp) -%}
+    unix_timestamp({{ tstamp }})
+{%- endmacro %}

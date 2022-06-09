@@ -66,3 +66,49 @@
   unset (dbt_partition_lower_limit, dbt_partition_upper_limit);
 
 {% endmacro %}
+
+{% macro databricks__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) %}
+    {%- set source_sql -%}
+    (
+      select * from {{ tmp_relation }}
+    )
+    {%- endset -%}
+
+    -- 1. create a temp table
+    {{ create_table_as(True, tmp_relation, sql) }}
+    ;
+
+
+    -- 2. define partitions to update
+    {%- call statement('fetch_limits', fetch_result=True) -%}
+      {{ snowplow_utils.get_snowplow_upsert_limits_sql(tmp_relation, upsert_date_key, disable_upsert_lookback) }}
+    {%- endcall -%}
+
+    {%- set lower_limit = load_result('fetch_limits')['data'][0][0] -%}
+    {%- set upper_limit = load_result('fetch_limits')['data'][0][1] -%}
+
+    {% set predicate -%}
+        DBT_INTERNAL_DEST.{{ upsert_date_key }} between '{{lower_limit}}' and '{{upper_limit}}'
+    {%- endset %}
+
+
+    {#
+      TODO: include_sql_header is a hack; consider a better approach that includes
+            the sql_header at the materialization-level instead
+    #}
+
+    -- 3. run the merge statement
+    {%- set merge_query -%}
+    {{ snowplow_utils.get_snowplow_merge_sql(target_relation, source_sql, unique_key, dest_columns, [predicate], include_sql_header=false) }};
+    {%- endset -%}
+
+
+    -- 4. clean up the temp table
+    {%- set drop_view -%}
+    drop view if exists {{ tmp_relation }}
+    {%- endset -%}
+
+    {%- do run_query(merge_query) -%}
+    {%- do run_query(drop_view) -%}
+
+{% endmacro %}
