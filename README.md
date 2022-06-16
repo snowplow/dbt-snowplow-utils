@@ -557,7 +557,7 @@ Like the default materialization, the `snowplow_incremental` materialization str
 {{ 
   config(
     materialized='snowplow_incremental',
-     unique_key='page_view_id', # Required: the primary key of your model
+    unique_key='page_view_id', # Required: the primary key of your model
     upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
     disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
     tblproperties={

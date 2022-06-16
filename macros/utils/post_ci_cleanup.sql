@@ -7,17 +7,31 @@
 
   {% if schemas|length %}
 
-    {# Generate sql to drop all identified schemas #}
-    {% set drop_schema_sql -%}
-
+    {%- if target.type == 'databricks' -%}
+      {# Generate sql to drop all identified schemas #}
       {% for schema in schemas -%}
-        DROP SCHEMA IF EXISTS {{schema}} CASCADE; 
+        {%- set drop_schema_sql -%}
+          DROP SCHEMA IF EXISTS {{schema}} CASCADE; 
+        {%- endset -%}
+
+        {% do run_query(drop_schema_sql) %}
+
       {% endfor %}
+    
+    {%- else -%}
+      {# Generate sql to drop all identified schemas #}
+      {% set drop_schema_sql -%}
 
-    {%- endset %}
+        {% for schema in schemas -%}
+          DROP SCHEMA IF EXISTS {{schema}} CASCADE; 
+        {% endfor %}
 
-    {# Drop schemas #}
-    {% do run_query(drop_schema_sql) %}
+      {%- endset %}
+
+      {# Drop schemas #}
+      {% do run_query(drop_schema_sql) %}
+    
+    {%- endif -%}
 
   {% endif %}
 
