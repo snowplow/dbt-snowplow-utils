@@ -1,3 +1,7 @@
+snowplow-utils 0.10.0 (2022-06-22)
+---------------------------------------
+Add support for databricks (Close #77)
+
 snowplow-utils 0.9.0 (2022-05-05)
 ---------------------------------------
 Add `set_query_tag` functionality (Close #71)
