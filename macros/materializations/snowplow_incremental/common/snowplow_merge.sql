@@ -4,8 +4,8 @@
 
 
 {% macro default__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) %}
-    
-    {# partition_by supplied as upsert_date_key for BigQuery. Rename for clarity #} 
+
+    {# partition_by supplied as upsert_date_key for BigQuery. Rename for clarity #}
     {%- set partition_by = upsert_date_key -%}
 
     {% set predicate -%}
@@ -61,7 +61,7 @@
   #}
   -- run the merge statement
   {{ snowplow_utils.get_snowplow_merge_sql(target_relation, source_sql, unique_key, dest_columns, [predicate], include_sql_header=false) }};
-  
+
   -- Unset variables
   unset (dbt_partition_lower_limit, dbt_partition_upper_limit);
 
@@ -112,3 +112,7 @@
     {%- do run_query(drop_view) -%}
 
 {% endmacro %}
+
+{%- macro spark__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) -%}
+    {{ return(snowplow_utils.databricks__snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback)) }}
+{%- endmacro %}
