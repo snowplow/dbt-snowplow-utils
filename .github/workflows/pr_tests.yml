@@ -38,10 +38,10 @@ env:
   POSTGRES_TEST_HOST: ${{ secrets.POSTGRES_TEST_HOST }}
   POSTGRES_TEST_PORT: ${{ secrets.POSTGRES_TEST_PORT }}
 
-  DATABRICKS_TEST_HOST: ${{ secrets.DATABRICKS_TEST_HOST }} 
-  DATABRICKS_TEST_HTTP_PATH: ${{ secrets.DATABRICKS_TEST_HTTP_PATH }} 
-  DATABRICKS_TEST_TOKEN: ${{ secrets.DATABRICKS_TEST_TOKEN }} 
-
+  DATABRICKS_TEST_HOST: ${{ secrets.DATABRICKS_TEST_HOST }}
+  DATABRICKS_TEST_HTTP_PATH: ${{ secrets.DATABRICKS_TEST_HTTP_PATH }}
+  DATABRICKS_TEST_TOKEN: ${{ secrets.DATABRICKS_TEST_TOKEN }}
+  DATABRICKS_TEST_ENDPOINT: ${{ secrets.DATABRICKS_TEST_ENDPOINT }}
 
 jobs:
   pr_tests:
@@ -110,6 +110,14 @@ jobs:
           pip install --upgrade pip wheel setuptools
           pip install -Iv dbt-${{ matrix.warehouse }}==${{ matrix.dbt_version }} --upgrade
           dbt deps
+        if: ${{matrix.warehouse != 'spark'}}
+
+      - name: Install spark dependencies
+        run: |
+          pip install --upgrade pip wheel setuptools
+          pip install -Iv "dbt-${{ matrix.warehouse }}[ODBC]"==${{ matrix.dbt_version }} --upgrade
+          dbt deps
+        if: ${{matrix.warehouse == 'spark'}}
 
       - name: Block concurrent executions tests
         uses: softprops/turnstyle@v1

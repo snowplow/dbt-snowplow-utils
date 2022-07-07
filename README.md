@@ -40,6 +40,7 @@ Includes:
     - [BigQuery (source)](#bigquery-source)
     - [Databricks (source)](#databricks-source)
     - [Snowflake (source)](#snowflake-source)
+    - [Spark (source)](#spark-source)
     - [Notes](#notes)
 - [Join the Snowplow community](#join-the-snowplow-community)
 - [Copyright and license](#copyright-and-license)
@@ -207,12 +208,12 @@ The macro utilizes the `snowplow_[platform]_incremental_manifest` table to deter
 **Usage:**
 
 ```sql
-{{ 
+{{
   config(
     materialized='snowplow_incremental',
     unique_key='screen_view_id',
     upsert_date_key='start_tstamp'
-  ) 
+  )
 }}
 
 select
@@ -310,7 +311,7 @@ vars:
   snowplow_mobile:
     snowplow__start_date: "{{ snowplow_utils.get_value_by_target(
                                       dev_value=snowplow_utils.n_timedeltas_ago(1, 'weeks'),
-                                      default_value='2020-01-01', 
+                                      default_value='2020-01-01',
                                       dev_target_name='dev') }}"
 ```
 
@@ -364,7 +365,7 @@ This macro generates a varchar of the maximum length for each supported database
 
 **Returns:**
 
-- The database equivalent of a string datatype with the maximum allowed length 
+- The database equivalent of a string datatype with the maximum allowed length
 
 ### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
 
@@ -462,7 +463,7 @@ Like the native materialization, the `snowplow_incremental` materialization stra
 
 ```sql
 with vars as (
-  select 
+  select
     dateadd('day', -{{ snowplow__upsert_lookback_days }}, min({{ upsert_date_key }})) as lower_limit,
     max(upsert_date_key) as upper_limit
   from {{ tmp_relation }}
@@ -480,13 +481,13 @@ insert into {{ destination_table }}
 **Usage:**
 
 ```sql
-{{ 
+{{
   config(
     materialized='snowplow_incremental',
     unique_key='page_veiw_id', # Required: the primary key of your model
     upsert_date_key='start_tstamp' # Required: The date key to be used to calculate the limits
     disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
-  ) 
+  )
 }}
 ```
 
@@ -530,7 +531,7 @@ when not matched then insert ...
 **Usage:**
 
 ```sql
-{{ 
+{{
   config(
     materialized='snowplow_incremental',
     unique_key='page_view_id', # Required: the primary key of your model
@@ -539,8 +540,8 @@ when not matched then insert ...
       "data_type": "timestamp",
       "granularity": "day" # Only introduced in dbt v0.19.0+. Defaults to 'day' for dbt v0.18 or earlier
     }) # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
-  ) 
+    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
+  )
 }}
 ```
 
@@ -554,17 +555,17 @@ Like the default materialization, the `snowplow_incremental` materialization str
 **Usage:**
 
 ```sql
-{{ 
+{{
   config(
     materialized='snowplow_incremental',
     unique_key='page_view_id', # Required: the primary key of your model
     upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table. 
+    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
     tblproperties={
       "delta.autoOptimize.optimizeWrite": "true",
       "delta.autoOptimize.autoCompact" : "true"
     } # Optional. Will set the autoOptimize parameters for the table
-  ) 
+  )
 }}
 ```
 
@@ -577,13 +578,13 @@ Like the native materialization, the `snowplow_incremental` materialization's de
 **Usage:**
 
 ```sql
-{{ 
+{{
   config(
     materialized='snowplow_incremental',
     unique_key='page_view_id', # Required: the primary key of your model
     upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
     cluster_by='to_date(start_tstamp)' # Optional.
-  ) 
+  )
 }}
 ```
 
@@ -597,6 +598,30 @@ models:
 ```
 
 *Note: During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can affect this.*
+
+### Spark ([source](macros/materializations/snowplow_incremental/spark/snowplow_incremental.sql))
+
+Like the default materialization, the `snowplow_incremental` materialization strategy is [merge](https://github.com/dbt-labs/dbt-spark/blob/main/dbt/include/spark/macros/materializations/incremental/incremental.sql) however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in an analogous manner to Databricks.
+
+
+**Usage:**
+
+```sql
+{{
+  config(
+    materialized='snowplow_incremental',
+    unique_key='page_view_id', # Required: the primary key of your model
+    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
+    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
+    tblproperties={
+      "delta.autoOptimize.optimizeWrite": "true",
+      "delta.autoOptimize.autoCompact" : "true"
+    } # Optional. Will set the autoOptimize parameters for the table
+  )
+}}
+```
+
+**Note you must provide the `upsert_date_key` clause to use this materialization.**
 
 ### Notes
 
