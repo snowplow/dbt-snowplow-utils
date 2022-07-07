@@ -21,7 +21,7 @@ on-run-end: "{{ test_get_successful_models(enabled=var('enabled_test_get_success
 vars:
   snowplow_utils_integration_tests:
     # Disables compiler errors during testing. Returns error message string instead, which we can test against.
-    snowplow__disable_errors: true 
+    snowplow__disable_errors: true
 
 models:
   snowplow_utils_integration_tests:
@@ -102,7 +102,7 @@ seeds:
       snowflake:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
       databricks:
-        enabled: "{{ target.type == 'databricks' | as_bool() }}"
+        enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
         data_snowplow_incremental_expected:
           +column_types:
             id: integer

@@ -1,5 +1,5 @@
 
-{# 
+{#
  datediff/dateadd functions in dbt_utils cast tstamps to datetimes for BQ.
  This results in mismatching dtypes when filtering on tstamp fields. Overriding with timestamp func.
  #}
@@ -64,4 +64,8 @@
 
 {%- macro databricks__to_unixtstamp(tstamp) -%}
     unix_timestamp({{ tstamp }})
+{%- endmacro %}
+
+{%- macro spark__to_unixtstamp(tstamp) -%}
+    {{ return(snowplow_utils.databricks__to_unixtstamp(tstamp)) }}
 {%- endmacro %}

@@ -1,4 +1,4 @@
-{% materialization snowplow_incremental, adapter='databricks' -%}
+{% materialization snowplow_incremental, adapter='spark' -%}
   {%- set full_refresh_mode = (should_full_refresh()) -%}
 
   {# Required keys. Throws error if not present #}
