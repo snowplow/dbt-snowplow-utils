@@ -1,3 +1,7 @@
+snowplow-utils 0.11.0 (2022-07-19)
+---------------------------------------
+Add support for databricks via Spark (Close #80)
+
 snowplow-utils 0.10.0 (2022-06-22)
 ---------------------------------------
 Add support for databricks (Close #77)
