@@ -49,6 +49,10 @@
       {{ build_sql }}
   {% endcall %}
 
+  {% if existing_relation is none or existing_relation.is_view or should_full_refresh() %} 
+    {% do create_indexes(target_relation) %} 
+  {% endif %} 
+
   {{ run_hooks(post_hooks, inside_transaction=True) }}
 
   -- `COMMIT` happens here
