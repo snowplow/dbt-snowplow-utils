@@ -1,3 +1,8 @@
+snowplow-utils 0.12.0 (2022-08-11)
+---------------------------------------
+Add ability to create indexes from config (Close #83)
+Add support for Databricks runtimes below 10.4 (Close #85)
+
 snowplow-utils 0.11.0 (2022-07-19)
 ---------------------------------------
 Add support for databricks via Spark (Close #80)
