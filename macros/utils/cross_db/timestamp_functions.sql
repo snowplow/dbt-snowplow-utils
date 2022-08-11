@@ -34,6 +34,11 @@
 {% endmacro %}
 
 
+{% macro databricks__timestamp_add(datepart, interval, tstamp) %}
+    timestampadd({{datepart}}, {{interval}}, {{tstamp}})
+{% endmacro %}
+
+
 {% macro cast_to_tstamp(tstamp_literal) -%}
   {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
     cast(null as {{dbt_utils.type_timestamp()}})
