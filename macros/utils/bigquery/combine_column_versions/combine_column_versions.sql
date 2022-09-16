@@ -1,4 +1,4 @@
-{% macro combine_column_versions(relation, column_prefix, required_fields=[], nested_level=none, level_filter='equalto', relation_alias=none, include_field_alias=true, array_index=0, max_nested_level=15) %}
+{% macro combine_column_versions(relation, column_prefix, required_fields=[], nested_level=none, level_filter='equalto', relation_alias=none, include_field_alias=true, array_index=0, max_nested_level=15, exclude_versions=[]) %}
   
   {# Create field_alias if not supplied i.e. is not tuple #}
   {% set required_fields_tmp = required_fields %}
@@ -17,13 +17,15 @@
   {% set level_limit = max_nested_level if level_limit is none or level_limit > max_nested_level else level_limit %}
 
   {%- set matched_columns = snowplow_utils.get_columns_in_relation_by_column_prefix(relation, column_prefix) -%}
-  
+
+  {# Removes excluded versions, assuming column name ends with a version of format 'X_X_X' #}
+  {%- set filter_columns_by_version = snowplow_utils.exclude_column_versions(matched_columns, exclude_versions) -%}  
+
   {%- set flattened_fields_by_col_version = [] -%}
 
   {# Flatten fields within each column version. Returns nested arrays of dicts. #}
   {# Dict: {'field_name': str, 'field_alias': str, 'flattened_path': str, 'nested_level': int #}
-  {% for column in matched_columns|sort(attribute='name', reverse=true) %}
-
+  {% for column in filter_columns_by_version|sort(attribute='name', reverse=true) %}
     {% set flattened_fields = snowplow_utils.flatten_fields(fields=column.fields,
                                                             parent=column,
                                                             path=column.name,
