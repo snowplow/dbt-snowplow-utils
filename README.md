@@ -91,11 +91,12 @@ The order of the matched columns is denoted by their ordinal position.
 
 As your schemas for such columns evolve, multiple versions of the same column will be created in your events table e.g. `custom_context_1_0_0`, `custom_context_1_0_1`. These columns contain nested fields i.e. are of a datatype `RECORD`. When modeling Snowplow data it can be useful to combine or coalesce each nested field across all versions of the column for a continuous view over time. This macro mitigates the need to update your coalesce statement each time a new version of the column is created.
 
-Fields can be selected using 3 methods:
+Fields can be selected using 4 methods:
 
 - Select all fields. Default.
 - Select by field name using the `required_fields` arg.
 - Select all fields at a given level/depth of nesting e.g. all 1st level fields. Uses the `nested_level` arg.
+- Select all fields, excluding specific versions using the `exclude_versions` arg.
 
 By default any returned fields will be assigned an alias matching the field name e.g. `coalesce(<col_v2>.product, <col_v1>.product) as product`. For heavily nested fields, the alias will be field's path with `.` replaced with `_` e.g. for a field `product.size.height` will have an alias `product_size_height`. A custom alias can be supplied with the `required_fields` arg (see below).
 
@@ -110,6 +111,7 @@ By default any returned fields will be assigned an alias matching the field name
 - `include_field_alias`: Default `True`. Determines whether to included the field alias in the final coalesced field e.g. `coalesce(...) as <field_alias>`. Useful when using the field as part of a join.
 - `array_index`: Default 0. If the column is of mode `REPEATED` i.e. an array, this determines the element to take. All Snowplow context columns are arrays, typically with only a single element.
 - `max_nested_level`: Default 15. Imposes a hard stop for recursions on heavily nested data.
+- `exclude_versions`: Optional. List of versions to be excluded from column coalescing. Versions should be provided as an array of strings in snake case (`['1_0_0']`)
 
 **Returns:**
 
