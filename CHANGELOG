@@ -1,3 +1,8 @@
+snowplow-utils 0.12.2 (2022-10-26)
+---------------------------------------
+Bump dbt-utils version for patch fix (Close #92)
+Fix incremental_strategy default argument bug (Close #97)
+
 snowplow-utils 0.12.1 (2022-09-22)
 ---------------------------------------
 Exclude specific entity versions from combine_column_version macro (Close #91) (Thanks to @bgraf)
