@@ -2,7 +2,7 @@ name: 'snowplow_utils'
 version: '0.12.3'
 config-version: 2
 
-require-dbt-version: [">=1.0.0", "<2.0.0"]
+require-dbt-version: [">=1.3.0", "<2.0.0"]
 
 profile: 'default'
 
@@ -13,3 +13,6 @@ clean-targets:
     - "target"
     - "dbt_modules"
     - "dbt_packages"
+
+vars:
+    surrogate_key_treat_nulls_as_empty_strings: true #turn on legacy behavior

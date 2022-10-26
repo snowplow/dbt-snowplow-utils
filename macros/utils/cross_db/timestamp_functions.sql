@@ -10,7 +10,7 @@
 
 
 {% macro default__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
-    {{ return(dbt_utils.datediff(first_tstamp, second_tstamp, datepart)) }}
+    {{ return(datediff(first_tstamp, second_tstamp, datepart)) }}
 {% endmacro %}
 
 
@@ -25,7 +25,7 @@
 
 
 {% macro default__timestamp_add(datepart, interval, tstamp) %}
-    {{ return(dbt_utils.dateadd(datepart, interval, tstamp)) }}
+    {{ return(dateadd(datepart, interval, tstamp)) }}
 {% endmacro %}
 
 
@@ -41,9 +41,9 @@
 
 {% macro cast_to_tstamp(tstamp_literal) -%}
   {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
-    cast(null as {{dbt_utils.type_timestamp()}})
+    cast(null as {{type_timestamp()}})
   {% else %}
-    cast('{{tstamp_literal}}' as {{dbt_utils.type_timestamp()}})
+    cast('{{tstamp_literal}}' as {{type_timestamp()}})
   {% endif %}
 {%- endmacro %}
 
@@ -74,3 +74,24 @@
 {%- macro spark__to_unixtstamp(tstamp) -%}
     {{ return(snowplow_utils.databricks__to_unixtstamp(tstamp)) }}
 {%- endmacro %}
+
+{% macro current_timestamp_in_utc() -%}
+  {{ return(adapter.dispatch('current_timestamp_in_utc', 'snowplow_utils')()) }}
+{%- endmacro %}
+
+{% macro default__current_timestamp_in_utc() %}
+    {{current_timestamp()}}
+{% endmacro %}
+
+{% macro snowflake__current_timestamp_in_utc() %}
+    convert_timezone('UTC', {{current_timestamp()}})::{{type_timestamp()}}
+{% endmacro %}
+
+{% macro postgres__current_timestamp_in_utc() %}
+    (current_timestamp at time zone 'utc')::{{type_timestamp()}}
+{% endmacro %}
+
+{# redshift should use default instead of postgres #}
+{% macro redshift__current_timestamp_in_utc() %}
+    {{ return(snowplow_utils.default__current_timestamp_in_utc()) }}
+{% endmacro %}
