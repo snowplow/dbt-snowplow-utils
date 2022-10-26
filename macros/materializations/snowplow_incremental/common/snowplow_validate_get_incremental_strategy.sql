@@ -7,9 +7,7 @@
   
   {# Find and validate the incremental strategy #}
   {%- set strategy = config.get("incremental_strategy", default="merge") -%}
-  {# {{ print("strategy in theory: " ~ config.get("incremental_strategy", default="merge")) }} #}
-  {{ print("strategy after set: " ~ strategy) }}
-  
+
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ strategy }}
     Expected 'merge'
