@@ -8,6 +8,11 @@
   {# Find and validate the incremental strategy #}
   {%- set strategy = config.get("incremental_strategy", default="merge") -%}
 
+  {# This shouldn't be required but due to some issue with dbt 1.3 this should resolve the default value not getting assigned #}
+  {% if strategy is none %}
+    {%- set strategy = 'merge' -%}
+  {% endif %}
+
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ strategy }}
     Expected 'merge'
@@ -25,6 +30,11 @@
   
   {# Find and validate the incremental strategy #}
   {%- set strategy = config.get("incremental_strategy", default="merge") -%}
+
+  {# This shouldn't be required but due to some issue with dbt 1.3 this should resolve the default value not getting assigned #}
+  {% if strategy is none %}
+    {%- set strategy = 'merge' -%}
+  {% endif %}
 
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ strategy }}
