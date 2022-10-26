@@ -16,7 +16,7 @@
     {% else %}
       with vars as (
         select
-              {{ dbt_utils.dateadd('day',
+              {{ dateadd('day',
                                    -var("snowplow__upsert_lookback_days", 30),
                                    'min('~upsert_date_key~')') }} as lower_limit,
                    max({{ upsert_date_key }}) as upper_limit
@@ -48,7 +48,7 @@
     {% else %}
       set (dbt_partition_lower_limit, dbt_partition_upper_limit) = (
             select as struct
-                   cast({{ dbt_utils.dateadd('day',
+                   cast({{ dateadd('day',
                                              -var("snowplow__upsert_lookback_days", 30),
                                              'min('~partition_by.field~')') }} as {{ partition_by.data_type }}) as lower_limit,
                    max({{ partition_by.field }}) as upper_limit
@@ -77,7 +77,7 @@
     {% else %}
       set (dbt_partition_lower_limit, dbt_partition_upper_limit) = (
             select
-              {{ dbt_utils.dateadd('day',
+              {{ dateadd('day',
                                    -var("snowplow__upsert_lookback_days", 30),
                                    'min('~upsert_date_key~')') }} as lower_limit,
                    max({{ upsert_date_key }}) as upper_limit
@@ -104,7 +104,7 @@
       ;
     {% else %}
       select
-        {{ dbt_utils.dateadd('day',
+        {{ dateadd('day',
                               -var("snowplow__upsert_lookback_days", 30),
                               'min('~upsert_date_key~')') }} as lower_limit,
         max({{ upsert_date_key }}) as upper_limit

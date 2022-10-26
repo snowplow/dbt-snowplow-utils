@@ -20,23 +20,27 @@ Includes:
 - [snowplow-utils](#snowplow-utils)
   - [Contents](#contents)
   - [Macros](#macros)
-    - [get_columns_in_relation_by_column_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
-    - [combine_column_versions (source)](#combine_column_versions-source)
-    - [is_run_with_new_events (source)](#is_run_with_new_events-source)
-    - [snowplow_web_delete_from_manifest (source)](#snowplow_web_delete_from_manifest-source)
-    - [snowplow_mobile_delete_from_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
-    - [get_value_by_target (source)](#get_value_by_target-source)
-    - [n_timedeltas_ago (source)](#n_timedeltas_ago-source)
-    - [set_query_tag (source)](#set_query_tag-source)
-    - [type_string (source)](#type_string-source)
-    - [type_max_string (source)](#type_max_string-source)
-    - [timestamp_diff (source)](#timestamp_diff-source)
-    - [timestamp_add (source)](#timestamp_add-source)
-    - [cast_to_tstamp (source)](#cast_to_tstamp-source)
-    - [to_unixtstamp (source)](#to_unixtstamp-source)
+    - [get\_columns\_in\_relation\_by\_column\_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
+    - [combine\_column\_versions (source)](#combine_column_versions-source)
+    - [is\_run\_with\_new\_events (source)](#is_run_with_new_events-source)
+    - [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
+    - [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
+    - [get\_value\_by\_target (source)](#get_value_by_target-source)
+    - [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
+    - [set\_query\_tag (source)](#set_query_tag-source)
+    - [type\_string (source)](#type_string-source)
+    - [type\_max\_string (source)](#type_max_string-source)
+  - [get\_split\_to\_array (source)](#get_split_to_array-source)
+  - [get\_string\_agg (source)](#get_string_agg-source)
+    - [timestamp\_diff (source)](#timestamp_diff-source)
+    - [timestamp\_add (source)](#timestamp_add-source)
+    - [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+    - [to\_unixtstamp (source)](#to_unixtstamp-source)
+  - [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+  - [unnest (source)](#unnest-source)
   - [Materializations](#materializations)
-    - [snowplow_incremental](#snowplow_incremental)
-    - [Redshift & Postgres (source)](#redshift--postgres-source)
+    - [snowplow\_incremental](#snowplow_incremental)
+    - [Redshift \& Postgres (source)](#redshift--postgres-source)
     - [BigQuery (source)](#bigquery-source)
     - [Databricks (source)](#databricks-source)
     - [Snowflake (source)](#snowflake-source)
@@ -444,7 +448,7 @@ This macro mimics the utility of the dbt_utils version however for BigQuery it e
 
 ### cast_to_tstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
 
-This macro casts a column to a timestamp across databases. It is an adaptation of the `dbt_utils.type_timestamp()` macro.
+This macro casts a column to a timestamp across databases. It is an adaptation of the `type_timestamp()` macro from dbt-core.
 
 **Arguments:**
 
@@ -477,6 +481,20 @@ This macro casts a column to a unix timestamp across databases.
 **Returns:**
 
 - The field as a unix timestamp
+
+## current_timestamp_in_utc ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+This macro returns the current timestamp in UTC.
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.current_timestamp_in_utc() }}
+```
+
+**Returns:**
+The current timestamp in UTC.
+
 
 ## unnest ([source](macros/utils/cross_db/unnest.sql))
 

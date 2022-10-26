@@ -22,7 +22,7 @@
 {% endmacro %}
 
 {% macro postgres__unnest(id_column, unnest_column, field_alias, source_table) %}
-    select {{ id_column }}, cast(trim(unnest({{ unnest_column }})) as {{ dbt_utils.type_int() }}) as {{ field_alias }}
+    select {{ id_column }}, cast(trim(unnest({{ unnest_column }})) as {{ type_int() }}) as {{ field_alias }}
     from {{ source_table }}
 {% endmacro %}
 

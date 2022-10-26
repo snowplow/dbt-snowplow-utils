@@ -16,7 +16,7 @@
     {% set run_limits_query %}
       select {{start_tstamp}} as lower_limit,
              least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }},
-                   {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
+                   {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
     {% endset %}
 
   {% elif not has_matched_all_models %}
@@ -44,14 +44,14 @@
     {% do snowplow_utils.log_message("Snowplow: Standard incremental run") %}
 
     {% set run_limits_query %}
-      select 
+      select
         {{ snowplow_utils.timestamp_add('hour', -var("snowplow__lookback_window_hours", 6), min_last_success) }} as lower_limit,
-        least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}, 
-              {{ dbt_utils.current_timestamp_in_utc() }}) as upper_limit
+        least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }},
+              {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
     {% endset %}
 
   {% endif %}
 
   {{ return(run_limits_query) }}
-    
+
 {% endmacro %}
