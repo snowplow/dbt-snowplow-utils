@@ -6,13 +6,18 @@
 {% macro default__snowplow_validate_get_incremental_strategy(config) %}
   
   {# Find and validate the incremental strategy #}
-  {%- set strategy = config.get("incremental_strategy", default="merge") -%}
+  {{ log("config: " ~ config) }}
 
+  {%- set strategy = config.get("incremental_strategy", default="merge") -%}
+  {{ log("strategy in theory: " ~ config.get("incremental_strategy", default="merge")) }}
+  {{ log("strategy after set: " ~ strategy) }}
+  
   {% set invalid_strategy_msg -%}
     Invalid incremental strategy provided: {{ strategy }}
     Expected 'merge'
   {%- endset %}
   {% if strategy not in ['merge'] %}
+    {{ log("strategy before raise: " ~ strategy) }}
     {% do exceptions.raise_compiler_error(invalid_strategy_msg) %}
   {% endif %}
 
