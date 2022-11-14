@@ -369,6 +369,38 @@ This macro generates a varchar of the maximum length for each supported database
 
 - The database equivalent of a string datatype with the maximum allowed length
 
+## get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
+
+This macro takes care of harmonising cross-db functions that create an array out of a string. It takes a string column and a column prefix as an argument.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_split_to_array('string_column', 'column_prefix') }}
+```
+
+**Returns:**
+
+- An array field.
+
+## get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
+
+This macro takes care of harmonising cross-db list_agg, string_agg type functions. These are aggregate functions that take all expressions from rows and concatenates them into a single string.
+
+A column prefix can be provided as well as a separator (default is ','). A sorting column can be specified in case the warehouse provides this option (all except for Databricks/Spark in which sorting will happen based on the field to be aggregated). In case the field used for sorting happens to be of numeric value (regardles whether it is stored as a string or as a real numeric value) the sort_numeric parameter should be set to true, which takes care of conversions from sting to numeric, if needed.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_string_agg('int_col', 'column_prefix', ';', 'order_by_col', sort_numeric=true) }}
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with the maximum allowed length
+
 ### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro mimics the utility of the dbt_utils version however for BigQuery it ensures that the timestamp difference is calculated, similar to the other DB engines which is not the case in the dbt_utils macro. This macro calculates the difference between two dates. Note: The datepart argument is database-specific.
@@ -446,7 +478,20 @@ This macro casts a column to a unix timestamp across databases.
 
 - The field as a unix timestamp
 
+## unnest ([source](macros/utils/cross_db/unnest.sql))
 
+This macro takes care of unnesting of arrays regardles of the data warehouse. An id column and the colum to base the unnesting off of needs to be specified as well as a field alias and the source table.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.unnest('id_column', 'array_to_be_unnested', 'field_alias', 'source_table') }}
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with the maximum allowed length
 ## Materializations
 
 ### snowplow_incremental

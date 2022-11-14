@@ -1,4 +1,4 @@
-{% macro get_optional_fields(enabled, fields, col_prefix, relation, relation_alias) -%}
+{% macro get_optional_fields(enabled, fields, col_prefix, relation, relation_alias, include_field_alias=true) -%}
 
   {%- if enabled -%}
 
@@ -6,7 +6,8 @@
                                     relation=relation,
                                     column_prefix=col_prefix,
                                     required_fields=fields|map(attribute='field')|list,
-                                    relation_alias=relation_alias
+                                    relation_alias=relation_alias,
+                                    include_field_alias=include_field_alias
                                     ) -%}
 
     {{ combined_fields|join(',\n') }}
