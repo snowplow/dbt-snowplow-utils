@@ -1,3 +1,13 @@
+snowplow-utils 0.13.0 (2022-12-08)
+---------------------------------------
+## Summary
+This release bumps the dependency of `dbt-utils` to support v1, and therefore will remove all of the deprecation warnings being displayed for users on later versions of dbt. This version also requires dbt version 1.3 at least
+
+
+## Features
+Bump compatibility to dbt-core@1.3 as a minimum (Close #95)
+Add standard actions and templates + use utils for databricks connection
+
 snowplow-utils 0.12.3 (2022-11-30)
 ---------------------------------------
 Add unnest macro (Close #99)
