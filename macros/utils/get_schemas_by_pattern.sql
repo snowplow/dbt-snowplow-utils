@@ -1,10 +1,9 @@
-{% macro get_schemas_by_pattern(schema_pattern, table_pattern) %}
+{% macro get_schemas_by_pattern(schema_pattern) %}
     {{ return(adapter.dispatch('get_schemas_by_pattern', 'snowplow_utils')
-        (schema_pattern, table_pattern)) }}
+        (schema_pattern)) }}
 {% endmacro %}
 
-{% macro default__get_schemas_by_pattern(schema_pattern, table_pattern) %}
-    {%- set schema_pattern= schema_pattern~'%' -%}
+{% macro default__get_schemas_by_pattern(schema_pattern) %}
 
     {% set get_tables_sql = dbt_utils.get_tables_by_pattern_sql(schema_pattern, table_pattern='%') %}
     {% set results = [] if get_tables_sql.isspace() else run_query(get_tables_sql) %}
@@ -13,8 +12,9 @@
 
 {% endmacro %}
 
-{% macro databricks__get_schemas_by_pattern(schema_pattern, table_pattern) %}
-    {%- set schema_pattern= schema_pattern~'*' -%}
+{% macro databricks__get_schemas_by_pattern(schema_pattern) %}
+    {# databricks uses a regex on SHOW SCHEMAS and doesn't have an information schema in hive_metastore #}
+    {%- set schema_pattern= dbt.replace(schema_pattern, "%", "*") -%}
 
     {# Get all schemas with the target.schema prefix #}
     {%- set get_schemas_sql -%}
@@ -28,6 +28,6 @@
 
 {% endmacro %}
 
-{%- macro spark__get_schemas_by_pattern(schema_pattern, table_pattern) -%}
-    {{ return(snowplow_utils.databricks__get_schemas_by_pattern(schema_pattern, table_pattern)) }}
+{%- macro spark__get_schemas_by_pattern(schema_pattern) -%}
+    {{ return(snowplow_utils.databricks__get_schemas_by_pattern(schema_pattern)) }}
 {%- endmacro %}

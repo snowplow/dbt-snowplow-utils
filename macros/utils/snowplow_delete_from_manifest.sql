@@ -1,14 +1,17 @@
 {# Deletes specified models from the incremental_manifest table #}
 {% macro snowplow_delete_from_manifest(models, incremental_manifest_table) %}
 
+  {# Ensure models is a list #}
   {%- if models is string -%}
     {%- set models = [models] -%}
   {%- endif -%}
 
+  {# No models to delete or not in execute mode #}
   {% if not models|length or not execute %}
     {{ return('') }}
   {% endif %}
 
+  {# Get the manifest table to ensure it exits #}
   {%- set incremental_manifest_table_exists = adapter.get_relation(incremental_manifest_table.database,
                                                                   incremental_manifest_table.schema,
                                                                   incremental_manifest_table.name) -%}
@@ -17,6 +20,7 @@
     {{return(dbt_utils.log_info("Snowplow: "+incremental_manifest_table|string+" does not exist"))}}
   {%- endif -%}
 
+  {# Get all models in the manifest and compare to list of models to delete #}
   {%- set models_in_manifest = dbt_utils.get_column_values(table=incremental_manifest_table, column='model') -%}
   {%- set unmatched_models, matched_models = [], [] -%}
 
