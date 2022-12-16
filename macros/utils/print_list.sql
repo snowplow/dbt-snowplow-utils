@@ -1,6 +1,5 @@
-{# Prints array as comma seperated, quoted items. #}
-{% macro print_list(list) %}
+{% macro print_list(list, separator = ',') %}
 
-  {%- for item in list %} '{{item}}' {%- if not loop.last %},{% endif %} {% endfor -%}
+  {%- for item in list %} '{{item}}' {%- if not loop.last %}{{separator}}{% endif %} {% endfor -%}
 
 {% endmacro %}

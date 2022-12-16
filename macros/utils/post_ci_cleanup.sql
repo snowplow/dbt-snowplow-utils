@@ -3,7 +3,7 @@
 {% macro post_ci_cleanup(schema_pattern=target.schema) %}
 
   {# Get all schemas with the target.schema prefix #}
-  {% set schemas = snowplow_utils.get_schemas_by_pattern(schema_pattern,table_pattern='%') %}
+  {% set schemas = snowplow_utils.get_schemas_by_pattern(schema_pattern~'%') %}
 
   {% if schemas|length %}
 

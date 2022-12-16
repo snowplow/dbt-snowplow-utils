@@ -1,5 +1,3 @@
-{# When called by an incremental model, determines whether the model has previously consumed the data within the run
-   If it has, returns false. This blocks the model from updating with old data #}
 {% macro is_run_with_new_events(package_name) %}
 
   {%- set new_event_limits_relation = snowplow_utils.get_new_event_limits_table_relation(package_name) -%}
@@ -15,21 +13,21 @@
       {#Technically should be max(end_tstsamp) but table is partitioned on start_tstamp so cheaper to use.
         Worst case we update the manifest during a backfill when we dont need to, which should be v rare. #}
       {% set has_been_processed_query %}
-        select 
-          case when 
-            (select upper_limit from {{ new_event_limits_relation }}) <= (select max(start_tstamp) from {{this}}) 
-          then false 
+        select
+          case when
+            (select upper_limit from {{ new_event_limits_relation }}) <= (select max(start_tstamp) from {{this}})
+          then false
         else true end
       {% endset %}
 
     {%- else -%}
 
       {% set has_been_processed_query %}
-        select 
-          case when 
-            (select upper_limit from {{ new_event_limits_relation }}) 
-            <= (select last_success from {{ incremental_manifest_relation }} where model = '{{node_identifier}}') 
-          then false 
+        select
+          case when
+            (select upper_limit from {{ new_event_limits_relation }})
+            <= (select last_success from {{ incremental_manifest_relation }} where model = '{{node_identifier}}')
+          then false
         else true end
       {% endset %}
 
