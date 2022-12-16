@@ -1,0 +1,109 @@
+version: 2
+
+macros:
+  - name: app_id_filter
+    description: '{{ doc("macro_app_id_filter") }}'
+    arguments:
+      - name: app_ids
+        type: list
+        description: List of app_ids to filter to include
+  - name: get_columns_in_relation_by_column_prefix
+    description: '{{ doc("macro_get_columns_in_relation_by_column_prefix") }}'
+    arguments:
+      - name: relation
+        type: relation
+        description: A table or `ref` type object to get the columns from
+      - name: column_prefix
+        type: string
+        description: The prefix string to search for matching columns
+  - name: get_schemas_by_pattern
+    description: '{{ doc("macro_get_schemas_by_pattern") }}'
+    arguments:
+      - name: schema_pattern
+        type: string
+        description: The pattern for the schema(s) you wish to find. For all non-databricks should be of the usual SQL `like` form. `%` will be automatically translated for databricks, but other special characters may not be
+  - name: get_value_by_target_type
+    description: '{{ doc("macro_get_value_by_target_type") }}'
+    arguments:
+      - name: bigquery_val
+        type: string
+        description: (Optional) Value to return if the `target.type` is bigquery. Default None
+      - name: snowflake_val
+        type: string
+        description: (Optional) Value to return if the `target.type` is snowflake. Default None
+      - name: redshift_val
+        type: string
+        description: (Optional) Value to return if the `target.type` is redshift. Default None
+      - name: postgres_val
+        type: string
+        description: (Optional) Value to return if the `target.type` is postgres. Default None
+      - name: databricks_val
+        type: string
+        description: (Optional) Value to return if the `target.type` is databricks. Default None
+  - name: get_value_by_target
+    description: '{{ doc("macro_get_value_by_target") }}'
+    arguments:
+      - name: dev_value
+        description: Value to use if target is development
+      - name: default_value
+        description: Value to use if target is not development
+      - name: dev_target_name
+        type: string
+        description: (Optional) Name of the development target. Default `dev`
+  - name: is_run_with_new_events
+    description: '{{ doc("macro_is_run_with_new_events") }}'
+    arguments:
+      - name: package_name
+        type: string
+        description: The modeling package name e.g. `snowplow-mobile`
+  - name: log_message
+    description: '{{ doc("macro_log_message") }}'
+    arguments:
+      - name: message
+        type: string
+        description: The string message to print.
+      - name: is_printed
+        type: boolean
+        description: Boolean value to determine if the log is also printed to the stdout
+  - name: post_ci_cleanup
+    description: '{{ doc("macro_post_ci_cleanup") }}'
+    arguments:
+      - name: schema_pattern
+        type: string
+        description: The prefix of the schema(s) to delete
+  - name: print_list
+    description: '{{ doc("macro_print_list") }}'
+    arguments:
+      - name: list
+        type: array
+        description: Array object to print the (quoted) items of
+      - name: separator
+        type: string
+        description: The character(s) to separate the items by, default `,`
+  - name: return_limits_from_model
+    description: '{{ doc("macro_return_limits_from_model") }}'
+    arguments:
+      - name: model
+        type: relation
+        description: A string or `ref` type object to refer to a model or table to return limits from
+      - name: lower_limit_col
+        type: string
+        description: The column to take the `min` of to get the lower limit
+      - name: upper_limit_col
+        type: string
+        description: The column to take the `max` of to get the upper limit
+  - name: set_query_tag
+    description: '{{ doc("macro_set_query_tag") }}'
+    arguments:
+      - name: statement
+        type: string
+        description: The statement to use as the `query_tag` within Snowflake
+  - name: n_timedeltas_ago
+    description: '{{ doc("macro_n_timedeltas_ago") }}'
+    arguments:
+      - name: n
+        type: integer
+        description: The number of timedeltas to subtract from the current timestamp
+      - name: timedelta_attribute
+        type: string
+        description: The type of units to subtract. This can be any valid attribute of the [timedelta](https://docs.python.org/3/library/datetime.html#timedelta-objects) object

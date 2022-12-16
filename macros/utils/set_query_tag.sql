@@ -7,5 +7,5 @@
 {% endmacro %}
 
 {% macro default__set_query_tag(statement) %}
-    
+
 {% endmacro %}
