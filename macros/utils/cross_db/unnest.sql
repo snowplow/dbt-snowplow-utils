@@ -17,12 +17,12 @@
 {% endmacro %}
 
 {% macro snowflake__unnest(id_column, unnest_column, field_alias, source_table) %}
-    select t.{{ id_column }}, r.value as {{ field_alias }}
+    select t.{{ id_column }}, replace(r.value, '"', '') as {{ field_alias }}
     from {{ source_table }} t, table(flatten(t.{{ unnest_column }})) r
 {% endmacro %}
 
 {% macro postgres__unnest(id_column, unnest_column, field_alias, source_table) %}
-    select {{ id_column }}, cast(trim(unnest({{ unnest_column }})) as {{ type_int() }}) as {{ field_alias }}
+    select {{ id_column }}, trim(unnest({{ unnest_column }})) as {{ field_alias }}
     from {{ source_table }}
 {% endmacro %}
 
