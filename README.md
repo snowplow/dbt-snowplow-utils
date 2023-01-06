@@ -375,13 +375,13 @@ This macro generates a varchar of the maximum length for each supported database
 
 ## get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
 
-This macro takes care of harmonising cross-db functions that create an array out of a string. It takes a string column and a column prefix as an argument.
+This macro takes care of harmonising cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
 
 
 **Usage:**
 
 ```sql
-{{ snowplow_utils.get_split_to_array('string_column', 'column_prefix') }}
+{{ snowplow_utils.get_split_to_array('string_column', 'column_prefix', 'delimiter') }}
 ```
 
 **Returns:**
