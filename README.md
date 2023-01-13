@@ -30,6 +30,7 @@ Includes:
     - [set\_query\_tag (source)](#set_query_tag-source)
     - [type\_string (source)](#type_string-source)
     - [type\_max\_string (source)](#type_max_string-source)
+  - [get\_array\_to\_string (source)](#get_array_to_string-source)
   - [get\_split\_to\_array (source)](#get_split_to_array-source)
   - [get\_string\_agg (source)](#get_string_agg-source)
     - [timestamp\_diff (source)](#timestamp_diff-source)
@@ -373,6 +374,20 @@ This macro generates a varchar of the maximum length for each supported database
 
 - The database equivalent of a string datatype with the maximum allowed length
 
+## get_array_to_string ([source](macros/utils/cross_db/get_array_to_string.sql))
+
+This macro takes care of harmonising cross-db functions that flatten an array to a string. It takes an array column, a column prefix and a delimiter as an argument.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_array_to_string('array_column', 'column_prefix', 'delimiter') }}
+```
+
+**Returns:**
+
+ - The database equivalent of a string datatype with the maximum allowed length
 ## get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
 
 This macro takes care of harmonising cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
