@@ -1,0 +1,56 @@
+version: 2
+
+macros:
+  - name: get_string_agg
+    description: '{{ doc("macro_get_string_agg") }}'
+    arguments:
+      - name: base_column
+        type: string
+        description: Name of the column to aggregate values for
+      - name: column_prefix
+        type: string
+        description: Table alias for the base_column
+      - name: separator
+        type: string
+        description: (Optional) String to use to separate your values. Default ','
+      - name: order_by_column
+        type: string
+        description: (Optional) Column to order your values by before aggregating. Default base_column
+      - name: sort_numeric
+        type: boolean
+        description: (Optional) Is the column you are ordering by a numeric value (regardless of stored type). Default false
+      - name: order_by_column_prefix
+        type: string
+        description: (Optional) Table alias for the order_by_column. Default column_prefix
+      - name: is_distinct
+        type: boolean
+        description: (Optional) Do you want to apply distinct to your values. Will be applied after ordering. Default false
+      - name: order_desc
+        type: boolean
+        description: (Optional) Do you wish to apply the ordering descending. Default false
+
+  - name: get_split_to_array
+    description: '{{ doc("macro_get_split_to_array") }}'
+    arguments:
+      - name: string_column
+        type: string
+        description: Name of the column to split into an array
+      - name: column_prefix
+        type: string
+        description: Table alias for the string_column
+      - name: delimiter
+        type: string
+        description: (Optional) String that determines how to split your string. Default ','
+
+  - name: get_array_to_string
+    description: '{{ doc("macro_get_array_to_string") }}'
+    arguments:
+      - name: array_column
+        type: string
+        description: Name of the column to join into a string
+      - name: column_prefix
+        type: string
+        description: Table alias for the array_column
+      - name: delimiter
+        type: string
+        description: (Optional) String that determines how to delimit your array values. Default ','

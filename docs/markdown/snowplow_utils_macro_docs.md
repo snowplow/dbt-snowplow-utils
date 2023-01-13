@@ -197,3 +197,76 @@ Current timestamp minus `n` units.
 
 {% endraw %}
 {% enddocs %}
+
+{% docs macro_get_string_agg %}
+{% raw %}
+
+This macro takes care of harmonising cross-db `list_agg`, `string_agg` type functions. These are aggregate functions (i.e. to be used with a `group by`) that take values from grouped rows and concatenates them into a single string. This macro supports ordering values by an arbitrary column and ensuring unique values (i.e. applying distinct).
+
+Note that databricks does not have list/string_agg function so a more complex expression is used.
+
+#### Returns
+
+The data warehouse appropriate sql to perform a list/string_agg. 
+
+#### Usage
+
+```sql
+select
+...
+{{ snowplow_utils.get_string_agg('base_column', 'column_prefix', ';', 'order_by_col', sort_numeric=true, order_by_column_prefix='order_by_column_prefix', is_distict=True, order_desc=True)  }},
+...
+from ...
+group by ...
+
+```
+
+{% endraw %}
+{% enddocs %}
+
+
+{% docs macro_get_split_to_array %}
+{% raw %}
+
+This macro takes care of harmonising cross-db split to array type functions. The macro supports a custom delimiter if your string is not delimited by a comma with no space (default).
+
+#### Returns
+
+The data warehouse appropriate sql to perform a split to array. 
+
+#### Usage
+
+```sql
+select
+...
+{{ snowplow_utils.get_split_to_array('my_string_column', 'a', ', ') }}
+...
+from ... a
+
+```
+
+{% endraw %}
+{% enddocs %}
+
+{% docs macro_get_array_to_string %}
+{% raw %}
+
+This macro takes care of harmonising cross-db array to string type functions. The macro supports a custom delimiter if you don't want to use a comma with no space (default).
+
+#### Returns
+
+The data warehouse appropriate sql to convert an array to a string. 
+
+#### Usage
+
+```sql
+select
+...
+{{ snowplow_utils.get_array_to_string('my_array_column', 'a', ', ') }}
+...
+from ... a
+
+```
+
+{% endraw %}
+{% enddocs %}
