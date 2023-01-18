@@ -1,7 +1,12 @@
 {# string  -------------------------------------------------     #}
 
 {%- macro type_string(max_characters) -%}
-  {{ return(adapter.dispatch('type_string', 'snowplow_utils')(max_characters)) }}
+    {% if max_characters %}
+        {{ return(adapter.dispatch('type_string', 'snowplow_utils')(max_characters)) }}
+    {% else %}
+        {{ return(adapter.dispatch('type_max_string', 'snowplow_utils')()) }}
+    {% endif %}
+
 {%- endmacro -%}
 
 {% macro default__type_string(max_characters) %}
@@ -9,6 +14,10 @@
 {% endmacro %}
 
 {% macro bigquery__type_string(max_characters) %}
+    string
+{% endmacro %}
+
+{% macro spark__type_string(max_characters) %}
     string
 {% endmacro %}
 
