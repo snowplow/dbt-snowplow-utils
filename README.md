@@ -405,15 +405,21 @@ This macro takes care of harmonising cross-db functions that create an array out
 
 ## get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
 
-This macro takes care of harmonising cross-db list_agg, string_agg type functions. These are aggregate functions that take all expressions from rows and concatenates them into a single string.
+This macro takes care of harmonising cross-db `list_agg`, `string_agg` type functions. These are aggregate functions that take all expressions from rows and concatenate them into a single string.
 
-A column prefix can be provided as well as a separator (default is ','). A sorting column can be specified in case the warehouse provides this option (all except for Databricks/Spark in which sorting will happen based on the field to be aggregated). In case the field used for sorting happens to be of numeric value (regardles whether it is stored as a string or as a real numeric value) the sort_numeric parameter should be set to true, which takes care of conversions from sting to numeric, if needed.
+A base column and its prefix have to be provided, the separator is optional (default is ',').
 
+By default ordering is defined by sorting the base column in ascending order. If you wish to order on a different column, the `order_by_column` and `order_by_column_prefix` have to be provided. If you wish to order in descending order, then set `order_desc` to `true`.
+
+In case the field used for sorting happens to be of numeric value (regardless of whether it is stored as a string or as a numeric type) the `sort_numeric` parameter should be set to true, which takes care of conversions from sting to numeric if needed.
+
+There is also an optional boolean parameter called `is_distinct` which, when enabled, takes care of deduping individual elements within the array.
 
 **Usage:**
 
 ```sql
-{{ snowplow_utils.get_string_agg('int_col', 'column_prefix', ';', 'order_by_col', sort_numeric=true) }}
+{{ snowplow_utils.get_string_agg('base_column', 'column_prefix', ';', 'order_by_col', sort_numeric=true, order_by_column_prefix='order_by_column_prefix', is_distict=True, order_desc=True) }}
+
 ```
 
 **Returns:**

@@ -198,6 +198,7 @@ Current timestamp minus `n` units.
 {% endraw %}
 {% enddocs %}
 
+
 {% docs macro_get_string_agg %}
 {% raw %}
 

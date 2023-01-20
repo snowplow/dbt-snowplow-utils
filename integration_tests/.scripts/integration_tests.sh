@@ -35,7 +35,7 @@ for db in ${DATABASES[@]}; do
 
   echo "Snowplow-utils native dbt tests: Test models"
 
-  eval "dbt test --exclude tag:requires_script --target $db" || exit 1;
+  eval "dbt test --exclude tag:requires_script --target $db --store-failures" || exit 1;
 
   echo "Snowplow utils integration tests: Run script based tests"
 

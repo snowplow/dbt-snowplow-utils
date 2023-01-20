@@ -13,11 +13,7 @@ models:
     tests:
       - dbt_utils.equality:
           compare_model: ref('expected_get_string_agg')
-  - name: test_get_string_agg_int
+  - name: test_get_string_agg_grp
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg_int')
-  - name: test_get_string_agg_int_string
-    tests:
-      - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg_int_string')
+          compare_model: ref('expected_get_string_agg_grp')

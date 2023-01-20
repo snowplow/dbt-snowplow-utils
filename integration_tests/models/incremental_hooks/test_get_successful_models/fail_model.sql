@@ -1,5 +1,5 @@
-{{ 
-  config(tags=["requires_script"]) 
+{{
+  config(tags=["requires_script"])
 }}
 
 elect 1 as id
