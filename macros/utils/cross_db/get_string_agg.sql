@@ -2,80 +2,117 @@
  Takes care of harmonising cross-db list_agg, string_agg type functions.
  #}
 
-{%- macro get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) -%}
+{%- macro get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc=false) -%}
 
-  {{ return(adapter.dispatch('get_string_agg', 'snowplow_utils')(string_column, column_prefix, separator, order_by_column, sort_numeric)) }}
+  {{ return(adapter.dispatch('get_string_agg', 'snowplow_utils')(base_column, column_prefix, separator, order_by_column, sort_numeric, order_by_column_prefix, is_distinct, order_desc)) }}
 
 {%- endmacro -%}
 
-{% macro default__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
+{% macro default__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc=false) %}
 
-  {%- if sort_numeric -%}
-    listagg({{column_prefix}}.{{string_column}}::varchar, '{{separator}}') within group (order by to_numeric({{column_prefix}}.{{order_by_column}}))
+  {% if (base_column != order_by_column or column_prefix != order_by_column_prefix or sort_numeric) and is_distinct %}
+    {%- do exceptions.raise_compiler_error("Snowplow Error: "~target.type~" does not support distinct with a different ordering column, or when the order column is numeric.") -%}
+  {% endif %}
 
-  {%- else %}
-    listagg({{column_prefix}}.{{string_column}}, '{{separator}}') within group (order by {{column_prefix}}.{{order_by_column}})
+
+  listagg({% if is_distinct %} distinct {% endif %} {{column_prefix}}.{{base_column}}::varchar, '{{separator}}') within group (order by
+
+  {% if sort_numeric -%}
+    to_numeric({{order_by_column_prefix}}.{{order_by_column}}, 38, 9) {% if order_desc %} desc {% endif %}
+
+  {% else %}
+    {{order_by_column_prefix}}.{{order_by_column}}::varchar {% if order_desc %} desc {% endif %}
 
   {%- endif -%}
+  )
 
 {% endmacro %}
 
-{% macro bigquery__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
+{% macro bigquery__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
 
-  {%- if sort_numeric -%}
-    string_agg(cast({{column_prefix}}.{{string_column}} as string), '{{separator}}' order by cast({{column_prefix}}.{{order_by_column}} as numeric))
+  {% if (base_column != order_by_column or column_prefix != order_by_column_prefix or sort_numeric) and is_distinct %}
+    {%- do exceptions.raise_compiler_error("Snowplow Error: "~target.type~" does not support distinct with a different ordering column, or when the order column is numeric.") -%}
+  {% endif %}
 
-  {%- else %}
-    string_agg(cast({{column_prefix}}.{{string_column}} as string), '{{separator}}' order by {{column_prefix}}.{{order_by_column}})
+  string_agg({% if is_distinct %} distinct {% endif %} cast({{column_prefix}}.{{base_column}} as string), '{{separator}}' order by
+
+  {% if sort_numeric -%}
+    cast({{order_by_column_prefix}}.{{order_by_column}} as numeric) {% if order_desc %} desc {% endif %}
+
+  {% else %}
+    cast({{order_by_column_prefix}}.{{order_by_column}} as string) {% if order_desc %} desc {% endif %}
 
   {%- endif -%}
+  )
 
 {% endmacro %}
 
-{% macro databricks__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
 
-  {%- if sort_numeric -%}
-    array_join(array_sort(collect_list(cast({{column_prefix}}.{{string_column}} as numeric))), '{{separator}}')
+{% macro postgres__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
 
-  {%- else %}
-    array_join(array_sort(collect_list({{column_prefix}}.{{string_column}})), '{{separator}}')
+  {% if (base_column != order_by_column or column_prefix != order_by_column_prefix or sort_numeric) and is_distinct %}
+    {%- do exceptions.raise_compiler_error("Snowplow Error: "~target.type~" does not support distinct with a different ordering column, or when the order column is numeric.") -%}
+  {% endif %}
+
+  string_agg({% if is_distinct %} distinct {% endif %} {{column_prefix}}.{{base_column}}::varchar, '{{separator}}' order by
+
+  {% if sort_numeric -%}
+    {{order_by_column_prefix}}.{{order_by_column}}::decimal {% if order_desc %} desc {% endif %}
+
+  {% else %}
+    {{order_by_column_prefix}}.{{order_by_column}}::varchar {% if order_desc %} desc {% endif %}
 
   {%- endif -%}
+  )
 
 {% endmacro %}
 
-{% macro postgres__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
+{% macro redshift__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
 
-  {%- if sort_numeric -%}
-    string_agg({{column_prefix}}.{{string_column}}::varchar, '{{separator}}' order by {{column_prefix}}.{{order_by_column}}::decimal)
+  {% if (base_column != order_by_column or column_prefix != order_by_column_prefix or sort_numeric) and is_distinct %}
+    {%- do exceptions.raise_compiler_error("Snowplow Error: "~target.type~" does not support distinct with a different ordering column, or when the order column is numeric.") -%}
+  {% endif %}
 
-  {%- else %}
-    string_agg({{column_prefix}}.{{string_column}}::varchar, '{{separator}}' order by {{column_prefix}}.{{order_by_column}})
+  listagg({% if is_distinct %} distinct {% endif %} {{column_prefix}}.{{base_column}}::varchar, '{{separator}}') within group (order by
+
+  {% if sort_numeric -%}
+    text_to_numeric_alt({{order_by_column_prefix}}.{{order_by_column}}, 38, 9) {% if order_desc %} desc {% endif %}
+
+  {% else %}
+    {{order_by_column_prefix}}.{{order_by_column}}::varchar {% if order_desc %} desc {% endif %}
 
   {%- endif -%}
+  )
 
 {% endmacro %}
 
-{% macro redshift__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
+{% macro spark__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
+  /* Explaining inside out:
+  1. Create a group array which is made of sub-arrays of the base_column and the sort column
+  2. Sort these sub-arrays based on a lamdba function that compares on the second element (the sort column, casted if needed)
+  3. Use transform to select just the first element of the array
+  4. Optionally use array_distinct
+  5. Join the array into a string
+  */
+  array_join(
+    {% if is_distinct %} array_distinct( {% endif %}
+    transform(
+      array_sort(
+        collect_list(
+          ARRAY({{column_prefix}}.{{base_column}}::string, {{order_by_column_prefix}}.{{order_by_column}}::string)), (left, right) ->
 
-  {%- if sort_numeric -%}
-    listagg({{column_prefix}}.{{string_column}}::varchar, '{{separator}}') within group (order by text_to_numeric_alt({{column_prefix}}.{{order_by_column}}))
+          {%- if sort_numeric -%}
+            CASE WHEN cast(left[1] as numeric(38, 9)) {% if order_desc %} > {% else %} < {% endif %} cast(right[1] as numeric(38, 9)) THEN -1
+                        WHEN cast(left[1] as numeric(38, 9)) {% if order_desc %} < {% else %} > {% endif %} cast(right[1] as numeric(38, 9)) THEN 1 ELSE 0 END
 
-  {%- else %}
-    listagg({{column_prefix}}.{{string_column}}::varchar, '{{separator}}') within group (order by {{column_prefix}}.{{order_by_column}})
+          {% else %}
+            CASE WHEN left[1] {% if order_desc %} > {% else %} < {% endif %} right[1] THEN -1
+                        WHEN left[1] {% if order_desc %} < {% else %} > {% endif %} right[1] THEN 1 ELSE 0 END
 
-  {%- endif -%}
+          {% endif %}
+                ), x -> x[0])
+    {% if is_distinct %} ) {% endif %},
+      '{{separator}}')
 
-{% endmacro %}
-
-{% macro spark__get_string_agg(string_column, column_prefix, separator=',', order_by_column=string_column, sort_numeric=false) %}
-
-  {%- if sort_numeric -%}
-    array_join(array_sort(collect_list(cast({{column_prefix}}.{{string_column}} as numeric))), '{{separator}}')
-
-  {%- else %}
-    array_join(array_sort(collect_list({{column_prefix}}.{{string_column}})), '{{separator}}')
-
-  {%- endif -%}
 
 {% endmacro %}
