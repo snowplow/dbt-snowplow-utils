@@ -18,7 +18,7 @@
 {% endif %}
 
 {% if actual_match_column_names == expected_matched_column_names %}
-	select 1 limit 0 -- Test passes if no rows returned
+	select 1 as result limit 0 -- Test passes if no rows returned
 {% else %}
-	select 1
+	select 1 as result
 {% endif %}

@@ -1,36 +1,100 @@
-{%- if target.type in ['databricks', 'spark'] %}
+{{
+  config(
+    materialized = 'table',
+    )
+}}
 
-  with data as (
-
-    select
-
-      'a;b;c' as result
-
-    union all
-
-    select
-
-    'a;b;c' as result
-  )
-
-  select * from data
+-- All combinations with a string col and default order by
+select 'string_def_comma_false_false' as test_type, 'a,b,c,c,d' as result
+union all select 'string_def_colon_false_false' as test_type, 'a;b;c;c;d' as result
+union all select 'string_def_comma_false_true' as test_type, 'd,c,c,b,a' as result
+union all select 'string_def_colon_false_true' as test_type, 'd;c;c;b;a' as result
+union all select 'string_def_comma_true_false' as test_type, 'a,b,c,d' as result
+union all select 'string_def_colon_true_false' as test_type, 'a;b;c;d' as result
+union all select 'string_def_comma_true_true' as test_type, 'd,c,b,a' as result
+union all select 'string_def_colon_true_true' as test_type, 'd;c;b;a' as result
 
 
-{%- else %}
+-- All combinations with a string col and a string order by
+union all select 'string_string_comma_false_false' as test_type, 'a,c,b,d,c' as result
+union all select 'string_string_colon_false_false' as test_type, 'a;c;b;d;c' as result
+union all select 'string_string_comma_false_true' as test_type, 'c,d,b,c,a' as result
+union all select 'string_string_colon_false_true' as test_type, 'c;d;b;c;a' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'string_string_comma_true_false' as test_type, 'a,c,b,d' as result
+  union all select 'string_string_colon_true_false' as test_type, 'a;c;b;d' as result
+  union all select 'string_string_comma_true_true' as test_type, 'c,d,b,a' as result
+  union all select 'string_string_colon_true_true' as test_type, 'c;d;b;a' as result
+{% endif %}
 
-  with data as (
+-- All combinations with a string col and an int order by
+union all select 'string_int_comma_false_false' as test_type, 'a,b,c,d,c' as result
+union all select 'string_int_colon_false_false' as test_type, 'a;b;c;d;c' as result
+union all select 'string_int_comma_false_true' as test_type, 'c,d,c,b,a' as result
+union all select 'string_int_colon_false_true' as test_type, 'c;d;c;b;a' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'string_int_comma_true_false' as test_type, 'a,b,c,d' as result
+  union all select 'string_int_colon_true_false' as test_type, 'a;b;c;d' as result
+  union all select 'string_int_comma_true_true' as test_type, 'c,d,b,a' as result
+  union all select 'string_int_colon_true_true' as test_type, 'c;d;b;a' as result
+{% endif %}
 
-    select
+-- All combinations with a string col and an int string order by
+union all select 'string_strint_comma_false_false' as test_type, 'a,b,c,d,c' as result
+union all select 'string_strint_colon_false_false' as test_type, 'a;b;c;d;c' as result
+union all select 'string_strint_comma_false_true' as test_type, 'c,d,c,b,a' as result
+union all select 'string_strint_colon_false_true' as test_type, 'c;d;c;b;a' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'string_strint_comma_true_false' as test_type, 'a,b,c,d' as result
+  union all select 'string_strint_colon_true_false' as test_type, 'a;b;c;d' as result
+  union all select 'string_strint_comma_true_true' as test_type, 'c,d,b,a' as result
+  union all select 'string_strint_colon_true_true' as test_type, 'c;d;b;a' as result
+{% endif %}
 
-      'a;b;c' as result
+-- All combinations with a int col and default order by
+union all select 'int_def_comma_false_false' as test_type, '1,2,3,3,4' as result
+union all select 'int_def_colon_false_false' as test_type, '1;2;3;3;4' as result
+union all select 'int_def_comma_false_true' as test_type, '4,3,3,2,1' as result
+union all select 'int_def_colon_false_true' as test_type, '4;3;3;2;1' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'int_def_comma_true_false' as test_type, '1,2,3,4' as result
+  union all select 'int_def_colon_true_false' as test_type, '1;2;3;4' as result
+  union all select 'int_def_comma_true_true' as test_type, '4,3,2,1' as result
+  union all select 'int_def_colon_true_true' as test_type, '4;3;2;1' as result
+{% endif %}
 
-    union all
+-- All combinations with a int col and a string order by
+union all select 'int_string_comma_false_false' as test_type, '1,3,2,4,3' as result
+union all select 'int_string_colon_false_false' as test_type, '1;3;2;4;3' as result
+union all select 'int_string_comma_false_true' as test_type, '3,4,2,3,1' as result
+union all select 'int_string_colon_false_true' as test_type, '3;4;2;3;1' as result
+{% if target.type in ['databricks','spark'] %}
+union all select 'int_string_comma_true_false' as test_type, '1,3,2,4' as result
+union all select 'int_string_colon_true_false' as test_type, '1;3;2;4' as result
+union all select 'int_string_comma_true_true' as test_type, '3,4,2,1' as result
+union all select 'int_string_colon_true_true' as test_type, '3;4;2;1' as result
+{% endif %}
 
-    select
+-- All combinations with a int col and an int order by
+union all select 'int_int_comma_false_false' as test_type, '1,2,3,4,3' as result
+union all select 'int_int_colon_false_false' as test_type, '1;2;3;4;3' as result
+union all select 'int_int_comma_false_true' as test_type, '3,4,3,2,1' as result
+union all select 'int_int_colon_false_true' as test_type, '3;4;3;2;1' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'int_int_comma_true_false' as test_type, '1,2,3,4' as result
+  union all select 'int_int_colon_true_false' as test_type, '1;2;3;4' as result
+  union all select 'int_int_comma_true_true' as test_type, '3,4,2,1' as result
+  union all select 'int_int_colon_true_true' as test_type, '3;4;2;1' as result
+{% endif %}
 
-    'b;a;c' as result
-  )
-
-  select * from data
-
-    {%- endif %}
+-- All combinations with a int col and an int string order by
+union all select 'int_strint_comma_false_false' as test_type, '1,2,3,4,3' as result
+union all select 'int_strint_colon_false_false' as test_type, '1;2;3;4;3' as result
+union all select 'int_strint_comma_false_true' as test_type, '3,4,3,2,1' as result
+union all select 'int_strint_colon_false_true' as test_type, '3;4;3;2;1' as result
+{% if target.type in ['databricks','spark'] %}
+  union all select 'int_strint_comma_true_false' as test_type, '1,2,3,4' as result
+  union all select 'int_strint_colon_true_false' as test_type, '1;2;3;4' as result
+  union all select 'int_strint_comma_true_true' as test_type, '3,4,2,1' as result
+  union all select 'int_strint_colon_true_true' as test_type, '3;4;2;1' as result
+{% endif %}
