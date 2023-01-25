@@ -55,6 +55,10 @@ for db in ${DATABASES[@]}; do
 
   source "${BASH_SOURCE%/*}/test_snowplow_delete_from_manifest.sh" -d $db || exit 1;
 
+  echo "Snowplow-utils integration tests: Testing return_limits_from_model"
+
+  eval "dbt run-operation test_return_limits_from_models --target $db"  || exit 1;
+
   echo "Snowplow-utils integration tests: All tests passed for $db"
 
 done
