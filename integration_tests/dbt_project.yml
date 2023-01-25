@@ -111,3 +111,11 @@ seeds:
           +column_types:
             id: integer
             start_tstamp: timestamp
+
+    utils:
+      data_return_limits_from_models:
+        start_tstamp: timestamp
+        end_tstamp: timestamp
+      data_return_limits_from_models_nulls:
+        start_tstamp: timestamp
+        end_tstamp: timestamp
