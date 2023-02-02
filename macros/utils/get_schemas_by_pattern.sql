@@ -12,8 +12,8 @@
 
 {% endmacro %}
 
-{% macro databricks__get_schemas_by_pattern(schema_pattern) %}
-    {# databricks uses a regex on SHOW SCHEMAS and doesn't have an information schema in hive_metastore #}
+{% macro spark__get_schemas_by_pattern(schema_pattern) %}
+    {# databricks/spark uses a regex on SHOW SCHEMAS and doesn't have an information schema in hive_metastore #}
     {%- set schema_pattern= dbt.replace(schema_pattern, "%", "*") -%}
 
     {# Get all schemas with the target.schema prefix #}
@@ -27,7 +27,3 @@
     {{ return(schemas) }}
 
 {% endmacro %}
-
-{%- macro spark__get_schemas_by_pattern(schema_pattern) -%}
-    {{ return(snowplow_utils.databricks__get_schemas_by_pattern(schema_pattern)) }}
-{%- endmacro %}
