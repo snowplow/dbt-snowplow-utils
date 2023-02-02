@@ -67,13 +67,10 @@
     unix_seconds({{ tstamp }})
 {%- endmacro %}
 
-{%- macro databricks__to_unixtstamp(tstamp) -%}
+{%- macro spark__to_unixtstamp(tstamp) -%}
     unix_timestamp({{ tstamp }})
 {%- endmacro %}
 
-{%- macro spark__to_unixtstamp(tstamp) -%}
-    {{ return(snowplow_utils.databricks__to_unixtstamp(tstamp)) }}
-{%- endmacro %}
 
 {% macro current_timestamp_in_utc() -%}
   {{ return(adapter.dispatch('current_timestamp_in_utc', 'snowplow_utils')()) }}
