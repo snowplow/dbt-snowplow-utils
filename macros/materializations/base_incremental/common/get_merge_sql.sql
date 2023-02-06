@@ -3,8 +3,8 @@
     {%- set predicate_override = "" -%}
     {%- set orig_predicates = [] if incremental_predicates is none else [] + incremental_predicates -%}
 
-    {%- set optimise = config.get('snowplow_optimise') -%}
-    {% if optimise %}
+    {%- set optimize = config.get('snowplow_optimize') -%}
+    {% if optimize %}
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
         {%- set date_column = config.require('upsert_date_key') -%}
         {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%} {# We do this for late arriving data possibly e.g. shifting a session start earlier #}
@@ -48,8 +48,8 @@
     {# Set default predicates to pass on #}
     {%- set predicate_override = "" -%}
     {%- set orig_predicates = [] if incremental_predicates is none else [] + incremental_predicates -%}
-    {%- set optimise = config.get('snowplow_optimise') -%}
-    {% if optimise %}
+    {%- set optimize = config.get('snowplow_optimize') -%}
+    {% if optimize %}
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
         {%- set date_column = config.require('upsert_date_key') -%}
         {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%}

@@ -4,7 +4,12 @@
 
 
 {% macro default__snowplow_validate_get_incremental_strategy(config) %}
-  
+
+  {% if execute %}
+    {%- set error_message = "Warning: the `snowplow_incremental` materialization is deprecated and should be replaced with dbt's `incremental` materialization, setting `snowplow_optimize: true` in your model config, and setting the appropriate dispatch search order in your project. See https://docs.snowplow.io//docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/ for more details. The `snowplow_incremental` materialization will be removed completely in a future version of the package." -%}
+    {%- do exceptions.warn(error_message) -%}
+  {% endif %}
+
   {# Find and validate the incremental strategy #}
   {%- set strategy = config.get("incremental_strategy", default="merge") -%}
 
@@ -27,7 +32,12 @@
 
 
 {% macro snowflake__snowplow_validate_get_incremental_strategy(config) %}
-  
+
+  {% if execute %}
+    {%- set error_message = "Warning: the `snowplow_incremental` materialization is deprecated and should be replaced with dbt's `incremental` materialization, setting `snowplow_optimize: true` in your model config, and setting the appropriate dispatch search order in your project. See https://docs.snowplow.io//docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/ for more details. The `snowplow_incremental` materialization will be removed completely in a future version of the package." -%}
+    {%- do exceptions.warn(error_message) -%}
+  {% endif %}
+
   {# Find and validate the incremental strategy #}
   {%- set strategy = config.get("incremental_strategy", default="merge") -%}
 
