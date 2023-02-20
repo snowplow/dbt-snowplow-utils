@@ -33,12 +33,12 @@ env:
   # BIGQUERY_SERVICE_CLIENT_X509_CERT_URL: ${{ secrets.BIGQUERY_SERVICE_CLIENT_X509_CERT_URL }}
 
   # Snowflake Connection
-  SNOWFLAKE_TEST_ACCOUNT: ${{ secrets.SNOWFLAKE_TEST_ACCOUNT }}
-  SNOWFLAKE_TEST_USER: ${{ secrets.SNOWFLAKE_TEST_USER }}
-  SNOWFLAKE_TEST_PASSWORD: ${{ secrets.SNOWFLAKE_TEST_PASSWORD }}
-  SNOWFLAKE_TEST_ROLE: ${{ secrets.SNOWFLAKE_TEST_ROLE }}
-  SNOWFLAKE_TEST_DATABASE: ${{ secrets.SNOWFLAKE_TEST_DATABASE }}
-  SNOWFLAKE_TEST_WAREHOUSE: ${{ secrets.SNOWFLAKE_TEST_WAREHOUSE }}
+  # SNOWFLAKE_TEST_ACCOUNT: ${{ secrets.SNOWFLAKE_TEST_ACCOUNT }}
+  # SNOWFLAKE_TEST_USER: ${{ secrets.SNOWFLAKE_TEST_USER }}
+  # SNOWFLAKE_TEST_PASSWORD: ${{ secrets.SNOWFLAKE_TEST_PASSWORD }}
+  # SNOWFLAKE_TEST_ROLE: ${{ secrets.SNOWFLAKE_TEST_ROLE }}
+  # SNOWFLAKE_TEST_DATABASE: ${{ secrets.SNOWFLAKE_TEST_DATABASE }}
+  # SNOWFLAKE_TEST_WAREHOUSE: ${{ secrets.SNOWFLAKE_TEST_WAREHOUSE }}
 
   # Postgres Connection
   # POSTGRES_TEST_HOST: ${{ secrets.POSTGRES_TEST_HOST }}
@@ -103,9 +103,6 @@ jobs:
 
     - name: Create dbt docs
       run: |
-        dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
-        dbt seed --target ${{matrix.warehouse}} --full-refresh
-        dbt run --target ${{matrix.warehouse}} --full-refresh --vars '{snowplow__allow_refresh: true, snowplow__backfill_limit_days: 243}'
         dbt docs generate
         rm -f ../docs/catalog.json
         rm -f ../docs/manifest.json
@@ -113,7 +110,6 @@ jobs:
         cp target/catalog.json ../docs/catalog.json
         cp target/manifest.json ../docs/manifest.json
         cp target/run_results.json ../docs/run_results.json
-        dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
 
     - name: Commit & Push changes
       uses: EndBug/add-and-commit@v9
