@@ -1,3 +1,19 @@
+snowplow-utils 0.13.1 (2023-02-20)
+---------------------------------------
+## Summary
+This release introduces a new cross-db macro - get_array_to_string - to harmonise array to string transformations, as well as adds more features / optimisations to some of the existing macros. There are some automations and simplifications made under the hood for easier maintenance and clarity.
+
+
+## Features
+Get string agg optimisations (Close #101)
+Add get_array_to_string macro
+Fix unnest macro for Postgres and snowflake (Close #105)
+Add delimiter parameter to get_split_to_array (Close #106)
+Tidy macro inheritance
+Add warning for no data returned for model limits
+Document macros in yaml, add new macro, prepare to depeciate
+Add action for generating docs for pages
+
 snowplow-utils 0.13.0 (2022-12-08)
 ---------------------------------------
 ## Summary
