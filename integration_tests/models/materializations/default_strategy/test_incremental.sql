@@ -1,23 +1,24 @@
-{# Tests both RS/PG (delete/insert) and BQ/Snowflake/Databricks (merge) snowplow_incremental materialization with lookback disabled.
+{# Tests both RS/PG (delete/insert) and BQ/Snowflake/Databricks (merge) incremental materialization
    upsert_date_key: RS/PG/Databricks only. Key used to limit the table scan
-   partition_by: BQ only. Key used to limit table scan #}
+   partition_by: BQ only. Key used to limit table scan
+   TODO: Add tests that change the granularity of the partition #}
 
 {{
   config(
-    materialized='snowplow_incremental',
+    materialized='incremental',
     unique_key='id',
     upsert_date_key='start_tstamp',
-    disable_upsert_lookback=true,
-    partition_by = snowplow_utils.get_partition_by(bigquery_partition_by={
+    partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
       "field": "start_tstamp",
       "data_type": "timestamp"
     }),
-    tags=["requires_script"]
+    tags=["requires_script"],
+    snowplow_optimize=true
   )
 }}
 
 with data as (
-  select * from {{ ref('data_snowplow_incremental') }}
+  select * from {{ ref('data_incremental') }}
   {% if target.type == 'snowflake' %}
     -- data set intentionally contains dupes.
     -- Snowflake merge will error if dupes occur. Removing for test
@@ -25,7 +26,7 @@ with data as (
   {% endif %}
 )
 
-{% if snowplow_utils.snowplow_is_incremental() %}
+{% if is_incremental() %}
 
   select
     id,

@@ -3,7 +3,7 @@
   {%- set new_event_limits_relation = snowplow_utils.get_new_event_limits_table_relation(package_name) -%}
   {%- set incremental_manifest_relation = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
 
-  {% if snowplow_utils.snowplow_is_incremental() %}
+  {% if is_incremental() %}
 
     {%- set node_identifier = this.identifier -%}
     {%- set base_sessions_lifecycle_identifier = package_name+'_base_sessions_lifecycle_manifest' -%}

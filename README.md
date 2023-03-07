@@ -4,51 +4,46 @@
 
 # snowplow-utils
 
-To be used in conjunction with the [snowplow-web][snowplow-web] and [snowplow-mobile][snowplow-mobile] packages.
+This package contains a mix of functionality to be used with the other Snowplow dbt packages, or to be used within your own packages/projects.
 
 Includes:
 
-- Custom incremental materialization, `snowplow_incremental`.
+- Overwritten incremental materialization.
 - Utils to assist with modeling Snowplow data.
 - Pre and post hooks to handle incremental processing of events.
-- Various helper macros used throughout the snowplow-web package.
+- Various helper macros used throughout data modeling.
 
 ## Contents
 
 **[Macros](#macros)**
 
-- [snowplow-utils](#snowplow-utils)
-  - [Contents](#contents)
-  - [Macros](#macros)
-    - [get\_columns\_in\_relation\_by\_column\_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
-    - [combine\_column\_versions (source)](#combine_column_versions-source)
-    - [is\_run\_with\_new\_events (source)](#is_run_with_new_events-source)
-    - [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
-    - [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
-    - [get\_value\_by\_target (source)](#get_value_by_target-source)
-    - [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
-    - [set\_query\_tag (source)](#set_query_tag-source)
-    - [type\_string (source)](#type_string-source)
-    - [type\_max\_string (source)](#type_max_string-source)
-  - [get\_array\_to\_string (source)](#get_array_to_string-source)
-  - [get\_split\_to\_array (source)](#get_split_to_array-source)
-  - [get\_string\_agg (source)](#get_string_agg-source)
-    - [timestamp\_diff (source)](#timestamp_diff-source)
-    - [timestamp\_add (source)](#timestamp_add-source)
-    - [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
-    - [to\_unixtstamp (source)](#to_unixtstamp-source)
-  - [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
-  - [unnest (source)](#unnest-source)
-  - [Materializations](#materializations)
-    - [snowplow\_incremental](#snowplow_incremental)
-    - [Redshift \& Postgres (source)](#redshift--postgres-source)
-    - [BigQuery (source)](#bigquery-source)
-    - [Databricks (source)](#databricks-source)
-    - [Snowflake (source)](#snowflake-source)
-    - [Spark (source)](#spark-source)
-    - [Notes](#notes)
-- [Join the Snowplow community](#join-the-snowplow-community)
-- [Copyright and license](#copyright-and-license)
+1. [snowplow-utils](#snowplow-utils)
+   1. [Contents](#contents)
+   2. [Macros](#macros)
+      1. [get\_columns\_in\_relation\_by\_column\_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
+      2. [combine\_column\_versions (source)](#combine_column_versions-source)
+      3. [is\_run\_with\_new\_events (source)](#is_run_with_new_events-source)
+      4. [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
+      5. [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
+      6. [get\_value\_by\_target (source)](#get_value_by_target-source)
+      7. [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
+      8. [set\_query\_tag (source)](#set_query_tag-source)
+      9. [get\_array\_to\_string (source)](#get_array_to_string-source)
+      10. [get\_split\_to\_array (source)](#get_split_to_array-source)
+      11. [get\_string\_agg (source)](#get_string_agg-source)
+      12. [timestamp\_diff (source)](#timestamp_diff-source)
+      13. [timestamp\_add (source)](#timestamp_add-source)
+      14. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+      15. [to\_unixtstamp (source)](#to_unixtstamp-source)
+      16. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+      17. [unnest (source)](#unnest-source)
+   3. [Materializations](#materializations)
+      1. [Optimized incremental](#optimized-incremental)
+      2. [BigQuery](#bigquery)
+      3. [Snowflake](#snowflake)
+      4. [Notes](#notes)
+2. [Join the Snowplow community](#join-the-snowplow-community)
+3. [Copyright and license](#copyright-and-license)
 
 
 ## Macros
@@ -217,7 +212,7 @@ The macro utilizes the `snowplow_[platform]_incremental_manifest` table to deter
 ```sql
 {{
   config(
-    materialized='snowplow_incremental',
+    materialized='incremental',
     unique_key='screen_view_id',
     upsert_date_key='start_tstamp'
   )
@@ -341,42 +336,10 @@ This macro takes a provided statement as argument and generates the SQL command 
 
 - The SQL statement which will update the query tag in Snowflake, or nothing in other databases.
 
-### type_string ([source](macros/utils/cross_db/datatypes.sql))
 
-This macro takes the length of a string type as defined by the `max_characters` variable, and generates a varchar of that specified length for each supported database. While for most databases this does not affect performance, it can affect storage when compared to using a varchar of the maximum length.
+### get_array_to_string ([source](macros/utils/cross_db/get_array_to_string.sql))
 
-**Arguments:**
-
-- `max_characters`: The length of the varchar you want to create
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.type_string(16) }}
-```
-
-**Returns:**
-
-- The database equivalent of a string datatype with a specified length (BQ doesn't have a varchar type)
-
-### type_max_string ([source](macros/utils/cross_db/datatypes.sql))
-
-This macro generates a varchar of the maximum length for each supported database. While for most databases this does not affect performance, it can affect storage when compared to using a varchar of a predefined length.
-
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.type_max_string() }}
-```
-
-**Returns:**
-
-- The database equivalent of a string datatype with the maximum allowed length
-
-## get_array_to_string ([source](macros/utils/cross_db/get_array_to_string.sql))
-
-This macro takes care of harmonising cross-db functions that flatten an array to a string. It takes an array column, a column prefix and a delimiter as an argument.
+This macro takes care of harmonizing cross-db functions that flatten an array to a string. It takes an array column, a column prefix and a delimiter as an argument.
 
 
 **Usage:**
@@ -388,9 +351,9 @@ This macro takes care of harmonising cross-db functions that flatten an array to
 **Returns:**
 
  - The database equivalent of a string datatype with the maximum allowed length
-## get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
+### get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
 
-This macro takes care of harmonising cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
+This macro takes care of harmonizing cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
 
 
 **Usage:**
@@ -403,9 +366,9 @@ This macro takes care of harmonising cross-db functions that create an array out
 
 - An array field.
 
-## get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
+### get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
 
-This macro takes care of harmonising cross-db `list_agg`, `string_agg` type functions. These are aggregate functions that take all expressions from rows and concatenate them into a single string.
+This macro takes care of harmonizing cross-db `list_agg`, `string_agg` type functions. These are aggregate functions that take all expressions from rows and concatenate them into a single string.
 
 A base column and its prefix have to be provided, the separator is optional (default is ',').
 
@@ -503,7 +466,7 @@ This macro casts a column to a unix timestamp across databases.
 
 - The field as a unix timestamp
 
-## current_timestamp_in_utc ([source](macros/utils/cross_db/timestamp_functions.sql))
+### current_timestamp_in_utc ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro returns the current timestamp in UTC.
 
@@ -517,7 +480,7 @@ This macro returns the current timestamp in UTC.
 The current timestamp in UTC.
 
 
-## unnest ([source](macros/utils/cross_db/unnest.sql))
+### unnest ([source](macros/utils/cross_db/unnest.sql))
 
 This macro takes care of unnesting of arrays regardles of the data warehouse. An id column and the colum to base the unnesting off of needs to be specified as well as a field alias and the source table.
 
@@ -533,140 +496,59 @@ This macro takes care of unnesting of arrays regardles of the data warehouse. An
 - The database equivalent of a string datatype with the maximum allowed length
 ## Materializations
 
-### snowplow_incremental
+### Optimized incremental
 
-This package provides a custom incremental materialization, `snowplow_incremental`. This builds upon the out-of-the-box incremental materialization provided by dbt, by limiting the length of the table scans on the destination table. This improves both performance and reduces cost. The following methodology is used to calculate the limit of the table scan:
+This package provides an enhanced version of the standard incremental materialization. This builds upon the out-of-the-box incremental materialization provided by dbt, by limiting the length of the table scans on the destination table. This improves both performance and reduces cost. The following methodology is used to calculate the limit of the table scan:
 
 - The minimum date is found in the `tmp_relation`, based on the `upsert_date_key`
 - By default, 30 days are subtracted from this date. This is set by `snowplow__upsert_lookback_days`. We found when modeling Snowplow data, having this look-back period of 30 days can help minimise the chance of introducing duplicates in your destination table. Reducing the number of look-back days will improve performance further but increase the risk of duplicates.
 - The look-back can be disabled altogether, by setting `disable_upsert_lookback=true` in your model's config (see below). This is not recommended for most use cases.
 
-As is the case with the native dbt incremental materialization, the strategy varies between adapters.
+To enable this optimized version you must add `snowplow_optimize=true` to the config of any model using it, and add the following once to your `dbt_project.yml` file:
 
-### Redshift & Postgres ([source](macros/materializations/snowplow_incremental/default/snowplow_incremental.sql))
-
-Like the native materialization, the `snowplow_incremental` materialization strategy is delete and insert however a limit has been imposed on how far to scan the destination table in order to improve performance:
-
-```sql
-with vars as (
-  select
-    dateadd('day', -{{ snowplow__upsert_lookback_days }}, min({{ upsert_date_key }})) as lower_limit,
-    max(upsert_date_key) as upper_limit
-  from {{ tmp_relation }}
-)
-
-delete
-from {{ destination_table }}
-where {{ unique_key }} in (select {{ unique_key }} from {{ tmp_relation }})
-and {{ upsert_date_key }} between (select lower_limit from vars) and (select upper_limit from vars);
-
-insert into {{ destination_table }}
-(select * from {{ tmp_relation }});
+```yml
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
 ```
+
+This optimization adds an additional `predicate`, based on the logic above, to the per-warehouse sql generated by dbt, and we use the [default incremental strategy](https://docs.getdbt.com/docs/build/incremental-models#about-incremental_strategy) for each warehouse.
+
+Because we only overwrite the `get_merge_sql`/`get_delete_insert_merge_sql` this means all options and features of the standard incremental materialization are available, including `on_schema_change` and `incremental_predicates`.
+
+Each config must contain, in addition to `snowplow_optimize`, an `upsert_date_key` and a `unique_key`. We support Snowflake, BigQuery, Redshift, Postgres, Spark, and Databricks, however some warehouses have some additional config options that we recommend using to get the most out of the optimization. 
+
+### BigQuery
+
+For BigQuery it is advised (and required for the optimization to work) to add a `partition_by` to the config.
 
 **Usage:**
 
 ```sql
 {{
   config(
-    materialized='snowplow_incremental',
-    unique_key='page_veiw_id', # Required: the primary key of your model
-    upsert_date_key='start_tstamp' # Required: The date key to be used to calculate the limits
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
-  )
-}}
-```
-
-### BigQuery ([source](macros/materializations/snowplow_incremental/bigquery/snowplow_incremental.sql))
-
-Like the native materialization, the `snowplow_incremental` materialization strategy is [merge](https://docs.getdbt.com/reference/resource-configs/bigquery-configs#the-merge-strategy) however limits are calculated to allow for partition pruning on the destination table saving cost:
-
-```sql
-/*
-  Create a temporary table from the model SQL
-*/
-create temporary table {{ model_name }}__dbt_tmp as (
-  {{ model_sql }}
-);
-
-/*
-  Find merge limits
-*/
-
-declare dbt_partition_lower_limit, dbt_partition_upper_limit date;
-set (dbt_partition_lower_limit, dbt_partition_upper_limit) = (
-    select as struct
-         dateadd('day', -{{ snowplow__upsert_lookback_days }}, min({{ partition_by_key }})) as dbt_partition_lower_limit,
-         max({{ partition_by_key }}) as dbt_partition_upper_limit
-    from {{ model_name }}__dbt_tmp
-);
-
-/*
-  Update or insert into destination table. Limit the table scan on the destination table.
-*/
-merge into {{ destination_table }} DEST
-using {{ model_name }}__dbt_tmp SRC
-on SRC.{{ unique_key }} = DEST.{{ unique_key }}
-and DEST.{{ partition_by_key }} between dbt_partition_lower_limit and dbt_partition_upper_limit -- Prune partitions on DEST
-
-when matched then update ...
-
-when not matched then insert ...
-```
-
-**Usage:**
-
-```sql
-{{
-  config(
-    materialized='snowplow_incremental',
+    materialized='incremental',
     unique_key='page_view_id', # Required: the primary key of your model
-    partition_by = snowplow_utils.get_partition_by(bigquery_partition_by={
+    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
+    partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
       "field": "start_tstamp",
       "data_type": "timestamp",
       "granularity": "day" # Only introduced in dbt v0.19.0+. Defaults to 'day' for dbt v0.18 or earlier
-    }) # Adds partitions to destination table. This field is also used to determine the upsert limits dbt_partition_lower_limit, dbt_partition_upper_limit
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
+    }) # Adds partitions to destination table.
   )
 }}
 ```
 
-**Note you must provide the `partition_by` clause to use this materialization. All `data_types` are supported except `int64`.**
+### Snowflake
 
-### Databricks ([source](macros/materializations/snowplow_incremental/databricks/snowplow_incremental.sql))
-
-Like the default materialization, the `snowplow_incremental` materialization strategy is [merge](https://github.com/databricks/dbt-databricks/blob/main/dbt/include/databricks/macros/materializations/incremental/incremental.sql) however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in a similar manner to BigQuery as outlined above.
-
+During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can affect this.
 
 **Usage:**
 
 ```sql
 {{
   config(
-    materialized='snowplow_incremental',
-    unique_key='page_view_id', # Required: the primary key of your model
-    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
-    tblproperties={
-      "delta.autoOptimize.optimizeWrite": "true",
-      "delta.autoOptimize.autoCompact" : "true"
-    } # Optional. Will set the autoOptimize parameters for the table
-  )
-}}
-```
-
-**Note you must provide the `upsert_date_key` clause to use this materialization.**
-
-### Snowflake ([source](macros/materializations/snowplow_incremental/snowflake/snowplow_incremental.sql))
-
-Like the native materialization, the `snowplow_incremental` materialization's default strategy is [merge][dbt-snowflake-merge-strategy], however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in a similar fashion to BigQuery as outlined above.
-
-**Usage:**
-
-```sql
-{{
-  config(
-    materialized='snowplow_incremental',
+    materialized='incremental',
     unique_key='page_view_id', # Required: the primary key of your model
     upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
     cluster_by='to_date(start_tstamp)' # Optional.
@@ -674,44 +556,8 @@ Like the native materialization, the `snowplow_incremental` materialization's de
 }}
 ```
 
-If you have duplicates in your source table, you may find that the merge command returns an error. This is because duplicates produce non-deterministic results as outlined in [Snowflake's docs][snowflake-merge-duplicates]. If you experience this we suggest using the `delete+insert` strategy provided in the `snowplow_incremental` materialization.
-
-To update all incremental models in the package to use this strategy please add the following to your `dbt_project.yml` file:
-
-```yml
-models:
-    +incremental_strategy: "delete+insert"
-```
-
-*Note: During testing we found that providing the `upsert_date_key` as a cluster key results in more effective partition pruning. This does add overhead however as the dataset needs to be sorted before being upserted. In our testing this was a worthwhile trade off, reducing overall costs. Your mileage may vary, as variables like row count can affect this.*
-
-### Spark ([source](macros/materializations/snowplow_incremental/spark/snowplow_incremental.sql))
-
-Like the default materialization, the `snowplow_incremental` materialization strategy is [merge](https://github.com/dbt-labs/dbt-spark/blob/main/dbt/include/spark/macros/materializations/incremental/incremental.sql) however limits are calculated to allow for partition pruning on the destination table saving cost. This is performed in an analogous manner to Databricks.
-
-
-**Usage:**
-
-```sql
-{{
-  config(
-    materialized='snowplow_incremental',
-    unique_key='page_view_id', # Required: the primary key of your model
-    upsert_date_key='start_tstamp', # Required: The date key to be used to calculate the limits
-    disable_upsert_lookback=true # Optional. Will disable the look-back period during the upsert to the destination table.
-    tblproperties={
-      "delta.autoOptimize.optimizeWrite": "true",
-      "delta.autoOptimize.autoCompact" : "true"
-    } # Optional. Will set the autoOptimize parameters for the table
-  )
-}}
-```
-
-**Note you must provide the `upsert_date_key` clause to use this materialization.**
-
 ### Notes
 
-- If using the `snowplow_incremental` materialization, **the native dbt `is_incremental()` macro will not recognize the model as incremental**. Please use the `snowplow_utils.snowplow_is_incremental()` macro instead, which operates in the same way.
 - `snowplow__upsert_lookback_days` defaults to 30 days. If you set `snowplow__upsert_lookback_days` to too short a period, duplicates can occur in your incremental table.
 
 # Join the Snowplow community

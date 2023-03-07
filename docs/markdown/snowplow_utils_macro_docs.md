@@ -113,7 +113,7 @@ For the sessions lifecycle identifier it does not use the manifest as this table
 
 {{
 config(
-    materialized='snowplow_incremental',
+    materialized='incremental',
     unique_key='screen_view_id',
     upsert_date_key='start_tstamp'
 )

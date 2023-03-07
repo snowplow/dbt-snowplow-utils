@@ -6,6 +6,10 @@ require-dbt-version: [">=1.4.0", "<2.0.0"]
 
 profile: 'default'
 
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
+
 macro-paths: ["macros"]
 docs-paths: ["docs"]
 

@@ -4,6 +4,10 @@ config-version: 2
 
 profile: 'integration_tests'
 
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
+
 model-paths: ["models"]
 test-paths: ["tests"]
 seed-paths: ["data"]
@@ -74,28 +78,28 @@ seeds:
           expected_last_success: timestamp
 
     materializations:
-      data_snowplow_incremental:
+      data_incremental:
         +column_types:
           run: integer
           id: integer
           start_tstamp: timestamp
       default:
         enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
-        data_snowplow_incremental_expected:
+        data_incremental_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
-        data_snowplow_incremental_w_lookback_disabled_expected:
+        data_incremental_w_lookback_disabled_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
       bigquery:
         enabled: "{{ target.type == 'bigquery' | as_bool() }}"
-        data_snowplow_incremental_expected:
+        data_incremental_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
-        data_snowplow_incremental_w_lookback_disabled_expected:
+        data_incremental_w_lookback_disabled_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
@@ -103,11 +107,11 @@ seeds:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
       databricks:
         enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
-        data_snowplow_incremental_expected:
+        data_incremental_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
-        data_snowplow_incremental_w_lookback_disabled_expected:
+        data_incremental_w_lookback_disabled_expected:
           +column_types:
             id: integer
             start_tstamp: timestamp
