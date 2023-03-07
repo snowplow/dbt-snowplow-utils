@@ -5,19 +5,31 @@
 
     {%- set optimize = config.get('snowplow_optimize') -%}
     {% if optimize %}
+
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
         {%- set date_column = config.require('upsert_date_key') -%}
         {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%} {# We do this for late arriving data possibly e.g. shifting a session start earlier #}
+
+        {# We need the type of the column to get the correct cast of the default value #}
+        {%- set columns = adapter.get_columns_in_relation(this) -%}
+        {%- set date_type = [] %} {# Because you can't assign values in a loop otherwise #}
+        {%- for col in columns -%}
+            {%- if col.column|lower == date_column|lower -%}
+                {% do date_type.append(col.dtype) %}
+            {%- endif %}
+        {%- endfor %}
+
         {% set get_limits_query %}
+
             {% if disable_upsert_lookback %}
                 select
-                    min({{ date_column }}) as lower_limit,
-                    max({{ date_column }}) as upper_limit
+                    coalesce(min({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }}) ) as lower_limit,
+                    coalesce(max({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }})) as upper_limit
                 from {{ source }}
             {% else %}
                 select
-                    {{ dateadd('day', -var("snowplow__upsert_lookback_days", 30), 'min('~date_column~')') }} as lower_limit,
-                    max({{ date_column }}) as upper_limit
+                    coalesce(cast({{ dateadd('day', -var("snowplow__upsert_lookback_days", 30), 'min('~date_column~')') }} as {{ date_type[0] }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }})) as lower_limit,
+                    coalesce(max({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }})) as upper_limit
                 from {{ source }}
             {% endif %}
         {% endset %}
@@ -53,16 +65,26 @@
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
         {%- set date_column = config.require('upsert_date_key') -%}
         {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%}
+
+        {# We need the type of the column to get the correct cast of the default value is needed #}
+        {%- set columns = adapter.get_columns_in_relation(this) -%}
+        {%- set date_type = [] %} {# Because you can't assign values in a loop otherwise #}
+        {%- for col in columns -%}
+            {%- if col.column|lower == date_column|lower -%}
+                {% do date_type.append(col.dtype) %}
+            {%- endif %}
+        {%- endfor %}
+
         {% set get_limits_query %}
             {% if disable_upsert_lookback %}
                 select
-                    min({{ date_column }}) as lower_limit,
-                    max({{ date_column }}) as upper_limit
+                    coalesce(min({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }}) ) as lower_limit,
+                    coalesce(max({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }}))as upper_limit
                 from {{ source }}
             {% else %}
                 select
-                    {{ dateadd('day', -var("snowplow__upsert_lookback_days", 30), 'min('~date_column~')') }} as lower_limit,
-                    max({{ date_column }}) as upper_limit
+                    coalesce(cast({{ dateadd('day', -var("snowplow__upsert_lookback_days", 30), 'min('~date_column~')') }} as {{ date_type[0] }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }})) as lower_limit,
+                    coalesce(max({{ date_column }}), cast({{ dbt.current_timestamp() }} as {{ date_type[0] }})) as upper_limit
                 from {{ source }}
             {% endif %}
         {% endset %}
