@@ -1,3 +1,31 @@
+snowplow-utils 0.14.0-rc2 (2023-03-10)
+---------------------------------------
+## Summary
+**This is a pre-release version of the package, we believe it to be in working condition but you may encounter bugs and some features may change before the final release.**
+
+This version fixes a few issues from the first release candidate, including failing when you had no data in a scratch table, and deprecates some macros.
+
+As a reminder Users will need to add the following to their `dbt_project.yml` to benefit from the enhancements: 
+```yaml
+# dbt_project.yml
+...
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
+```
+
+For custom models and more details, please refer to our temporary docs page: https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/ 
+
+## Features
+Deprecate `get_cluster_by` and `get_partition_by` macro in favor of `get_value_by_target_type`
+Remove `type_string()` and rework `type_max_string()` to prioritize dbt logic where possible
+Fix inability to progress when scratch table contained no data
+Ensure type consistency for the `upsert_date_key` throughout query
+
+## Under the hood
+Remove all internal references to `snowplow_incremental` materialization
+Migrate tests to new materialization approach
+
 snowplow-utils 0.14.0-rc1 (2023-03-06)
 ---------------------------------------
 ## Summary
