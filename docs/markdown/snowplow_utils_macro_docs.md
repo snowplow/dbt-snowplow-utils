@@ -271,3 +271,31 @@ from ... a
 
 {% endraw %}
 {% enddocs %}
+
+
+{% docs macro_get_sde_or_context %}
+{% raw %}
+
+This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. 
+
+Note that is the responsibility of the user to ensure they have no duplicate names when using this macro multiple times or when a schema column name matches on already in the events table. In this case the `prefix` argument should be used and aliasing applied to the output.
+
+#### Returns
+
+CTE sql for deduplicated records from the schema table, without the schema details columns. The final CTE is the name of the original table.
+
+#### Usage
+
+```sql
+with {{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'")}}
+
+select
+...
+from my_events_table a
+left join nl_basjes_yauaa_context_1 b on 
+    a.event_id = b.yauaa_context_id 
+    and a.collector_tstamp = b.yauaa_context_tstamp
+```
+
+{% endraw %}
+{% enddocs %}

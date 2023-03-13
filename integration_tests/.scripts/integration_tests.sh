@@ -59,6 +59,10 @@ for db in ${DATABASES[@]}; do
 
   eval "dbt run-operation test_return_limits_from_models --target $db"  || exit 1;
 
+  echo "Snowplow-utils integration tests: Testing get_sde_or_context"
+
+  eval "dbt run-operation test_get_sde_or_context --target $db"  || exit 1;
+
   echo "Snowplow-utils integration tests: All tests passed for $db"
 
 done

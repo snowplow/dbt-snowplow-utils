@@ -107,3 +107,21 @@ macros:
       - name: timedelta_attribute
         type: string
         description: The type of units to subtract. This can be any valid attribute of the [timedelta](https://docs.python.org/3/library/datetime.html#timedelta-objects) object
+  - name: get_sde_or_context
+    description: '{{ doc("macro_get_sde_or_context") }}'
+    arguments:
+      - name: schema
+        type: string
+        description: The schema your context or sde table is in
+      - name: identifier
+        type: string
+        description: The table name of your context or sde
+      - name: lower_limit
+        type: string
+        description: Lower limit to filter the `root_tstamp` field on, only used if both lower and upper are provided
+      - name: upper_limit
+        type: string
+        description: Upper limit to filter the `root_tstamp` field on, only used if both lower and upper are provided
+      - name: prefix
+        type: string
+        description: A string to prefix (additional `_` added automatically) the column names with. If not provided `root_id` and `root_tstamp` will be prefixed with the schema name.
