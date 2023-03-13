@@ -123,3 +123,5 @@ seeds:
       data_return_limits_from_models_nulls:
         start_tstamp: timestamp
         end_tstamp: timestamp
+      data_get_sde_or_context:
+        +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"

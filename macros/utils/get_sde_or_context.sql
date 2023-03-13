@@ -1,0 +1,59 @@
+{% macro get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none) %}
+    {{ return(adapter.dispatch('get_sde_or_context', 'snowplow_utils')(schema, identifier, lower_limit, upper_limit, prefix)) }}
+{% endmacro %}
+
+{% macro default__get_sde_or_context() %}
+    {% do exceptions.raise_compiler_error('Macro get_sde_or_context is only for Postgres or Redshift, it is not supported for' ~ target.type) %}
+{% endmacro %}
+
+
+{% macro postgres__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none) %}
+    {# Create a relation from the inputs then get all columns in that context/sde table #}
+    {% set relation = api.Relation.create(schema = schema, identifier = identifier) %}
+    {# Get the schema name to be able to alias the timestamp and id #}
+    {% set schema_get_query %}
+        select schema_name from {{ relation }}
+        limit 1
+    {% endset %}
+    {%- set schema_name = dbt_utils.get_single_value(schema_get_query) -%}
+    {# Get the columns to loop over #}
+    {%- set columns = adapter.get_columns_in_relation(relation) -%}
+    {% set sql %}
+        {{'dd_' ~ identifier }} as (
+            select
+            {# Get all columns that aren't related to the schema itself #}
+            {%- for col in columns -%}
+                {%- if col.name not in ['schema_vendor', 'schema_name', 'schema_format', 'schema_version'] %}
+                    {{ col.quoted }},
+                {%- endif -%}
+            {% endfor %}
+                row_number() over (partition by root_id order by root_tstamp) as dedupe_index -- keep the first event for that root_id
+            from
+                {{ relation }}
+            {% if upper_limit and lower_limit -%}
+                where
+                    root_tstamp >= {{ lower_limit }}
+                    and root_tstamp <= {{ upper_limit }}
+            {% endif %}
+
+        ),
+
+        {{identifier}} as (
+            select
+            {%- for col in columns -%}
+                {%- if col.name | lower not in ['schema_vendor', 'schema_name', 'schema_format', 'schema_version', 'root_tstamp', 'root_id'] %}
+                    {{ col.quoted }}{% if prefix %} as {{ adapter.quote(prefix ~ '_' ~ col.name) }}{% endif -%},
+                {%- endif -%}
+            {% endfor -%}
+            {# Rename columns that we know exist in every schema based table #}
+                root_tstamp as {% if prefix %}{{ adapter.quote(prefix ~ '_tstamp') }}{% else %}{{ adapter.quote(schema_name ~ '_tstamp') }}{% endif %},
+                root_id as {% if prefix %}{{ adapter.quote(prefix ~ '_id') }}{% else %}{{ adapter.quote(schema_name ~ '_id') }}{% endif %}
+            from
+                {{'dd_' ~ identifier }}
+            where
+                dedupe_index = 1
+        )
+
+    {% endset %}
+    {{ return(sql) }}
+{% endmacro %}

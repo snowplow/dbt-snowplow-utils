@@ -31,12 +31,13 @@ Includes:
       9. [get\_array\_to\_string (source)](#get_array_to_string-source)
       10. [get\_split\_to\_array (source)](#get_split_to_array-source)
       11. [get\_string\_agg (source)](#get_string_agg-source)
-      12. [timestamp\_diff (source)](#timestamp_diff-source)
-      13. [timestamp\_add (source)](#timestamp_add-source)
-      14. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
-      15. [to\_unixtstamp (source)](#to_unixtstamp-source)
-      16. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
-      17. [unnest (source)](#unnest-source)
+      12. [get\_context\_or\_sde (source)](#get_context_or_sde-source)
+      13. [timestamp\_diff (source)](#timestamp_diff-source)
+      14. [timestamp\_add (source)](#timestamp_add-source)
+      15. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+      16. [to\_unixtstamp (source)](#to_unixtstamp-source)
+      17. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+      18. [unnest (source)](#unnest-source)
    3. [Materializations](#materializations)
       1. [Optimized incremental](#optimized-incremental)
       2. [BigQuery](#bigquery)
@@ -388,6 +389,48 @@ There is also an optional boolean parameter called `is_distinct` which, when ena
 **Returns:**
 
 - The database equivalent of a string datatype with the maximum allowed length
+
+### get_context_or_sde ([source](macros/utils/get_context_or_sde.sql))
+
+This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. 
+
+Note that it is the responsibility of the user to ensure they have no duplicate names when using this macro multiple times or when a schema column name matches a column already in the events table. In this case the `prefix` argument should be used and aliasing applied to the output.
+
+**Usage:**
+
+```sql
+with base_events as (
+  ...
+),
+
+{{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'")}},
+
+{{ snowplow_utils.get_sde_or_context('atomic', 'com_mycompany_mycustomcontext_1', "'2023-01-01'", "'2023-02-01'")}}
+
+select
+...
+from my_events_table a
+left join nl_basjes_yauaa_context_1 b on 
+    a.event_id = b.yauaa_context_id 
+    and a.collector_tstamp = b.yauaa_context_tstamp
+left join com_mycompany_mycustomcontext_1 c on 
+    a.event_id = c.mycustomcontext_context_id 
+    and a.collector_tstamp = c.mycustomcontext_context_tstamp
+```
+
+**Returns:**
+
+CTE sql for deduplicated records from the schema table, without the schema details columns. The final CTE is the name of the original table. e.g.
+
+```sql
+dd_my_context_table as (
+  select ..., ... as dedupe_index from my_schema.my_context_table
+),
+
+my_context_table as (
+  select ... from dd_my_context_table where dedupe_index = 1
+)
+```
 
 ### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
 
