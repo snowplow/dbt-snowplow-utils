@@ -1,3 +1,45 @@
+snowplow-utils 0.14.0 (2023-03-28)
+---------------------------------------
+## Summary
+This version makes some big changes by deprecating our `snowplow_incremental` materialization and a few of our other macros, with the goal of providing a simpler usage experience and easier maintenance of the package going forward. We've also added a brand new macro, `get_sde_or_context` to aid working with Self Describing Events or Contexts for our Redshift/Postgres users. 
+
+## 🚨 Breaking Changes 🚨
+### Deprecated `snowplow_incremental` materialization
+We have deprecated the `snowplow_incremental` materialization and will be removing it entirely in a future version. In place we are providing an optimization on top of the built-in `incremental` materialization. To use this optimization for `incremental` materialized models, each model config must have `snowplow_optimize=true` and the following must be added to the top level of your `dbt_project.yml` file: 
+```yaml
+# dbt_project.yml
+...
+dispatch:
+  - macro_namespace: dbt
+    search_order: ['snowplow_utils', 'dbt']
+```
+
+For more information see [here](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-materialization/).
+
+### Deprecated macros
+The `get_cluster_by` and `get_partition_by` macros have also been deprecated and will be removed in a future version. These should be replaced by `get_value_by_target_type` which offers the same functionality but more generally.
+
+### `type_string` and `type_max_string`
+`type_string` has been entirely removed from the package and should be replaced with calls direct to `dbt.type_string()` instead. In all cases except redshift this should be suitable, for redshift when you need a column of length greater than 256 we provide `type_max_string` instead. For all other warehouses this is just a wrapper to `dbt.type_string()`.
+
+
+
+## Features
+- Deprecate `get_cluster_by` and `get_partition_by` macro in favor of `get_value_by_target_type`
+- Remove `type_string()` and rework `type_max_string()` to prioritize dbt logic where possible
+- Deprecated old materialization
+- Add new `get_sde_or_context` macro
+
+## Under the hood
+- Remove all internal references to `snowplow_incremental` materialization
+- Migrate tests to new materialization approach
+
+## Docs
+- Update readme
+
+## Upgrading
+To upgrade bump the package version in your `packages.yml` file, and follow our [migration guide](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/migration-guides/utils/#upgrading-to-0140) for the above breaking changes.
+
 snowplow-utils 0.14.0-rc2 (2023-03-10)
 ---------------------------------------
 ## Summary
