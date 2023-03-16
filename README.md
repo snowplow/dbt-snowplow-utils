@@ -31,7 +31,7 @@ Includes:
       9. [get\_array\_to\_string (source)](#get_array_to_string-source)
       10. [get\_split\_to\_array (source)](#get_split_to_array-source)
       11. [get\_string\_agg (source)](#get_string_agg-source)
-      12. [get\_context\_or\_sde (source)](#get_context_or_sde-source)
+      12. [get\_sde\_or\_context (source)](#get_sde_or_context-source)
       13. [timestamp\_diff (source)](#timestamp_diff-source)
       14. [timestamp\_add (source)](#timestamp_add-source)
       15. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
@@ -390,7 +390,7 @@ There is also an optional boolean parameter called `is_distinct` which, when ena
 
 - The database equivalent of a string datatype with the maximum allowed length
 
-### get_context_or_sde ([source](macros/utils/get_context_or_sde.sql))
+### get_sde_or_context ([source](macros/utils/get_context_or_sde.sql))
 
 This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. 
 
