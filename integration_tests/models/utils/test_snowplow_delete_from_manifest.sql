@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {{ config(pre_hook="{{ snowplow_utils.snowplow_delete_from_manifest(
 														models=var('models_to_delete',[]),
 														incremental_manifest_table=ref('data_snowplow_delete_from_manifest_staging')) }}",
@@ -11,4 +18,3 @@
 select *
 
 from {{ ref('data_snowplow_delete_from_manifest_staging') }}
-

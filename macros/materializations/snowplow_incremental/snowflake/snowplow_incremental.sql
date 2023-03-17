@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {% macro snowplow_snowflake_get_incremental_sql(strategy, tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback) %}
   {% if strategy == 'merge' %}
     {% do return(snowplow_utils.snowplow_merge(tmp_relation, target_relation, unique_key, upsert_date_key, dest_columns, disable_upsert_lookback)) %}
@@ -18,7 +25,7 @@
   {# Required keys. Throws error if not present #}
   {%- set unique_key = config.require('unique_key') -%}
   {%- set upsert_date_key = config.require('upsert_date_key') -%}
-  
+
   {% set disable_upsert_lookback = config.get('disable_upsert_lookback') %}
 
   {% set target_relation = this %}
@@ -48,7 +55,7 @@
     {% do adapter.expand_target_column_types(
            from_relation=tmp_relation,
            to_relation=target_relation) %}
-    
+
     {%- set dest_columns = adapter.get_columns_in_relation(target_relation) -%}
 
     {% set build_sql = snowplow_utils.snowplow_snowflake_get_incremental_sql(strategy,

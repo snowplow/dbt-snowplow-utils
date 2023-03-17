@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {% macro merge_fields_across_col_versions(fields_by_col_version) %}
 
   {# Flatten nested list of dicts into single list #}
@@ -13,7 +20,7 @@
 
     {# Get all field_paths per field. Returned as array. #}
     {% set field_paths = all_cols|selectattr('field_name','equalto', field_name)|map(attribute='path')|list %}
-    
+
     {# Get nested_level of field. Returned as single element array. #}
     {% set nested_level = all_cols|selectattr('field_name',"equalto", field_name)|map(attribute='nested_level')|list%}
 

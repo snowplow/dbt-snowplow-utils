@@ -1,12 +1,32 @@
-{% macro is_run_with_new_events(package_name) %}
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
 
-  {%- set new_event_limits_relation = snowplow_utils.get_new_event_limits_table_relation(package_name) -%}
-  {%- set incremental_manifest_relation = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+{% macro is_run_with_new_events(package_name, new_event_limits_table=none, incremental_manifest_table=none, base_sessions_lifecycle_table=none) %}
+
+  {%- if new_event_limits_table -%}
+    {%- set new_event_limits_relation = ref(new_event_limits_table) -%}
+  {%- else -%}
+    {%- set new_event_limits_relation = snowplow_utils.get_new_event_limits_table_relation(package_name) -%}
+  {%- endif -%}
+
+  {%- if incremental_manifest_table -%}
+    {%- set incremental_manifest_relation = ref(incremental_manifest_table) -%}
+  {%- else-%}
+    {%- set incremental_manifest_relation = snowplow_utils.get_incremental_manifest_table_relation(package_name) -%}
+  {%- endif -%}
 
   {% if is_incremental() %}
 
     {%- set node_identifier = this.identifier -%}
-    {%- set base_sessions_lifecycle_identifier = package_name+'_base_sessions_lifecycle_manifest' -%}
+    {%- if base_sessions_lifecycle_relation -%}
+      {%- set base_sessions_lifecycle_identifier = ref(base_sessions_lifecycle_relation) -%}
+    {%- else -%}
+      {%- set base_sessions_lifecycle_identifier = package_name+'_base_sessions_lifecycle_manifest' -%}
+    {%- endif -%}
 
     {# base_sessions_lifecycle not included in manifest so query directly. Otherwise use the manifest for performance #}
     {%- if node_identifier == base_sessions_lifecycle_identifier -%}
