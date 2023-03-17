@@ -1,13 +1,20 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {% macro quarantine_sessions(package_name, max_session_length, src_relation=this) %}
-  
+
   {{ return(adapter.dispatch('quarantine_sessions', 'snowplow_utils')(package_name, max_session_length, src_relation=this)) }}
 
 {% endmacro %}
 
 {% macro default__quarantine_sessions(package_name, max_session_length, src_relation=this) %}
-  
+
   {% set quarantined_sessions = ref(package_name~'_base_quarantined_sessions') %}
-  
+
   {% set sessions_to_quarantine_sql = snowplow_utils.get_quarantine_sql(src_relation, max_session_length) %}
 
   merge into {{ quarantined_sessions }} trg
@@ -18,7 +25,7 @@
 {% endmacro %}
 
 {% macro postgres__quarantine_sessions(package_name, max_session_length, src_relation=this) %}
-  
+
   {% set quarantined_sessions = ref(package_name~'_base_quarantined_sessions') %}
   {% set sessions_to_quarantine_tmp = 'sessions_to_quarantine_tmp' %}
 

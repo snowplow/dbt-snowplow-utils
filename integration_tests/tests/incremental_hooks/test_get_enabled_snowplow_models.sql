@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {# Tests:
    1 - Find all enabled models with the snowplow_web_incremental tag
    2 - Find subset of enabled and tagged models using the dbt ls command. Performed via bash script
@@ -8,28 +15,28 @@
 {% set dummy_graph={
     'nodes':
     {
-        'model.snowplow_web.enabled_model_w_dependency':
+        'model.snowplow.enabled_model_w_dependency':
         {
             'config': {'enabled': true},
-            'depends_on':{'nodes':['model.snowplow_web.snowplow_web_base_events_this_run']},
+            'depends_on':{'nodes':['model.snowplow_utils_integration_tests.snowplow_base_events_this_run']},
             'resource_type': 'model',
-            'tags':[var("tag_var",'snowplow_web_incremental')],
+            'tags':[var("tag_var",'snowplow_incremental')],
             "name": "enabled_model_w_dependency"
         },
-        'model.snowplow_web.enabled_model_wo_dependency':
+        'model.snowplow.enabled_model_wo_dependency':
         {
             'config': {'enabled': true},
             'depends_on':{'nodes':['model.snowplow_web.snowplow_web_sessions']},
             'resource_type': 'model',
-            'tags':[var("tag_var",'snowplow_web_incremental')],
+            'tags':[var("tag_var",'snowplow_incremental')],
             "name": "enabled_model_wo_dependency"
         },
-        'model.snowplow_web.disabled_model':
+        'model.snowplow.disabled_model':
         {
             'config': {'enabled': false},
-            'depends_on':{'nodes':['model.snowplow_web.snowplow_web_base_events_this_run']},
+            'depends_on':{'nodes':['model.snowplow_utils_integration_tests.snowplow_base_events_this_run']},
             'resource_type': 'model',
-            'tags':[var("tag_var",'snowplow_web_incremental')],
+            'tags':[var("tag_var",'snowplow_incremental')],
             "name": "disabled_model"
         },
         'model.non_snowplow_model':
@@ -43,14 +50,14 @@
         'test.non_model':
         {
             'config': {'enabled': true},
-            'depends_on':{'nodes':['model.snowplow_web.snowplow_web_base_events_this_run']},
+            'depends_on':{'nodes':['model.snowplow_utils_integration_tests.snowplow_base_events_this_run']},
             'resource_type': 'test',
             "name": "non_model"
-        }  
+        }
     }
 } %}
 
-{% set actual_enabled_models = snowplow_utils.get_enabled_snowplow_models('snowplow_web', graph_object=dummy_graph) %}
+{% set actual_enabled_models = snowplow_utils.get_enabled_snowplow_models('snowplow', graph_object=dummy_graph) %}
 
 {% if var("models_to_run","")|length %}
     {# Test 2 #}

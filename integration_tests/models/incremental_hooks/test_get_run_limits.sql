@@ -1,4 +1,11 @@
-{%- set data_query -%} 
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
+{%- set data_query -%}
   select * from {{ ref('data_get_run_limits') }}
 {%- endset -%}
 
@@ -12,12 +19,12 @@
 {% endfor %}
 
 {% for i in range(test_data.min_last_success|length) %}
-  
+
   {# iteratively pass each row of test data into get_run_limits() and execute returned query #}
   {%- set results = run_query(snowplow_utils.get_run_limits(test_data.min_last_success[i],
-                                                           test_data.max_last_success[i], 
-                                                           test_data.models_matched_from_manifest[i], 
-                                                           test_data.has_matched_all_models[i], 
+                                                           test_data.max_last_success[i],
+                                                           test_data.models_matched_from_manifest[i],
+                                                           test_data.has_matched_all_models[i],
                                                            test_data.start_date[i])) -%}
 
   {# expected limits taken from test data #}
@@ -42,5 +49,3 @@
   {% if not loop.last %} union all {% endif %}
 
 {% endfor %}
-
-

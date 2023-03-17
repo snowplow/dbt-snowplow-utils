@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 
 {# Test 1: Select all fields from array of structs, taking second element.
    Test 2: Select subset of fields from nested structs & rename
@@ -44,7 +51,7 @@ with prep as (
 )
 
 -- Equality test doesn't like nested data. Stringify and agg.
-select 
+select
    concat("[", string_agg(to_json_string(p), ","), "]") as summary
 
 from prep as p

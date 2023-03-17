@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {# Deletes specified models from the incremental_manifest table #}
 {% macro snowplow_delete_from_manifest(models, incremental_manifest_table) %}
 
@@ -71,5 +78,11 @@
 {% macro snowplow_mobile_delete_from_manifest(models) %}
 
   {{ snowplow_utils.snowplow_delete_from_manifest(models, ref('snowplow_mobile_incremental_manifest')) }}
+
+{% endmacro %}
+
+{% macro snowplow_base_delete_from_manifest(models, incremental_manifest='snowplow_incremental_manifest') %}
+
+  {{ snowplow_utils.snowplow_delete_from_manifest(models, ref(incremental_manifest)) }}
 
 {% endmacro %}

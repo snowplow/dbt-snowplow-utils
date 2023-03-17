@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {% materialization snowplow_incremental, default -%}
 
   {% set full_refresh_mode = flags.FULL_REFRESH %}
@@ -5,7 +12,7 @@
   {# Required keys. Throws error if not present #}
   {%- set unique_key = config.require('unique_key') -%}
   {%- set upsert_date_key = config.require('upsert_date_key') -%}
-  
+
   {% set disable_upsert_lookback = config.get('disable_upsert_lookback') %}
 
   {% set target_relation = this %}
@@ -49,9 +56,9 @@
       {{ build_sql }}
   {% endcall %}
 
-  {% if existing_relation is none or existing_relation.is_view or should_full_refresh() %} 
-    {% do create_indexes(target_relation) %} 
-  {% endif %} 
+  {% if existing_relation is none or existing_relation.is_view or should_full_refresh() %}
+    {% do create_indexes(target_relation) %}
+  {% endif %}
 
   {{ run_hooks(post_hooks, inside_transaction=True) }}
 
