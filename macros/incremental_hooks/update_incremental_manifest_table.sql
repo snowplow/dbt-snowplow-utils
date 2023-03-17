@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {# Updates the incremental manifest table at the run end with the latest tstamp consumed per model #}
 {% macro update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
 
@@ -10,11 +17,11 @@
   {% if models %}
 
     {% set last_success_query %}
-      select 
-        b.model, 
-        a.last_success 
+      select
+        b.model,
+        a.last_success
 
-      from 
+      from
         (select max(collector_tstamp) as last_success from {{ base_events_table }}) a,
         ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
@@ -32,7 +39,7 @@
     {% if target.type == 'snowflake' %}
       commit;
     {% endif %}
-    
+
   {% endif %}
 
 {%- endmacro %}
@@ -72,7 +79,7 @@
     end transaction;
 
     drop table snowplow_models_last_success;
-    
+
   {% endif %}
 
 {%- endmacro %}

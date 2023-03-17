@@ -1,3 +1,10 @@
+{#
+Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
+This program is licensed to you under the Snowplow Community License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
+You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+#}
+
 {% macro n_timedeltas_ago(n, timedelta_attribute) %}
 
   {% set arg_dict = {timedelta_attribute: n} %}
@@ -5,5 +12,5 @@
   {% set n_timedeltas_ago = (now - modules.datetime.timedelta(**arg_dict)) %}
 
   {{ return(n_timedeltas_ago) }}
-  
+
 {% endmacro %}
