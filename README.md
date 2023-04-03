@@ -392,30 +392,34 @@ There is also an optional boolean parameter called `is_distinct` which, when ena
 
 ### get_sde_or_context ([source](macros/utils/get_context_or_sde.sql))
 
-This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. 
+This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. In the case where multiple entities may be sent in the context (e.g. products in a search results), you should set the `single_entity` argument to `false` and use an additional criteria in your join (see [the snowplow docs](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-duplicates/) for further details).
 
 Note that it is the responsibility of the user to ensure they have no duplicate names when using this macro multiple times or when a schema column name matches a column already in the events table. In this case the `prefix` argument should be used and aliasing applied to the output.
 
 **Usage:**
 
+With at most one entity per context:
 ```sql
-with base_events as (
-  ...
-),
-
-{{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'")}},
-
-{{ snowplow_utils.get_sde_or_context('atomic', 'com_mycompany_mycustomcontext_1', "'2023-01-01'", "'2023-02-01'")}}
+with {{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'")}}
 
 select
 ...
 from my_events_table a
 left join nl_basjes_yauaa_context_1 b on 
-    a.event_id = b.yauaa_context_id 
-    and a.collector_tstamp = b.yauaa_context_tstamp
-left join com_mycompany_mycustomcontext_1 c on 
-    a.event_id = c.mycustomcontext_context_id 
-    and a.collector_tstamp = c.mycustomcontext_context_tstamp
+    a.event_id = b.yauaa_context__id 
+    and a.collector_tstamp = b.yauaa_context__tstamp
+```
+With the possibility of multiple entities per context, your events table must already be de-duped but still have a field with the number of duplicates:
+```sql
+with {{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'", single_entity = false)}}
+
+select
+...
+from my_events_table a
+left join nl_basjes_yauaa_context_1 b on 
+    a.event_id = b.yauaa_context__id 
+    and a.collector_tstamp = b.yauaa_context__tstamp
+    and mod(b.yauaa_context__index, a.duplicate_count) = 0
 ```
 
 **Returns:**
@@ -431,6 +435,28 @@ my_context_table as (
   select ... from dd_my_context_table where dedupe_index = 1
 )
 ```
+
+With at most one entity per context:
+```sql
+dd_my_context_table as (
+  select ..., ... as dedupe_index from my_schema.my_context_table
+),
+
+my_context_table as (
+  select ..., root_id as my_context_table__id, root_tstamp as my_context_table__tstamp from dd_my_context_table where dedupe_index = 1
+)
+```
+With the possibility of multiple entities per context, your events table must already be de-duped but still have a field with the number of duplicates:
+```sql
+dd_my_context_table as (
+  select ..., ... as dedupe_index from my_schema.my_context_table
+),
+
+my_context_table as (
+  select ..., , root_id as my_context_table__id, root_tstamp as my_context_table__tstamp, ... as my_context_table__index from dd_my_context_table
+)
+```
+
 
 ### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
 
