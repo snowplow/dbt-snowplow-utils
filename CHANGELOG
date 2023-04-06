@@ -1,3 +1,19 @@
+snowplow-utils 0.14.1 (2023-04-06)
+---------------------------------------
+## Summary
+This version makes changes to the new `get_sde_or_context` macro to support returning multiple entities per context, and changes the join column names to reduce the risk of clashes.
+
+## 🚨 Breaking Changes 🚨
+
+- Column names output by the `get_sde_or_context` macro have been changed from `<context_name>_id/tstamp` to `<context_name>__id/tstamp`. There is no need for you to make any changes unless you have used this macro in a custom model.
+
+## Features
+- Add support for contexts with multiple values per event to the `get_sde_or_context` macro 
+
+## Upgrading
+To upgrade bump the package version in your `packages.yml` file.
+
+
 snowplow-utils 0.14.0 (2023-03-28)
 ---------------------------------------
 ## Summary
