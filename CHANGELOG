@@ -1,3 +1,15 @@
+snowplow-utils 0.14.2 (2023-0X-XX)
+---------------------------------------
+## Summary
+This version adds the `get_field` macro to enable extracting fields from our self-describing-event and context columns easier and more consistent across warehouses.
+
+
+## Features
+- Add new macro `get_field` to make it easier to extract fields from unstruct/context columns across warehouses
+
+## Upgrading
+To upgrade bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.14.1 (2023-04-06)
 ---------------------------------------
 ## Summary

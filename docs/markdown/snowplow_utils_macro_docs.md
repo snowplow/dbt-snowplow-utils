@@ -312,3 +312,48 @@ left join nl_basjes_yauaa_context_1 b on
 
 {% endraw %}
 {% enddocs %}
+
+{% docs macro_get_field %}
+{% raw %}
+
+This macro exists to make it easier to extract a field from our `unstruct_` and `contexts_` type columns for users in Snowflake, Databricks, and BigQuery (although you may prefer to use `combine_column_versions` for BigQuery, as this manages multiple context versions and allows for extraction of multiple fields at the same time). The macro can handle type casting and selecting from arrays.
+
+#### Returns
+
+SQL snippet to select the field specified from the column
+
+#### Usage
+
+Extracting a single field
+```sql
+
+select
+{{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
+                            field_name = 'agent_class', 
+                            table_alias = 'a',
+                            type = 'string',
+                            array_index = 0)}} as yauaa_agent_class
+from 
+    my_events_table a
+
+```
+
+Extracting multiple fields
+```sql
+
+select
+{% for field in [('field1', 'string'), ('field2', 'numeric'), ...] %}
+  {{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
+                            field_name = field[0], 
+                            table_alias = 'a',
+                            type = field[1],
+                            array_index = 0)}} as {{ field[0] }}
+{% endfor %}
+
+from 
+    my_events_table a
+
+```
+
+{% endraw %}
+{% enddocs %}

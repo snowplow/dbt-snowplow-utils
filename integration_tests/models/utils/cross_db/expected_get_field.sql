@@ -1,0 +1,28 @@
+{{
+  config(
+    tags = ['get_field'],
+    )
+}}
+
+select
+    {% if target.type in ['snowflake'] -%}'alice'::variant{%- else -%}'alice'{%- endif %} as nas_col1,
+    5 as nas_col3,
+    {% if target.type in ['snowflake'] -%}'alice'::variant{%- else -%}'alice'{%- endif %} as nas_ta_col1,
+    5 as nas_ta_col3,
+    'alice' as nas_ty_col1,
+    '5' as nas_ty_col3,
+    'alice' as nas_ta_ty_col1,
+    '5' as nas_ta_ty_col3,
+
+    {% if target.type in ['snowflake'] -%}'alice'::variant{%- else -%}'alice'{%- endif %} as as_col1_ind0,
+    5 as as_col3_ind0,
+    {% if target.type in ['snowflake'] -%}'alice'::variant{%- else -%}'alice'{%- endif %} as as_ta_col1_ind0,
+    5 as as_ta_col3_ind0,
+    'alice' as as_ta_ty_col1_ind0,
+    '5' as as_ta_ty_col3_ind0,
+    'alice' as as_ty_col1_ind0,
+    '5' as as_ty_col3_ind0,
+    'charlie' as as_ta_ty_col1_ind1,
+    '9' as as_ta_ty_col3_ind1
+from
+    {{ ref('data_get_field') }} a
