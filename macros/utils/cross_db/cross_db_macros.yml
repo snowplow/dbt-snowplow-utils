@@ -54,3 +54,22 @@ macros:
       - name: delimiter
         type: string
         description: (Optional) String that determines how to delimit your array values. Default ','
+
+  - name: get_field
+    description: '{{ doc("macro_get_field") }}'
+    arguments:
+      - name: column_name
+        type: string
+        description: Name of the column to extract the field from
+      - name: field_name
+        type: string
+        description: Name of the field to extract
+      - name: table_alias
+        type: string
+        description: (Optional) Alias of the table in your query that the column exists in. Default `none` (no table alias)
+      - name: type
+        type: string
+        description: (Optional) Type to cast the field to if required. Default `none` (no casting)
+      - name: array_index
+        type: integer
+        description: (Optional) Index of the array to select in case of multiple entries. Uses `SAFE_OFFSET` for BigQuery. Default `none` (not an array)

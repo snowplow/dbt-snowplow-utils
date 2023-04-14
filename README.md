@@ -32,12 +32,13 @@ Includes:
       10. [get\_split\_to\_array (source)](#get_split_to_array-source)
       11. [get\_string\_agg (source)](#get_string_agg-source)
       12. [get\_sde\_or\_context (source)](#get_sde_or_context-source)
-      13. [timestamp\_diff (source)](#timestamp_diff-source)
-      14. [timestamp\_add (source)](#timestamp_add-source)
-      15. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
-      16. [to\_unixtstamp (source)](#to_unixtstamp-source)
-      17. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
-      18. [unnest (source)](#unnest-source)
+      13. [get\_field (source)](#get_field-source)
+      14. [timestamp\_diff (source)](#timestamp_diff-source)
+      15. [timestamp\_add (source)](#timestamp_add-source)
+      16. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+      17. [to\_unixtstamp (source)](#to_unixtstamp-source)
+      18. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+      19. [unnest (source)](#unnest-source)
    3. [Materializations](#materializations)
       1. [Optimized incremental](#optimized-incremental)
       2. [BigQuery](#bigquery)
@@ -456,6 +457,48 @@ my_context_table as (
   select ..., , root_id as my_context_table__id, root_tstamp as my_context_table__tstamp, ... as my_context_table__index from dd_my_context_table
 )
 ```
+
+### get_field ([source](macros/utils/cross_db/get_field.sql))
+
+This macro exists to make it easier to extract a field from our `unstruct_` and `contexts_` type columns for users in Snowflake, Databricks, and BigQuery (although you may prefer to use [`combine_column_versions`](#combine_column_versions-source) for BigQuery, as this manages multiple context versions and allows for extraction of multiple fields at the same time). The macro can handle type casting and selecting from arrays.
+
+**Returns:**
+
+sql line to select the field specified from the column
+
+**Usage:**
+
+
+Extracting a single field
+```sql
+
+select
+{{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
+                            field_name = 'agent_class', 
+                            table_alias = 'a',
+                            type = 'string',
+                            array_index = 0)}} as yauaa_agent_class
+from 
+    my_events_table a
+
+```
+
+Extracting multiple fields
+```sql
+
+select
+{% for field in [('field1', 'string'), ('field2', 'numeric'), ...] %}
+  {{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
+                            field_name = field[0], 
+                            table_alias = 'a',
+                            type = field[1],
+                            array_index = 0)}} as {{ field[0] }}
+{% endfor %}
+
+from 
+    my_events_table a
+
+``````
 
 
 ### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))

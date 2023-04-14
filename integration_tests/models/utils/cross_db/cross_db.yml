@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: test_get_string_agg
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_get_string_agg')
+  - name: test_get_string_agg_grp
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_get_string_agg_grp')
+  - name: test_get_field
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_get_field')

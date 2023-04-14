@@ -36,6 +36,13 @@ models:
     utils:
       bigquery:
         enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+      cross_db:
+        data_get_field:
+          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+        test_get_field:
+          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+        expected_get_field:
+          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
 
 tests:
   snowplow_utils_integration_tests:
