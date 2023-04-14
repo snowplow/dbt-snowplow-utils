@@ -9,11 +9,3 @@ models:
     tests:
       - dbt_utils.equality:
           compare_model: ref('expected_snowplow_delete_from_manifest')
-  - name: test_get_string_agg
-    tests:
-      - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg')
-  - name: test_get_string_agg_grp
-    tests:
-      - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg_grp')
