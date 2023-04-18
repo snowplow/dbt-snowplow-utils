@@ -302,7 +302,8 @@ With the possibility of multiple entities per context, your events table must al
 with {{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1', "'2023-01-01'", "'2023-02-01'", single_entity = false)}}
 
 select
-...
+...,
+count(*) over (partition by a.event_id) as duplicate_count
 from my_events_table a
 left join nl_basjes_yauaa_context_1 b on 
     a.event_id = b.yauaa_context__id 
