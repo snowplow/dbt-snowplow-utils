@@ -98,8 +98,8 @@
     {% if is_distinct %} array_distinct( {% endif %}
     transform(
       array_sort(
-        collect_list(
-          ARRAY({{column_prefix}}.{{base_column}}::string, {{order_by_column_prefix}}.{{order_by_column}}::string)), (left, right) ->
+        FILTER(collect_list(
+          ARRAY({{column_prefix}}.{{base_column}}::string, {{order_by_column_prefix}}.{{order_by_column}}::string)), x -> x[0] is not null), (left, right) ->
 
           {%- if sort_numeric -%}
             CASE WHEN cast(left[1] as numeric(38, 9)) {% if order_desc %} > {% else %} < {% endif %} cast(right[1] as numeric(38, 9)) THEN -1
