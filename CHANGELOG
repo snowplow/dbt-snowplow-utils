@@ -1,3 +1,17 @@
+snowplow-utils 0.14.3 (2023-07-04)
+---------------------------------------
+## Summary
+This version adds the ability to specify which package is returning the run limits in the `print_run_limits` macro, and fixes an issue with using string agg in Databricks with many `null` values.
+
+## Features
+- Add ability to tag package in limits (Close #133)
+
+## Fixes
+- Fix issue with large volume of nulls in databricks string agg
+
+## Upgrading
+To upgrade bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.14.2 (2023-04-19)
 ---------------------------------------
 ## Summary
