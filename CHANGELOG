@@ -1,3 +1,25 @@
+snowplow-utils 0.15.0-rc1 (2023-08-31)
+---------------------------------------
+## Summary
+**This is a pre-release version of the package, we believe it to be in working condition but you may encounter bugs and some features may change before the final release.**
+
+This release introduces new "base" macros which are used to recreate the `snowplow_base_events_this_run` and related tables. It gives you the option to customise your session and user identifiers, your partitioning timestamps, and much more. We have temporary docs hosted [here](https://deploy-preview-445--snowplow-docs.netlify.app/docs/modeling-your-data/modeling-your-data-with-dbt/) that you can use to explore docs related to these changes. Once this is fully released, these docs will migrate over to the offical [docs site](https://docs.snowplow.io/)
+
+For information about how to do this, see our [Advanced Usage of the Utils package](https://deploy-preview-445--snowplow-docs.netlify.app/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-utils-advanced-operation/) page and the [utils configuration](https://deploy-preview-445--snowplow-docs.netlify.app/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-configuration/utils/) variables.
+
+Finally, before we dig into the details, starting with this version all future releases of our dbt packages will be released under the [Snowplow Community License](https://docs.snowplow.io/community-license-1.0/) instead of the Apache 2 license. For what this means for you, check out our [FAQ](https://docs.snowplow.io/docs/contributing/community-license-faq/), and our [announcement blog](https://snowplow.io/blog/license-changes-for-snowplow-open-source/).
+
+## Features
+- Create the "base" macros to enable greater flexibility
+- Update the package to be under the Snowplow Community License
+- Released a fix where `get_optional_fields` returned field aliases even when `include_field_alias` was set to false ([#132](https://github.com/snowplow/dbt-snowplow-utils/issues/132))
+
+## Under the hood
+- Introduce integration tests to check customization
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.14.3 (2023-07-04)
 ---------------------------------------
 ## Summary
@@ -33,7 +55,7 @@ This version makes changes to the new `get_sde_or_context` macro to support retu
 - Column names output by the `get_sde_or_context` macro have been changed from `<context_name>_id/tstamp` to `<context_name>__id/tstamp`. There is no need for you to make any changes unless you have used this macro in a custom model.
 
 ## Features
-- Add support for contexts with multiple values per event to the `get_sde_or_context` macro 
+- Add support for contexts with multiple values per event to the `get_sde_or_context` macro
 
 ## Upgrading
 To upgrade bump the package version in your `packages.yml` file.
@@ -42,11 +64,11 @@ To upgrade bump the package version in your `packages.yml` file.
 snowplow-utils 0.14.0 (2023-03-28)
 ---------------------------------------
 ## Summary
-This version makes some big changes by deprecating our `snowplow_incremental` materialization and a few of our other macros, with the goal of providing a simpler usage experience and easier maintenance of the package going forward. We've also added a brand new macro, `get_sde_or_context` to aid working with Self Describing Events or Contexts for our Redshift/Postgres users. 
+This version makes some big changes by deprecating our `snowplow_incremental` materialization and a few of our other macros, with the goal of providing a simpler usage experience and easier maintenance of the package going forward. We've also added a brand new macro, `get_sde_or_context` to aid working with Self Describing Events or Contexts for our Redshift/Postgres users.
 
 ## 🚨 Breaking Changes 🚨
 ### Deprecated `snowplow_incremental` materialization
-We have deprecated the `snowplow_incremental` materialization and will be removing it entirely in a future version. In place we are providing an optimization on top of the built-in `incremental` materialization. To use this optimization for `incremental` materialized models, each model config must have `snowplow_optimize=true` and the following must be added to the top level of your `dbt_project.yml` file: 
+We have deprecated the `snowplow_incremental` materialization and will be removing it entirely in a future version. In place we are providing an optimization on top of the built-in `incremental` materialization. To use this optimization for `incremental` materialized models, each model config must have `snowplow_optimize=true` and the following must be added to the top level of your `dbt_project.yml` file:
 ```yaml
 # dbt_project.yml
 ...
@@ -88,7 +110,7 @@ snowplow-utils 0.14.0-rc2 (2023-03-10)
 
 This version fixes a few issues from the first release candidate, including failing when you had no data in a scratch table, and deprecates some macros.
 
-As a reminder Users will need to add the following to their `dbt_project.yml` to benefit from the enhancements: 
+As a reminder Users will need to add the following to their `dbt_project.yml` to benefit from the enhancements:
 ```yaml
 # dbt_project.yml
 ...
@@ -97,7 +119,7 @@ dispatch:
     search_order: ['snowplow_utils', 'dbt']
 ```
 
-For custom models and more details, please refer to our temporary docs page: https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/ 
+For custom models and more details, please refer to our temporary docs page: https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/
 
 ## Features
 Deprecate `get_cluster_by` and `get_partition_by` macro in favor of `get_value_by_target_type`
@@ -114,9 +136,9 @@ snowplow-utils 0.14.0-rc1 (2023-03-06)
 ## Summary
 **This is a pre-release version of the package, we believe it to be in working condition but you may encounter bugs and some features may change before the final release.**
 
-This version of the package begins the migration away from our `snowplow_incremental` materialization and instead provides an overwrite to the standard `incremental` materialization to provide the same performance improvements but in a simpler way. We expect users should see little to no performance change from the previous version, please let us know if you see performance degradation for large volumes of data. 
+This version of the package begins the migration away from our `snowplow_incremental` materialization and instead provides an overwrite to the standard `incremental` materialization to provide the same performance improvements but in a simpler way. We expect users should see little to no performance change from the previous version, please let us know if you see performance degradation for large volumes of data.
 
-Users will need to add the following to their `dbt_project.yml` to benefit from the enhancements: 
+Users will need to add the following to their `dbt_project.yml` to benefit from the enhancements:
 ```yaml
 # dbt_project.yml
 ...
@@ -125,7 +147,7 @@ dispatch:
     search_order: ['snowplow_utils', 'dbt']
 ```
 
-For custom models and more details, please see more details on our temporary docs page: https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/ 
+For custom models and more details, please see more details on our temporary docs page: https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-incremental-logic-pre-release/
 
 ## Features
 Deprecated old materialization
