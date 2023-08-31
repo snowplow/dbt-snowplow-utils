@@ -17,35 +17,41 @@ Includes:
 
 **[Macros](#macros)**
 
-1. [snowplow-utils](#snowplow-utils)
-   1. [Contents](#contents)
-   2. [Macros](#macros)
-      1. [get\_columns\_in\_relation\_by\_column\_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
-      2. [combine\_column\_versions (source)](#combine_column_versions-source)
-      3. [is\_run\_with\_new\_events (source)](#is_run_with_new_events-source)
-      4. [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
-      5. [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
-      6. [get\_value\_by\_target (source)](#get_value_by_target-source)
-      7. [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
-      8. [set\_query\_tag (source)](#set_query_tag-source)
-      9. [get\_array\_to\_string (source)](#get_array_to_string-source)
-      10. [get\_split\_to\_array (source)](#get_split_to_array-source)
-      11. [get\_string\_agg (source)](#get_string_agg-source)
-      12. [get\_sde\_or\_context (source)](#get_sde_or_context-source)
-      13. [get\_field (source)](#get_field-source)
-      14. [timestamp\_diff (source)](#timestamp_diff-source)
-      15. [timestamp\_add (source)](#timestamp_add-source)
-      16. [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
-      17. [to\_unixtstamp (source)](#to_unixtstamp-source)
-      18. [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
-      19. [unnest (source)](#unnest-source)
-   3. [Materializations](#materializations)
-      1. [Optimized incremental](#optimized-incremental)
-      2. [BigQuery](#bigquery)
-      3. [Snowflake](#snowflake)
-      4. [Notes](#notes)
-2. [Join the Snowplow community](#join-the-snowplow-community)
-3. [Copyright and license](#copyright-and-license)
+- [snowplow-utils](#snowplow-utils)
+  - [Contents](#contents)
+  - [Macros](#macros)
+    - [get\_columns\_in\_relation\_by\_column\_prefix (source)](#get_columns_in_relation_by_column_prefix-source)
+    - [combine\_column\_versions (source)](#combine_column_versions-source)
+    - [is\_run\_with\_new\_events (source)](#is_run_with_new_events-source)
+    - [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
+    - [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
+    - [get\_value\_by\_target (source)](#get_value_by_target-source)
+    - [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
+    - [set\_query\_tag (source)](#set_query_tag-source)
+    - [get\_array\_to\_string (source)](#get_array_to_string-source)
+    - [get\_split\_to\_array (source)](#get_split_to_array-source)
+    - [get\_string\_agg (source)](#get_string_agg-source)
+    - [get\_sde\_or\_context (source)](#get_sde_or_context-source)
+    - [get\_field (source)](#get_field-source)
+    - [timestamp\_diff (source)](#timestamp_diff-source)
+    - [timestamp\_add (source)](#timestamp_add-source)
+    - [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+    - [to\_unixtstamp (source)](#to_unixtstamp-source)
+    - [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+    - [unnest (source)](#unnest-source)
+  - [Materializations](#materializations)
+    - [Optimized incremental](#optimized-incremental)
+    - [BigQuery](#bigquery)
+    - [Snowflake](#snowflake)
+    - [Notes](#notes)
+  - [Base Macro](#base-macro)
+    - [Create Snowplow Quarantined Sessions (source)](#create-snowplow-quarantined-sessions-source)
+    - [Create Snowplow Incremental Manifest (source)](#create-snowplow-incremental-manifest-source)
+    - [Create Snowplow Sessions Lifecycle Manifest (source)](#create-snowplow-sessions-lifecycle-manifest-source)
+    - [Create Snowplow Sessions This Run (source)](#create-snowplow-sessions-this-run-source)
+    - [Create Snowplow Events This Run (source)](#create-snowplow-events-this-run-source)
+- [Join the Snowplow community](#join-the-snowplow-community)
+- [Copyright and license](#copyright-and-license)
 
 
 ## Macros
@@ -406,8 +412,8 @@ with {{ snowplow_utils.get_sde_or_context('atomic', 'nl_basjes_yauaa_context_1',
 select
 ...
 from my_events_table a
-left join nl_basjes_yauaa_context_1 b on 
-    a.event_id = b.yauaa_context__id 
+left join nl_basjes_yauaa_context_1 b on
+    a.event_id = b.yauaa_context__id
     and a.collector_tstamp = b.yauaa_context__tstamp
 ```
 With the possibility of multiple entities per context, your events table must already be de-duped but still have a field with the number of duplicates:
@@ -418,8 +424,8 @@ select
 ...,
 count(*) over (partition by a.event_id) as duplicate_count
 from my_events_table a
-left join nl_basjes_yauaa_context_1 b on 
-    a.event_id = b.yauaa_context__id 
+left join nl_basjes_yauaa_context_1 b on
+    a.event_id = b.yauaa_context__id
     and a.collector_tstamp = b.yauaa_context__tstamp
     and mod(b.yauaa_context__index, a.duplicate_count) = 0
 ```
@@ -474,12 +480,12 @@ Extracting a single field
 ```sql
 
 select
-{{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
-                            field_name = 'agent_class', 
+{{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1',
+                            field_name = 'agent_class',
                             table_alias = 'a',
                             type = 'string',
                             array_index = 0)}} as yauaa_agent_class
-from 
+from
     my_events_table a
 
 ```
@@ -489,14 +495,14 @@ Extracting multiple fields
 
 select
 {% for field in [('field1', 'string'), ('field2', 'numeric'), ...] %}
-  {{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1', 
-                            field_name = field[0], 
+  {{ snowplow_utils.get_field(column_name = 'contexts_nl_basjes_yauaa_context_1',
+                            field_name = field[0],
                             table_alias = 'a',
                             type = field[1],
                             array_index = 0)}} as {{ field[0] }}
 {% endfor %}
 
-from 
+from
     my_events_table a
 
 ``````
@@ -629,7 +635,7 @@ This optimization adds an additional `predicate`, based on the logic above, to t
 
 Because we only overwrite the `get_merge_sql`/`get_delete_insert_merge_sql` this means all options and features of the standard incremental materialization are available, including `on_schema_change` and `incremental_predicates`.
 
-Each config must contain, in addition to `snowplow_optimize`, an `upsert_date_key` and a `unique_key`. We support Snowflake, BigQuery, Redshift, Postgres, Spark, and Databricks, however some warehouses have some additional config options that we recommend using to get the most out of the optimization. 
+Each config must contain, in addition to `snowplow_optimize`, an `upsert_date_key` and a `unique_key`. We support Snowflake, BigQuery, Redshift, Postgres, Spark, and Databricks, however some warehouses have some additional config options that we recommend using to get the most out of the optimization.
 
 ### BigQuery
 
@@ -673,6 +679,155 @@ During testing we found that providing the `upsert_date_key` as a cluster key re
 
 - `snowplow__upsert_lookback_days` defaults to 30 days. If you set `snowplow__upsert_lookback_days` to too short a period, duplicates can occur in your incremental table.
 
+## Base Macro
+
+### Create Snowplow Quarantined Sessions ([source](macros/base/base_create_snowplow_quarantined_sessions.sql))
+
+This macro generates a table which contains a column named `session_identifier`, containing all session identifiers of sessions that have been quarantined due to exceeding the maximum session length, to avoid long table scans.
+
+
+**Usage:**
+
+```sql
+{% set quarantined_query = snowplow_utils.base_create_snowplow_quarantined_sessions() %}
+
+{{ quarantined_query }}
+```
+
+**Returns:**
+
+- A SQL query to generate the quarantined sessions table
+
+### Create Snowplow Incremental Manifest ([source](macros/base/base_create_snowplow_incremental_manifest.sql))
+
+This macro generates the incremental manifest table that Snowplow leverages, and does not require any arguments.
+
+
+**Usage:**
+
+```sql
+{% set incremental_manifest_query = snowplow_utils.base_create_snowplow_incremental_manifest() %}
+
+{{ incremental_manifest_query }}
+```
+
+**Returns:**
+
+- A SQL query to generate the incremental manifest table
+
+### Create Snowplow Sessions Lifecycle Manifest ([source](macros/base/base_create_snowplow_sessions_lifecycle_manifest.sql))
+
+This macro generates the sessions lifecycle manifest table that Snowplow leverages.
+
+**Arguments:**
+
+- `session_identifiers`: An array of key:value maps of session identifiers that have at least the following properties: `schema`, `field`.
+- `session_sql`: A SQL statement that will be used to create the `session_identifier`.
+- `session_timestamp`: The timestamp to be used to set the start and end of the session.
+- `user_identifiers`: An array of key:value maps of user identifiers that have at least the following properties: `schema`, `field`.
+- `user_sql`: A SQL statement that will be used to create the `user_identifier`.
+- `quarantined_sessions`: The name of the table containing all quarantined sessions.
+- `derived_tstamp_partitioned`: Whether or not to partition on derived timestamps (BQ only).
+- `days_late_allowed`: The maximum allowed number of days between the event creation and it being sent to the collector.
+- `max_session_days`: The maximum allowed session length in days.
+- `app_ids`: A list of app_ids to filter the events table on for processing within the package.
+- `snowplow_events_database`: The name of your database where your events land.
+- `snowplow_events_schema`: The schema (dataset for BigQuery) that contains your atomic events table.
+- `snowplow_events_table`: The name of your events table where your events land.
+- `event_limits_table`: The name of the table where your Snowplow event limits are stored.
+- `incremental_manifest_table`: The name of the incremental manifest table.
+- `package_name`: The name of the package you are running this macro under.
+
+**Usage:**
+
+```sql
+{% set sessions_lifecycle_manifest_query = snowplow_utils.base_create_snowplow_sessions_lifecycle_manifest(
+    var('snowplow__session_identifiers', '[{"schema": "atomic", "field": "domain_sessionid"}]'),
+    var('snowplow__session_timestamp', 'collector_tstamp'),
+    var('snowplow__user_identifiers', '[{"schema": "atomic", "field": "domain_userid"}]'),
+    var('snowplow__quarantined_sessions', 'snowplow_base_quarantined_sessions'),
+    var('snowplow__derived_tstamp_partitioned', true),
+    var('snowplow__days_late_allowed', 3),
+    var('snowplow__max_session_days', 3),
+    var('snowplow__app_ids', []),
+    var('snowplow__events_schema', 'atomic'),
+    var('snowplow__events_table', 'events'),
+    var('snowplow__event_limits', 'snowplow_base_new_event_limits'),
+    var('snowplow__incremental_manifest', 'snowplow_incremental_manifest'),
+    var('snowplow__package_name, 'snowplow')
+ ) %}
+
+{{ sessions_lifecycle_manifest_query }}
+```
+
+**Returns:**
+
+- A SQL query to generate the sessions lifecycle manifest table
+
+### Create Snowplow Sessions This Run ([source](macros/base/base_create_snowplow_sessions_this_run.sql))
+
+This macro generates the sessions this run table that Snowplow leverages.
+
+**Arguments:**
+
+- `lifecycle_manifest_table`: The name of the sessions lifecycle manifest table.
+- `new_event_limits_table`: The name of the table where your Snowplow event limits are stored.
+
+**Usage:**
+
+```sql
+{% set sessions_query = snowplow_utils.base_create_snowplow_sessions_this_run(
+    lifecycle_manifest_table='snowplow_base_sessions_lifecycle_manifest',
+    new_event_limits_table='snowplow_base_new_event_limits') %}
+
+{{ sessions_query }}
+```
+
+**Returns:**
+
+- A SQL query to generate the sessions this run table
+
+### Create Snowplow Events This Run ([source](macros/base/base_create_snowplow_events_this_run.sql))
+
+This macro generates the events this run table that Snowplow leverages.
+
+**Arguments:**
+
+- `sessions_this_run_table`: The name of your sessions this run table.
+- `session_identifiers`: An array of key:value maps of session identifiers that have at least the following properties: `schema`, `field`.
+- `session_sql`: A SQL statement that will be used to create the `session_identifier`.
+- `session_timestamp`: The timestamp to be used to set the start and end of the session.
+- `derived_tstamp_partitioned`: Whether or not to partition on derived timestamps (BQ only).
+- `days_late_allowed`: The maximum allowed number of days between the event creation and it being sent to the collector.
+- `max_session_days`: The maximum allowed session length in days.
+- `app_ids`: A list of app_ids to filter the events table on for processing within the package.
+- `snowplow_events_database`: The name of your database where your events land.
+- `snowplow_events_schema`: The schema (dataset for BigQuery) that contains your atomic events table.
+- `snowplow_events_table`: The name of your events table where your events land.
+- `entities_or_sdes`: In Redshift & Postgres, due to the shredded table design (meaning each context is loaded separately into a table), you need to specify which contexts you want to be included in the snowplow_base_events_this_run table, which you can do using this variable. This needs to be an array of key:value maps with the following properties: `name`, `prefix`, `alias`, `single_entity`
+- `custom_sql`: Any custom SQL you want to include within your `events_this_run` table
+
+**Usage:**
+
+```sql
+{% set base_events_query = snowplow_utils.base_create_snowplow_events_this_run(
+    var('snowplow__base_sessions', 'snowplow_base_sessions_this_run'),
+    var('snowplow__session_identifiers', '[{"schema": "atomic", "field": "domain_sessionid"}]'),
+    var('snowplow__session_timestamp', 'collector_tstamp'),
+    var('snowplow__derived_tstamp_partitioned', true),
+    var('snowplow__days_late_allowed', 3),
+    var('snowplow__max_session_days', 3),
+    var('snowplow__app_ids', []),
+    var('snowplow__events_schema', 'atomic'),
+    var('snowplow__events_table', 'events')) %}
+
+{{ base_events_query }}
+```
+
+**Returns:**
+
+- A SQL query to generate the events this run table
+
 # Join the Snowplow community
 
 We welcome all ideas, questions and contributions!
@@ -683,19 +838,13 @@ If you find a bug, please report an issue on GitHub.
 
 # Copyright and license
 
-The snowplow-utils package is Copyright 2021-2022 Snowplow Analytics Ltd.
+The snowplow-utils package is Copyright 2021-present Snowplow Analytics Ltd.
 
-Licensed under the [Apache License, Version 2.0][license] (the "License");
+Licensed under the [Snowplow Community License][license] (the "License");
 you may not use this software except in compliance with the License.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-[license]: http://www.apache.org/licenses/LICENSE-2.0
-[license-image]: http://img.shields.io/badge/license-Apache--2-blue.svg?style=flat
+[license]: https://docs.snowplow.io/community-license-1.0/
+[license-image]: http://img.shields.io/badge/license-Snowplow--Community--1-blue.svg?style=flat
 [tracker-classificiation]: https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/tracker-maintenance-classification/
 [early-release]: https://img.shields.io/static/v1?style=flat&label=Snowplow&message=Early%20Release&color=014477&labelColor=9ba0aa&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAeFBMVEVMaXGXANeYANeXANZbAJmXANeUANSQAM+XANeMAMpaAJhZAJeZANiXANaXANaOAM2WANVnAKWXANZ9ALtmAKVaAJmXANZaAJlXAJZdAJxaAJlZAJdbAJlbAJmQAM+UANKZANhhAJ+EAL+BAL9oAKZnAKVjAKF1ALNBd8J1AAAAKHRSTlMAa1hWXyteBTQJIEwRgUh2JjJon21wcBgNfmc+JlOBQjwezWF2l5dXzkW3/wAAAHpJREFUeNokhQOCA1EAxTL85hi7dXv/E5YPCYBq5DeN4pcqV1XbtW/xTVMIMAZE0cBHEaZhBmIQwCFofeprPUHqjmD/+7peztd62dWQRkvrQayXkn01f/gWp2CrxfjY7rcZ5V7DEMDQgmEozFpZqLUYDsNwOqbnMLwPAJEwCopZxKttAAAAAElFTkSuQmCC
 
