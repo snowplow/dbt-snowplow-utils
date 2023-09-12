@@ -79,6 +79,10 @@ models:
           +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
         expected_get_field:
           +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+        test_get_field_bq:
+          +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
+        expected_get_field_bq:
+          +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
 
     base:
       +bind: false

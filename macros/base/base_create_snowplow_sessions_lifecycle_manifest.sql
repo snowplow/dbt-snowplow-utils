@@ -27,7 +27,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 COALESCE(
                     {% for identifier in session_identifiers %}
                         {%- if identifier['schema']|lower != 'atomic' -%}
-                            {{ snowplow_utils.get_field(identifier['schema'], identifier['field'], 'e', dbt.type_string(), 0) }}
+                            {{ snowplow_utils.get_field(identifier['schema'], identifier['field'], 'e', dbt.type_string(), 0, snowplow_events) }}
                         {%- else -%}
                             e.{{identifier['field']}}
                         {%- endif -%}
@@ -45,7 +45,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                     COALESCE(
                         {% for identifier in user_identifiers %}
                             {%- if identifier['schema']|lower != 'atomic' -%}
-                                {{ snowplow_utils.get_field(identifier['schema'], identifier['field'], 'e', dbt.type_string(), 0) }}
+                                {{ snowplow_utils.get_field(identifier['schema'], identifier['field'], 'e', dbt.type_string(), 0, snowplow_events) }}
                             {%- else -%}
                                 e.{{identifier['field']}}
                             {%- endif -%}
