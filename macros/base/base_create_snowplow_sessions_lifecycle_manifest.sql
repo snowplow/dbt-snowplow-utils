@@ -146,21 +146,28 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% set sessions_lifecycle_manifest_query %}
 
         with
+        {# Get all the session and user contexts extracted and ready to join later #}
+        {% set unique_identifiers = dict() %} {# need to avoid duplicate contexts when values come from the same one, so just use the first of that context #}
+
         {% if session_identifiers %}
             {% for identifier in session_identifiers %}
-                {% if identifier['schema']|lower != 'atomic' %}
+                {% if identifier['schema']|lower != 'atomic' and identifier['schema'] not in unique_identifiers %}
                     {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, identifier['schema'], lower_limit, upper_limit, identifier['prefix']) }},
+                    {% do unique_identifiers.update({identifier['schema']: identifier}) %}
                 {%- endif -%}
             {% endfor %}
         {% endif %}
 
         {% if user_identifiers%}
             {% for identifier in user_identifiers %}
-                {% if identifier['schema']|lower != 'atomic' %}
+                {% if identifier['schema']|lower != 'atomic' and identifier['schema'] not in unique_identifiers %}
                     {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, identifier['schema'], lower_limit, upper_limit, identifier['prefix']) }},
+                    {% do unique_identifiers.update({identifier['schema']: identifier}) %}
                 {%- endif -%}
             {% endfor %}
         {% endif %}
+
+        {# Produce the core session and single user identifier for sessions with new events #}
         new_events_session_ids_init as (
             select
             {% if session_sql %}
@@ -169,7 +176,9 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 COALESCE(
                     {% for identifier in session_identifiers %}
                         {%- if identifier['schema']|lower != 'atomic' -%}
-                            {% if identifier['alias'] %}{{identifier['alias']}}{% else %}{{identifier['schema']}}{% endif %}.{% if identifier['prefix'] %}{{ identifier['prefix'] }}{% else %}{{ identifier['schema']}}{% endif %}_{{identifier['field']}}
+                            {# Use the parsed version of the context to ensure we have the right alias and prefix #}
+                            {% set uniq_iden = unique_identifiers[identifier['schema']] %}
+                            {% if uniq_iden['alias'] %}{{uniq_iden['alias']}}{% else %}{{uniq_iden['schema']}}{% endif %}.{% if uniq_iden['prefix'] %}{{ uniq_iden['prefix']  ~ '_' }}{% endif %}{{identifier['field']}}
                         {%- else -%}
                             e.{{identifier['field']}}
                         {%- endif -%}
@@ -187,7 +196,9 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                     COALESCE(
                         {% for identifier in user_identifiers %}
                             {%- if identifier['schema']|lower != 'atomic' %}
-                                {% if identifier['alias'] %}{{identifier['alias']}}{% else %}{{identifier['schema']}}{% endif %}.{% if identifier['prefix'] %}{{ identifier['prefix'] }}{% else %}{{ identifier['schema']}}{% endif %}_{{identifier['field']}}
+                            {# Use the parsed version of the context to ensure we have the right alias and prefix #}
+                                {% set uniq_iden = unique_identifiers[identifier['schema']] %}
+                                {% if uniq_iden['alias'] %}{{uniq_iden['alias']}}{% else %}{{uniq_iden['schema']}}{% endif %}.{% if uniq_iden['prefix'] %}{{ uniq_iden['prefix'] ~ '_' }}{% endif %}{{identifier['field']}}
                             {%- else %}
                                 e.{{identifier['field']}}
                             {%- endif -%}
@@ -203,17 +214,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 max({{ session_timestamp }}) as end_tstamp
 
             from {{ snowplow_events }} e
-            {% if session_identifiers|length > 0 %}
-                {% for identifier in session_identifiers %}
+            {% if unique_identifiers|length > 0 %}
+                {% for identifier in unique_identifiers.values() %}
                     {%- if identifier['schema']|lower != 'atomic' -%}
-                    left join {{ identifier['schema'] }} {% if identifier['alias'] %}as {{ identifier['alias'] }}{% endif %} on e.event_id = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{{identifier['prefix']}}__id and e.collector_tstamp = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{{ identifier['prefix'] }}__tstamp
-                    {% endif -%}
-                {% endfor %}
-            {% endif %}
-            {% if session_identifiers|length > 0 %}
-                {% for identifier in user_identifiers %}
-                    {%- if identifier['schema']|lower != 'atomic' -%}
-                    left join {{ identifier['schema'] }} {% if identifier['alias'] %}as {{ identifier['alias'] }}{% endif %} on e.event_id = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{{identifier['prefix']}}__id and e.collector_tstamp = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{{ identifier['prefix'] }}__tstamp
+                    left join {{ identifier['schema'] }} {% if identifier['alias'] %}as {{ identifier['alias'] }}{% endif %} on e.event_id = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{% if identifier['prefix'] %}{{ identifier['prefix'] }}{% else %}{{ identifier['schema']}}{% endif %}__id and e.collector_tstamp = {% if identifier['alias'] %}{{ identifier['alias']}}{% else %}{{ identifier['schema'] }}{% endif %}.{% if identifier['prefix'] %}{{ identifier['prefix'] }}{% else %}{{ identifier['schema']}}{% endif %}__tstamp
                     {% endif -%}
                 {% endfor %}
             {% endif %}
@@ -229,6 +233,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {% endif %}
 
             group by 1
+
+        {# Exclude quarantined sessions #}
         ), new_events_session_ids as (
             select *
             from new_events_session_ids_init e
