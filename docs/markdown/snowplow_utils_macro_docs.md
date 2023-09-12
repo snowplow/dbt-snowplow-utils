@@ -317,7 +317,7 @@ left join nl_basjes_yauaa_context_1 b on
 {% docs macro_get_field %}
 {% raw %}
 
-This macro exists to make it easier to extract a field from our `unstruct_` and `contexts_` type columns for users in Snowflake, Databricks, and BigQuery (although you may prefer to use `combine_column_versions` for BigQuery, as this manages multiple context versions and allows for extraction of multiple fields at the same time). The macro can handle type casting and selecting from arrays.
+This macro exists to make it easier to extract a field from our `unstruct_` and `contexts_` type columns for users in Snowflake, Databricks, and BigQuery (using a wildcard version number is only possible for BigQuery e.g. `column_name = 'contexts_nl_basjes_yauaa_context_1_*'`). The macro can handle type casting and selecting from arrays.
 
 #### Returns
 
