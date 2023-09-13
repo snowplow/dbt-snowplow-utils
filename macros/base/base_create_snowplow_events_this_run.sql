@@ -95,13 +95,13 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% if entities_or_sdes %}
         {% set ent_sde_names = [] %}
         {% for ent_or_sde in entities_or_sdes %}
-            {% do ent_sde_names.append(ent_or_sde['name']) %}
-            {% if ent_or_sde['name'] in unique_session_identifiers.keys() %}
-                {% do exceptions.warn("Snowplow Warning: Context or SDE ( " ~ ent_or_sde['name'] ~ " ) used for session_identifier is being included, using alias and prefix from session_identifier ( " ~ unique_session_identifiers[ent_or_sde['name']] ~ " ).") %}
+            {% do ent_sde_names.append(ent_or_sde['schema']) %}
+            {% if ent_or_sde['schema'] in unique_session_identifiers.keys() %}
+                {% do exceptions.warn("Snowplow Warning: Context or SDE ( " ~ ent_or_sde['schema'] ~ " ) used for session_identifier is being included, using alias and prefix from session_identifier ( " ~ unique_session_identifiers[ent_or_sde['schema']] ~ " ).") %}
             {% endif %}
         {% endfor %}
         {% if ent_sde_names | unique | list | length != entities_or_sdes | length %}
-            {% do exceptions.raise_compiler_error("There are duplicate names in your provided `entities_or_sdes` list. Please correct this before proceeding.")%}
+            {% do exceptions.raise_compiler_error("There are duplicate schema names in your provided `entities_or_sdes` list. Please correct this before proceeding.")%}
         {% endif %}
     {% endif %}
 
@@ -126,10 +126,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {%- set name = none -%}
                 {%- set prefix = none -%}
                 {%- set single_entity = true -%}
-                {%- if ent_or_sde['name'] -%}
-                    {%- set name = ent_or_sde['name'] -%}
+                {%- if ent_or_sde['schema'] -%}
+                    {%- set name = ent_or_sde['schema'] -%}
                 {%- else -%}
-                    {%- do exceptions.raise_compiler_error("Need to specify the name of your Entity or SDE using the {'name'} attribute in a key-value map.") -%}
+                    {%- do exceptions.raise_compiler_error("Need to specify the schema name of your Entity or SDE using the {'schema'} attribute in a key-value map.") -%}
                 {%- endif -%}
                 {%- if ent_or_sde['prefix'] -%}
                     {%- set prefix = ent_or_sde['prefix'] -%}
@@ -139,7 +139,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {%- if ent_or_sde['single_entity'] and ent_or_sde['single_entity'] is boolean -%}
                     {%- set single_entity = ent_or_sde['single_entity'] -%}
                 {%- endif %}
-                {% if ent_or_sde['name'] not in unique_session_identifiers.keys() %} {# Exclude any that we have already made above #}
+                {% if ent_or_sde['schema'] not in unique_session_identifiers.keys() %} {# Exclude any that we have already made above #}
                     {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, name, lower_limit, upper_limit, prefix, single_entity) }},
                 {% endif %}
             {% endfor -%}
@@ -207,10 +207,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {%- set prefix = none -%}
                 {%- set single_entity = true -%}
                 {%- set alias = none -%}
-                {%- if ent_or_sde['name'] -%}
-                    {%- set name = ent_or_sde['name'] -%}
+                {%- if ent_or_sde['schema'] -%}
+                    {%- set name = ent_or_sde['schema'] -%}
                 {%- else -%}
-                    {%- do exceptions.raise_compiler_error("Need to specify the name of your Entity or SDE using the {'name'} attribute in a key-value map.") -%}
+                    {%- do exceptions.raise_compiler_error("Need to specify the schema name of your Entity or SDE using the {'schema'} attribute in a key-value map.") -%}
                 {%- endif -%}
                 {%- if ent_or_sde['prefix'] and name not in unique_session_identifiers.keys() -%}
                     {%- set prefix = ent_or_sde['prefix'] -%}
