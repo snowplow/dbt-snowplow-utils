@@ -80,10 +80,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
         -- check uniqueness of entity/sde names provided
         {% set ent_sde_names = [] %}
         {% for ent_or_sde in entities_or_sdes %}
-            {% do ent_sde_names.append(ent_or_sde['name']) %}
+            {% do ent_sde_names.append(ent_or_sde['schema']) %}
         {% endfor %}
         {% if ent_sde_names | unique | list | length != entities_or_sdes | length %}
-            {% do exceptions.raise_compiler_error("There are duplicate names in your provided `entities_or_sdes` list. Please correct this before proceeding.")%}
+            {% do exceptions.raise_compiler_error("There are duplicate schema names in your provided `entities_or_sdes` list. Please correct this before proceeding.")%}
         {% endif %}
     {% endif %}
 
@@ -106,10 +106,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {%- set name = none -%}
                 {%- set prefix = none -%}
                 {%- set single_entity = true -%}
-                {%- if ent_or_sde['name'] -%}
-                    {%- set name = ent_or_sde['name'] -%}
+                {%- if ent_or_sde['schema'] -%}
+                    {%- set name = ent_or_sde['schema'] -%}
                 {%- else -%}
-                    {%- do exceptions.raise_compiler_error("Need to specify the name of your Entity or SDE using the {'name'} attribute in a key-value map.") -%}
+                    {%- do exceptions.raise_compiler_error("Need to specify the schema name of your Entity or SDE using the {'schema'} attribute in a key-value map.") -%}
                 {%- endif -%}
                 {%- if ent_or_sde['prefix'] -%}
                     {%- set prefix = ent_or_sde['prefix'] -%}
@@ -183,10 +183,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {%- set prefix = none -%}
                 {%- set single_entity = true -%}
                 {%- set alias = none -%}
-                {%- if ent_or_sde['name'] -%}
-                    {%- set name = ent_or_sde['name'] -%}
+                {%- if ent_or_sde['schema'] -%}
+                    {%- set name = ent_or_sde['schema'] -%}
                 {%- else -%}
-                    {%- do exceptions.raise_compiler_error("Need to specify the name of your Entity or SDE using the {'name'} attribute in a key-value map.") -%}
+                    {%- do exceptions.raise_compiler_error("Need to specify the schema name of your Entity or SDE using the {'schema'} attribute in a key-value map.") -%}
                 {%- endif -%}
                 {%- if ent_or_sde['prefix'] -%}
                     {%- set prefix = ent_or_sde['prefix'] -%}
