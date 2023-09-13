@@ -53,7 +53,7 @@ vars:
     snowplow__event_limits: 'snowplow_base_new_event_limits_actual'
     snowplow__incremental_manifest: 'snowplow_incremental_manifest_actual'
     snowplow__entities_or_sdes: null
-    snowplow__custom_entities_or_sdes: [{"name" : "contexts_com_snowplowanalytics_custom_entity_1_0_0", "prefix": "custom", "single_entity": true}]
+    snowplow__custom_entities_or_sdes: [{"schema" : "contexts_com_snowplowanalytics_custom_entity_1_0_0", "prefix": "custom", "single_entity": true}]
     snowplow__bigquery_custom_sql: 'cast(contexts_com_snowplowanalytics_custom_entity_1_0_0[safe_offset(0)].contents as STRING) as custom_contents'
     snowplow__databricks_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents as custom_contents'
     snowplow__snowflake_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents::TEXT as custom_contents'
