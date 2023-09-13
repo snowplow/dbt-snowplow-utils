@@ -23,11 +23,11 @@ contexts_com_snowplowanalytics_custom_entity_1_0_0),
     parse_json(contexts_com_iab_snowplow_spiders_and_robots_1_0_0) as contexts_com_iab_snowplow_spiders_and_robots_1,
     parse_json(contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0) as contexts_com_snowplowanalytics_snowplow_ua_parser_context_1,
     parse_json(contexts_nl_basjes_yauaa_context_1_0_0) as contexts_nl_basjes_yauaa_context_1,
-    parse_json(contexts_com_snowplowanalytics_user_identifier_1_0_0) as contexts_com_snowplowanalytics_user_identifier_1_0_0,
-    parse_json(contexts_com_snowplowanalytics_user_identifier_2_0_0) as contexts_com_snowplowanalytics_user_identifier_2_0_0,
-    parse_json(contexts_com_snowplowanalytics_session_identifier_1_0_0) as contexts_com_snowplowanalytics_session_identifier_1_0_0,
-    parse_json(contexts_com_snowplowanalytics_session_identifier_2_0_0) as contexts_com_snowplowanalytics_session_identifier_2_0_0,
-    parse_json(contexts_com_snowplowanalytics_custom_entity_1_0_0) as contexts_com_snowplowanalytics_custom_entity_1_0_0
+    parse_json(contexts_com_snowplowanalytics_user_identifier_1_0_0) as contexts_com_snowplowanalytics_user_identifier_1,
+    parse_json(contexts_com_snowplowanalytics_user_identifier_2_0_0) as contexts_com_snowplowanalytics_user_identifier_2,
+    parse_json(contexts_com_snowplowanalytics_session_identifier_1_0_0) as contexts_com_snowplowanalytics_session_identifier_1,
+    parse_json(contexts_com_snowplowanalytics_session_identifier_2_0_0) as contexts_com_snowplowanalytics_session_identifier_2,
+    parse_json(contexts_com_snowplowanalytics_custom_entity_1_0_0) as contexts_com_snowplowanalytics_custom_entity_1
   from {{ ref('snowplow_events') }}
   )
 
@@ -183,14 +183,14 @@ select
   contexts_com_iab_snowplow_spiders_and_robots_1,
   contexts_com_snowplowanalytics_snowplow_ua_parser_context_1,
   contexts_nl_basjes_yauaa_context_1,
-  contexts_com_snowplowanalytics_user_identifier_1_0_0,
-  contexts_com_snowplowanalytics_user_identifier_2_0_0,
-  contexts_com_snowplowanalytics_session_identifier_1_0_0,
-  contexts_com_snowplowanalytics_session_identifier_2_0_0,
+  contexts_com_snowplowanalytics_user_identifier_1,
+  contexts_com_snowplowanalytics_user_identifier_2,
+  contexts_com_snowplowanalytics_session_identifier_1,
+  contexts_com_snowplowanalytics_session_identifier_2,
   {% if var("snowplow__custom_test", false) %}
-        contexts_com_snowplowanalytics_custom_entity_1_0_0
+        contexts_com_snowplowanalytics_custom_entity_1
   {% else %}
-        object_construct_keep_null('contents', null) as contexts_com_snowplowanalytics_custom_entity_1_0_0
+        object_construct_keep_null('contents', null) as contexts_com_snowplowanalytics_custom_entity_1
   {% endif %}
 
 from flatten
