@@ -23,11 +23,11 @@ with prep as (
         from_json(contexts_com_iab_snowplow_spiders_and_robots_1_0_0, 'array<struct<category:string,primaryImpact:string,reason:string,spiderOrRobot:boolean>>') as contexts_com_iab_snowplow_spiders_and_robots_1,
         from_json(contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0, 'array<struct<deviceFamily:string,osFamily:string,osMajor:string,osMinor:string,osPatch:string,osPatchMinor:string,osVersion:string,useragentFamily:string,useragentMajor:string,useragentMinor:string,useragentPatch:string,useragentVersion:string>>') as contexts_com_snowplowanalytics_snowplow_ua_parser_context_1,
         from_json(contexts_nl_basjes_yauaa_context_1_0_0, 'array<struct<agentClass:string,agentInformationEmail:string,agentName:string,agentNameVersion:string,agentNameVersionMajor:string,agentVersion:string,agentVersionMajor:string,deviceBrand:string,deviceClass:string,deviceCpu:string,deviceCpuBits:string,deviceName:string,deviceVersion:string,layoutEngineClass:string,layoutEngineName:string,layoutEngineNameVersion:string,layoutEngineNameVersionMajor:string,layoutEngineVersion:string,layoutEngineVersionMajor:string,networkType:string,operatingSystemClass:string,operatingSystemName:string,operatingSystemNameVersion:string,operatingSystemNameVersionMajor:string,operatingSystemVersion:string,operatingSystemVersionBuild:string,operatingSystemVersionMajor:string,webviewAppName:string,webviewAppNameVersionMajor:string,webviewAppVersion:string,webviewAppVersionMajor:string>>') as contexts_nl_basjes_yauaa_context_1,
-        from_json(contexts_com_snowplowanalytics_user_identifier_1_0_0, 'array<struct<user_id:string>>') as contexts_com_snowplowanalytics_user_identifier_1_0_0,
-        from_json(contexts_com_snowplowanalytics_user_identifier_2_0_0, 'array<struct<user_id:string>>') as contexts_com_snowplowanalytics_user_identifier_2_0_0,
-        from_json(contexts_com_snowplowanalytics_session_identifier_1_0_0, 'array<struct<session_id:string>>') as contexts_com_snowplowanalytics_session_identifier_1_0_0,
-        from_json(contexts_com_snowplowanalytics_session_identifier_2_0_0, 'array<struct<session_identifier:string>>') as contexts_com_snowplowanalytics_session_identifier_2_0_0,
-        from_json(contexts_com_snowplowanalytics_custom_entity_1_0_0, 'array<struct<contents:string>>') as contexts_com_snowplowanalytics_custom_entity_1_0_0
+        from_json(contexts_com_snowplowanalytics_user_identifier_1_0_0, 'array<struct<user_id:string>>') as contexts_com_snowplowanalytics_user_identifier_1,
+        from_json(contexts_com_snowplowanalytics_user_identifier_2_0_0, 'array<struct<user_id:string>>') as contexts_com_snowplowanalytics_user_identifier_2,
+        from_json(contexts_com_snowplowanalytics_session_identifier_1_0_0, 'array<struct<session_id:string>>') as contexts_com_snowplowanalytics_session_identifier_1,
+        from_json(contexts_com_snowplowanalytics_session_identifier_2_0_0, 'array<struct<session_identifier:string>>') as contexts_com_snowplowanalytics_session_identifier_2,
+        from_json(contexts_com_snowplowanalytics_custom_entity_1_0_0, 'array<struct<contents:string>>') as contexts_com_snowplowanalytics_custom_entity_1
     from
         {{ ref('snowplow_events') }}
 )
@@ -218,14 +218,14 @@ select
         contexts_nl_basjes_yauaa_context_1[0].webviewAppNameVersionMajor as webview_app_name_version_major,
         contexts_nl_basjes_yauaa_context_1[0].webviewAppVersion as webview_app_version,
         contexts_nl_basjes_yauaa_context_1[0].webviewAppVersionMajor as webview_app_version_major)) as contexts_nl_basjes_yauaa_context_1,
-    array(struct(contexts_com_snowplowanalytics_user_identifier_1_0_0[0].user_id as user_id)) as contexts_com_snowplowanalytics_user_identifier_1_0_0,
-    array(struct(contexts_com_snowplowanalytics_user_identifier_2_0_0[0].user_id as user_id)) as contexts_com_snowplowanalytics_user_identifier_2_0_0,
-    array(struct(contexts_com_snowplowanalytics_session_identifier_1_0_0[0].session_id as session_id)) as contexts_com_snowplowanalytics_session_identifier_1_0_0,
-    array(struct(contexts_com_snowplowanalytics_session_identifier_2_0_0[0].session_identifier as session_identifier)) as contexts_com_snowplowanalytics_session_identifier_2_0_0,
+    array(struct(contexts_com_snowplowanalytics_user_identifier_1[0].user_id as user_id)) as contexts_com_snowplowanalytics_user_identifier_1,
+    array(struct(contexts_com_snowplowanalytics_user_identifier_2[0].user_id as user_id)) as contexts_com_snowplowanalytics_user_identifier_2,
+    array(struct(contexts_com_snowplowanalytics_session_identifier_1[0].session_id as session_id)) as contexts_com_snowplowanalytics_session_identifier_1,
+    array(struct(contexts_com_snowplowanalytics_session_identifier_2[0].session_identifier as session_identifier)) as contexts_com_snowplowanalytics_session_identifier_2,
     {% if var("snowplow__custom_test", false) %}
-        array(struct(contexts_com_snowplowanalytics_custom_entity_1_0_0[0].contents as contents)) as contexts_com_snowplowanalytics_custom_entity_1_0_0
+        array(struct(contexts_com_snowplowanalytics_custom_entity_1[0].contents as contents)) as contexts_com_snowplowanalytics_custom_entity_1
     {% else %}
-        null as contexts_com_snowplowanalytics_custom_entity_1_0_0
+        null as contexts_com_snowplowanalytics_custom_entity_1
     {% endif %}
 from
     prep
