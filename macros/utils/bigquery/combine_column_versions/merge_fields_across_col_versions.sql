@@ -25,10 +25,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% set nested_level = all_cols|selectattr('field_name',"equalto", field_name)|map(attribute='nested_level')|list%}
 
     {% set merged_field = {
-                           'field_name': field_name,
-                           'field_paths': field_paths,
-                           'nested_level': nested_level[0]
-                           } %}
+                            'field_name': field_name,
+                            'field_paths': field_paths,
+                            'nested_level': nested_level[0]
+                            } %}
 
     {% do merged_fields.append(merged_field) %}
 

@@ -6,8 +6,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {#
- Takes care of harmonising cross-db list_agg, string_agg type functions.
- #}
+  Takes care of harmonising cross-db list_agg, string_agg type functions.
+#}
 
 {%- macro get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc=false) -%}
 

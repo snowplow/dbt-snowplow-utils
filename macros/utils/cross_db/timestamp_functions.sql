@@ -7,9 +7,9 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 
 {#
- datediff/dateadd functions in dbt_utils cast tstamps to datetimes for BQ.
- This results in mismatching dtypes when filtering on tstamp fields. Overriding with timestamp func.
- #}
+    datediff/dateadd functions in dbt_utils cast tstamps to datetimes for BQ.
+    This results in mismatching dtypes when filtering on tstamp fields. Overriding with timestamp func.
+#}
 
 {% macro timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     {{ return(adapter.dispatch('timestamp_diff', 'snowplow_utils')(first_tstamp, second_tstamp, datepart)) }}
@@ -47,11 +47,11 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 
 {% macro cast_to_tstamp(tstamp_literal) -%}
-  {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
-    cast(null as {{type_timestamp()}})
-  {% else %}
-    cast('{{tstamp_literal}}' as {{type_timestamp()}})
-  {% endif %}
+    {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
+        cast(null as {{type_timestamp()}})
+    {% else %}
+        cast('{{tstamp_literal}}' as {{type_timestamp()}})
+    {% endif %}
 {%- endmacro %}
 
 
@@ -80,7 +80,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 
 {% macro current_timestamp_in_utc() -%}
-  {{ return(adapter.dispatch('current_timestamp_in_utc', 'snowplow_utils')()) }}
+    {{ return(adapter.dispatch('current_timestamp_in_utc', 'snowplow_utils')()) }}
 {%- endmacro %}
 
 {% macro default__current_timestamp_in_utc() %}
