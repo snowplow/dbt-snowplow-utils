@@ -6,7 +6,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {# Returns an array of enabled models tagged with snowplow_web_incremental using dbts graph object.
-   Throws an error if untagged models are found that depend on the base_events_this_run model#}
+  Throws an error if untagged models are found that depend on the base_events_this_run model
+#}
 {% macro get_enabled_snowplow_models(package_name, graph_object=none, models_to_run=var("models_to_run", ""), base_events_table_name='snowplow_base_events_this_run') -%}
 
   {# Override dbt graph object if graph_object is passed. Testing purposes #}

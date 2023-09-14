@@ -6,15 +6,15 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {#
- Takes care of harmonising cross-db functions that create an array out of a string.
- #}
+    Takes care of harmonising cross-db functions that create an array out of a string.
+#}
 
 {%- macro get_split_to_array(string_column, column_prefix, delimiter=',') -%}
     {{ return(adapter.dispatch('get_split_to_array', 'snowplow_utils')(string_column, column_prefix, delimiter)) }}
 {%- endmacro -%}
 
 {% macro default__get_split_to_array(string_column, column_prefix, delimiter=',') %}
-   split({{column_prefix}}.{{string_column}}, '{{delimiter}}')
+    split({{column_prefix}}.{{string_column}}, '{{delimiter}}')
 {% endmacro %}
 
 {% macro redshift__get_split_to_array(string_column, column_prefix, delimiter=',') %}

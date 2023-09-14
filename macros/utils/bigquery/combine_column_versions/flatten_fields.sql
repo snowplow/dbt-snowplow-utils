@@ -20,10 +20,10 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% set field_name = field_name~'.'~field.name if field_name != '' else field_name~field.name %}
 
     {% set field_dict = {
-                         'field_name': field_name,
-                         'path': path,
-                         'nested_level': level_counter
-                         } %}
+                          'field_name': field_name,
+                          'path': path,
+                          'nested_level': level_counter
+                          } %}
 
     {% do flattened_fields.append(field_dict) %}
 

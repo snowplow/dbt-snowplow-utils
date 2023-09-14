@@ -22,8 +22,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
     {% set run_limits_query %}
       select {{start_tstamp}} as lower_limit,
-             least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }},
-                   {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
+              least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }},
+              {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
     {% endset %}
 
   {% elif not has_matched_all_models %}
@@ -32,8 +32,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
     {% set run_limits_query %}
       select {{ start_tstamp }} as lower_limit,
-             least({{ max_last_success }},
-                   {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }}) as upper_limit
+              least({{ max_last_success }},
+              {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }}) as upper_limit
     {% endset %}
 
   {% elif min_last_success != max_last_success %}
@@ -42,8 +42,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
     {% set run_limits_query %}
       select {{ snowplow_utils.timestamp_add('hour', -var("snowplow__lookback_window_hours", 6), min_last_success) }} as lower_limit,
-             least({{ max_last_success }},
-                  {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}) as upper_limit
+              least({{ max_last_success }},
+              {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}) as upper_limit
     {% endset %}
 
   {% else %}

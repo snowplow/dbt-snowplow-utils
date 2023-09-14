@@ -12,8 +12,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 {% macro default__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
-                                                                          'start_tstamp',
-                                                                          'end_tstamp') %}
+                                                                            'start_tstamp',
+                                                                            'end_tstamp') %}
     {% set sessions_this_run = ref(sessions_this_run_table) %}
     {% set snowplow_events = api.Relation.create(database=snowplow_events_database, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
 
@@ -73,8 +73,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 {% macro postgres__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
-                                                                          'start_tstamp',
-                                                                          'end_tstamp') %}
+                                                                            'start_tstamp',
+                                                                            'end_tstamp') %}
 
 
     {# Get all the session and user contexts extracted and ready to join later #}
