@@ -12,7 +12,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 {% macro bigquery__get_field(column_name, field_name, table_alias = none, type = none, array_index = none, relation = none) %}
 
 {% if '*' in column_name %}
-  {{ snowplow_utils.get_optional_fields(
+    {{ snowplow_utils.get_optional_fields(
         enabled=true,
         fields=[{'field': field_name, 'dtype': type or 'string' }],
         col_prefix=column_name|replace('_*', ''),

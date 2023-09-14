@@ -6,8 +6,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {#
- Takes care of harmonising cross-db functions that create a string out of an array.
- #}
+    Takes care of harmonising cross-db functions that create a string out of an array.
+#}
 
 {%- macro get_array_to_string(array_column, column_prefix, delimiter=',') -%}
     {{ return(adapter.dispatch('get_array_to_string', 'snowplow_utils')(array_column, column_prefix, delimiter)) }}

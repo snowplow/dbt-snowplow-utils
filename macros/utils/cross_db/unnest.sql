@@ -6,8 +6,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {#
- Takes care of harmonising cross-db unnesting.
- #}
+    Takes care of harmonising cross-db unnesting.
+#}
 
 {%- macro unnest(id_column, unnest_column, field_alias, source_table) -%}
     {{ return(adapter.dispatch('unnest', 'snowplow_utils')(id_column, unnest_column, field_alias, source_table)) }}

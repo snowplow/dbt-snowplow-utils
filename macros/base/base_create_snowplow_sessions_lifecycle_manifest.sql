@@ -78,8 +78,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
             select *
             from new_events_session_ids_init e
             {% if quarantined_sessions %}
-             where session_identifier is not null
-             and not exists (select 1 from {{ ref(quarantined_sessions) }} as a where a.session_identifier = e.session_identifier) -- don't continue processing v.long sessions
+                where session_identifier is not null
+                and not exists (select 1 from {{ ref(quarantined_sessions) }} as a where a.session_identifier = e.session_identifier) -- don't continue processing v.long sessions
             {%- endif %}
 
         )
