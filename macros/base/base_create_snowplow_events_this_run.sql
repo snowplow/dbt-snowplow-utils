@@ -86,7 +86,9 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                 {% do unique_session_identifiers.update({identifier['schema']: identifier}) %}
             {%- endif -%}
             {% if identifier['schema'] in unique_session_identifiers.keys() %}
-                {% do exceptions.warn("Snowplow Warning: Duplicate context ( " ~ identifier['schema'] ~" ) detected for session identifiers, using first alias and prefix provided ( " ~ unique_session_identifiers[identifier['schema']] ~ " ) in base events this run.") %}
+                {% if identifier['alias'] != unique_session_identifiers[identifier['schema']]['alias'] or identifier['prefix'] != unique_session_identifiers[identifier['schema']]['prefix']  %}
+                    {% do exceptions.warn("Snowplow Warning: Duplicate context ( " ~ identifier['schema'] ~" ) detected for session identifiers, using first alias and prefix provided ( " ~ unique_session_identifiers[identifier['schema']] ~ " ) in base events this run.") %}
+                {% endif %}
             {% endif %}
         {% endfor %}
     {% endif %}
@@ -97,7 +99,9 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
         {% for ent_or_sde in entities_or_sdes %}
             {% do ent_sde_names.append(ent_or_sde['schema']) %}
             {% if ent_or_sde['schema'] in unique_session_identifiers.keys() %}
-                {% do exceptions.warn("Snowplow Warning: Context or SDE ( " ~ ent_or_sde['schema'] ~ " ) used for session_identifier is being included, using alias and prefix from session_identifier ( " ~ unique_session_identifiers[ent_or_sde['schema']] ~ " ).") %}
+                {% if ent_or_sde['alias'] != unique_session_identifiers[ent_or_sde['schema']]['alias'] or ent_or_sde['prefix'] != unique_session_identifiers[ent_or_sde['schema']]['prefix']  %}
+                    {% do exceptions.warn("Snowplow Warning: Context or SDE ( " ~ ent_or_sde['schema'] ~ " ) used for session_identifier is being included, using alias and prefix from session_identifier ( " ~ unique_session_identifiers[ent_or_sde['schema']] ~ " ).") %}
+                {% endif %}
             {% endif %}
         {% endfor %}
         {% if ent_sde_names | unique | list | length != entities_or_sdes | length %}
