@@ -1,3 +1,25 @@
+snowplow-utils 0.15.0 (2023-09-19)
+---------------------------------------
+## Summary
+This full release introduces new "base" macros which are used to recreate the `snowplow_base_events_this_run` and related tables. It gives you the option to customise your session and user identifiers, your partitioning timestamps, and much more. Additionally, we remove the deprecated `snowplow_incremental` materialization that was removed in `0.14.0`, and we add multi-version support for the `get_field` macro for BigQuery.
+
+We have documentation explaining the outlined changes in detail [here](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/) that you can use to explore the base macro changes in particular. For information about how to do this, see our [Advanced Usage of the Utils package](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-models/dbt-utils-data-model/dbt-utils-advanced-operation/) page and the [utils configuration](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-configuration/utils/) variables.
+
+Finally, before we dig into the details, starting with this version all future releases of our dbt packages will be released under the [Snowplow Community License](https://docs.snowplow.io/community-license-1.0/) instead of the Apache 2 license. For what this means for you, check out our [FAQ](https://docs.snowplow.io/docs/contributing/community-license-faq/), and our [announcement blog](https://snowplow.io/blog/license-changes-for-snowplow-open-source/).
+
+## Features
+- Create the "base" macros to enable greater flexibility
+- Update the package to be under the Snowplow Community License
+- Released a fix where `get_optional_fields` returned field aliases even when `include_field_alias` was set to false ([#132](https://github.com/snowplow/dbt-snowplow-utils/issues/132))
+- Add multi-version support to the `get_field` macro for BigQuery
+- Remove deprecated `snowplow_incremental` materialization
+
+## Under the hood
+- Introduce integration tests to check customization
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.15.0-rc1 (2023-08-31)
 ---------------------------------------
 ## Summary
