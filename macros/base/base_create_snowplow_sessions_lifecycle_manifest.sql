@@ -36,7 +36,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                     NULL
                 ) as session_identifier,
             {%- else -%}
-                {% do exceptions.raise_compiler_error("Need to specify either session identifiers or custom session code") %}
+                {% do exceptions.raise_compiler_error("Need to specify either session identifiers or custom session SQL") %}
             {%- endif %}
             {%- if user_sql -%}
                 {{ user_sql }} as user_identifier,
@@ -55,7 +55,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
                     )
                 ) as user_identifier, -- Edge case 1: Arbitary selection to avoid window function like first_value.
             {% else %}
-                {% do exceptions.raise_compiler_error("Need to specify either session identifiers or custom session code") %}
+                {% do exceptions.raise_compiler_error("Need to specify either user identifiers or custom user SQL") %}
             {%- endif %}
                 min({{ session_timestamp }}) as start_tstamp,
                 max({{ session_timestamp }}) as end_tstamp
