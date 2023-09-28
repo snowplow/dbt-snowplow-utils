@@ -56,10 +56,10 @@ select
         ELSE app_id end as app_id
     ,platform
     -- hard-coding due to non-deterministic outcome from row_number for Redshift/Postgres
-    ,CASE WHEN event_id IN ('17e6ae5e-d694-4241-8663-4118e950fc38', '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76') then '2021-03-01 20:58:12.682'
-        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then '2021-03-03 21:27:37.134'
+    ,CASE WHEN event_id IN ('17e6ae5e-d694-4241-8663-4118e950fc38', '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76') then timestamp '2021-03-01 20:58:12.682'
+        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then timestamp '2021-03-03 21:27:37.134'
         ELSE etl_tstamp end as etl_tstamp
-    ,CASE WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then '2021-03-03 21:27:35.176'
+    ,CASE WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then timestamp '2021-03-03 21:27:35.176'
         ELSE collector_tstamp end as collector_tstamp
     ,dvce_created_tstamp
     ,event_id
@@ -174,16 +174,16 @@ select
     ,mkt_clickid
     ,mkt_network
     ,etl_tags
-    ,CASE WHEN event_id IN ('17e6ae5e-d694-4241-8663-4118e950fc38', '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76') then '2021-03-01 20:58:05.115'
-        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' THEN '2021-03-03 21:27:34.832'
+    ,CASE WHEN event_id IN ('17e6ae5e-d694-4241-8663-4118e950fc38', '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76') then timestamp '2021-03-01 20:58:05.115'
+        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' THEN timestamp '2021-03-03 21:27:34.832'
         ELSE dvce_sent_tstamp end as dvce_sent_tstamp
     ,refr_domain_userid
     ,refr_dvce_tstamp
     ,domain_sessionid
     -- hard-coding due to non-deterministic outcome from row_number for Redshift/Postgres
-    ,CASE WHEN event_id = '17e6ae5e-d694-4241-8663-4118e950fc38' then '2021-03-01 20:56:39.257'
-        WHEN event_id = '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76' then '2021-03-01 20:56:39.192'
-        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then '2021-03-03 21:27:32.345'
+    ,CASE WHEN event_id = '17e6ae5e-d694-4241-8663-4118e950fc38' then timestamp '2021-03-01 20:56:39.257'
+        WHEN event_id = '1b4b3b57-3cb7-4df2-a7fd-526afa9e3c76' then timestamp '2021-03-01 20:56:39.192'
+        WHEN event_id = '9e983d4a-e07c-4858-8e97-bdb7feb31241' then timestamp '2021-03-03 21:27:32.345'
         ELSE derived_tstamp end as derived_tstamp
     ,event
     ,event_vendor
