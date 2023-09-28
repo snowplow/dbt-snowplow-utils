@@ -56,6 +56,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
         and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
         and a.{{ session_timestamp }} >= {{ lower_limit }}
         and a.{{ session_timestamp }} <= {{ upper_limit }}
+        and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
         {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
             and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
@@ -198,6 +199,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
             and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
             and a.{{ session_timestamp }} >= {{ lower_limit }}
             and a.{{ session_timestamp }} <= {{ upper_limit }}
+            and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
             and {{ snowplow_utils.app_id_filter(app_ids) }}
 
         )
