@@ -11,7 +11,11 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% set create_quarantined_query %}
         with prep as (
         select
-            cast(null as {{ snowplow_utils.type_max_string() }}) session_identifier
+            {% if target.type == 'redshift' %} {# Done because max causes errors when used in subquery, #}
+                cast(null as varchar(6000)) session_identifier
+            {% else %}
+                cast(null as {{ snowplow_utils.type_max_string() }}) session_identifier
+            {% endif %}
         )
 
         select *
