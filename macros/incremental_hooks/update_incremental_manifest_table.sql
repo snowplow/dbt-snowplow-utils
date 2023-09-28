@@ -6,13 +6,13 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {# Updates the incremental manifest table at the run end with the latest tstamp consumed per model #}
-{% macro update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
+{% macro update_incremental_manifest_table(manifest_table, base_events_table, models, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) -%}
 
-  {{ return(adapter.dispatch('update_incremental_manifest_table', 'snowplow_utils')(manifest_table, base_events_table, models)) }}
+  {{ return(adapter.dispatch('update_incremental_manifest_table', 'snowplow_utils')(manifest_table, base_events_table, models, session_timestamp)) }}
 
 {% endmacro %}
 
-{% macro default__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
+{% macro default__update_incremental_manifest_table(manifest_table, base_events_table, models, session_timestamp) -%}
 
   {% if models %}
 
@@ -22,7 +22,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
         a.last_success
 
       from
-        (select max(collector_tstamp) as last_success from {{ base_events_table }}) a,
+        (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) a,
         ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
       where a.last_success is not null -- if run contains no data don't add to manifest
@@ -44,7 +44,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 
 {%- endmacro %}
 
-{% macro postgres__update_incremental_manifest_table(manifest_table, base_events_table, models) -%}
+{% macro postgres__update_incremental_manifest_table(manifest_table, base_events_table, models, session_timestamp) -%}
 
   {% if models %}
 
@@ -63,7 +63,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
             last_success
 
           from
-            (select max(collector_tstamp) as last_success from {{ base_events_table }}) as ls,
+            (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
             ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) as mod
 
           where last_success is not null -- if run contains no data don't add to manifest
