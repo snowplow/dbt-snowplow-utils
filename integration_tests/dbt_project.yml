@@ -28,7 +28,7 @@ on-run-start:
 # test_get_successful_models requires the run_results object which is only present on run-end
 on-run-end:
   - "{{ test_get_successful_models(enabled=var('enabled_test_get_successful_models', false)) }}"
-  - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual') }}"
+  - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual', var('snowplow__session_timestamp')) }}"
 
 vars:
   snowplow_utils_integration_tests:

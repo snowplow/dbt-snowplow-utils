@@ -6,7 +6,7 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 #}
 
 {# post-hook for incremental runs #}
-{% macro snowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none) %}
+{% macro snowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) %}
 
   {% set enabled_snowplow_models = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
 
@@ -24,6 +24,6 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     {% set base_events_this_run_table = ref(package_name~'_base_events_this_run') -%}
   {%- endif -%}
 
-  {{ snowplow_utils.update_incremental_manifest_table(incremental_manifest_table, base_events_this_run_table, successful_snowplow_models) }}
+  {{ snowplow_utils.update_incremental_manifest_table(incremental_manifest_table, base_events_this_run_table, successful_snowplow_models, session_timestamp) }}
 
 {% endmacro %}
