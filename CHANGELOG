@@ -1,10 +1,21 @@
+snowplow-utils 0.15.2 (2023-10-13)
+---------------------------------------
+## Summary
+This release contains a bug fix in our new `base` macros, which did not affect default behaviour. This also does not impact behavior in any of the Snowplow packages that rely on the utils package.
+
+## Fixes
+- Fix an incorrect default value in the `base_create_snowplow_events_this_run` macro.
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.15.1 (2023-09-29)
 ---------------------------------------
 ## Summary
 This release combines a few bug fixes in our new `base` macros, including an issue with redshift query size limits.
 
 ## Fixes
-- Fix issue with 8001 redshift error 
+- Fix issue with 8001 redshift error
 - Add condition for late loading events to fix issue where session events before session start timestamp were processed
 - Fix the manifest table not using the specified session timestamp field
 - Provide correct error message when no user identifier is present
