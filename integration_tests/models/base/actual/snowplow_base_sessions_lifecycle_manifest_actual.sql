@@ -16,8 +16,8 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
 {% set snowplow_session_sql = '' %}
 
 {% if var('snowplow__custom_test', false) %}
-    {% set snowplow_session_identifiers = snowplow_utils.get_value_by_target_type(bigquery_val=var("snowplow__bigquery_session_identifiers"), snowflake_val=var("snowplow__snowflake_session_identifiers"), databricks_val=var("snowplow__databricks_session_identifiers"), postgres_val=var("snowplow__postgres_session_identifiers"))%}
-    {% set snowplow_user_identifiers = snowplow_utils.get_value_by_target_type(bigquery_val=var("snowplow__bigquery_user_identifiers"), snowflake_val=var("snowplow__snowflake_user_identifiers"), databricks_val=var("snowplow__databricks_user_identifiers"), postgres_val=var("snowplow__postgres_user_identifiers"))%}
+    {% set snowplow_session_identifiers = snowplow_utils.get_value_by_target_type(bigquery_val=var("snowplow__bigquery_session_identifiers"), snowflake_val=var("snowplow__snowflake_session_identifiers"), databricks_val=var("snowplow__databricks_session_identifiers"), postgres_val=var("snowplow__postgres_session_identifiers"), redshift_val=var("snowplow__postgres_session_identifiers"))%}
+    {% set snowplow_user_identifiers = snowplow_utils.get_value_by_target_type(bigquery_val=var("snowplow__bigquery_user_identifiers"), snowflake_val=var("snowplow__snowflake_user_identifiers"), databricks_val=var("snowplow__databricks_user_identifiers"), postgres_val=var("snowplow__postgres_user_identifiers"), redshift_val=var("snowplow__postgres_user_identifiers"))%}
 {% elif var('snowplow__session_test', false) %}
     {% set snowplow_session_sql = var("snowplow__custom_session_sql") %}
 {% endif %}

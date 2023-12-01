@@ -29,7 +29,8 @@ on-run-start:
 on-run-end:
   - "{{ test_get_successful_models(enabled=var('enabled_test_get_successful_models', false)) }}"
   - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual', var('snowplow__session_timestamp')) }}"
-
+  - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual', var('snowplow__session_timestamp')) }}"
+  
 vars:
   snowplow_utils_integration_tests:
     # Disables compiler errors during testing. Returns error message string instead, which we can test against.
@@ -89,6 +90,8 @@ models:
           +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
         expected_get_field_bq:
           +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
+        data_get_string_agg_grp:
+          +materialized: table
 
     base:
       +bind: false
@@ -199,121 +202,121 @@ seeds:
           +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
-            root_id: varchar
-            session_id: varchar
-            schema_name: varchar
+            root_id: character varying
+            session_id: character varying
+            schema_name: character varying
         contexts_com_snowplowanalytics_session_identifier_2_0_0:
           +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
-            root_id: varchar
-            session_identifier: varchar
-            schema_name: varchar
+            root_id: character varying
+            session_identifier: character varying
+            schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_1_0_0:
           +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
-            root_id: varchar
-            user_id: varchar
-            schema_name: varchar
+            root_id: character varying
+            user_id: character varying
+            schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_2_0_0:
           +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
-            root_id: varchar
-            user_id: varchar
-            schema_name: varchar
+            root_id: character varying
+            user_id: character varying
+            schema_name: character varying
         contexts_com_snowplowanalytics_custom_entity_1_0_0:
           +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
-            root_id: varchar
-            contents: varchar
-            schema_name: varchar
+            root_id: character varying
+            contents: character varying
+            schema_name: character varying
         snowplow_events:
           +column_types:
-            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             etl_tstamp: timestamp
             collector_tstamp: timestamp
             dvce_created_tstamp: timestamp
-            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             txn_id: integer
-            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             domain_sessionidx: integer
-            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_latitude: float
             geo_longitude: float
-            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             page_urlport: integer
-            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_urlport: integer
-            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_value: float
-            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total: float
             tr_tax: float
             tr_shipping: float
-            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price: float
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
             pp_yoffset_min: integer
             pp_yoffset_max: integer
-            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_features_pdf: boolean
             br_features_flash: boolean
             br_features_java: boolean
@@ -324,136 +327,136 @@ seeds:
             br_features_gears: boolean
             br_features_silverlight: boolean
             br_cookies: boolean
-            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_viewwidth: integer
             br_viewheight: integer
-            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_ismobile: boolean
             dvce_screenwidth: integer
             dvce_screenheight: integer
-            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             doc_width: integer
             doc_height: integer
-            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total_base: float
             tr_tax_base: float
             tr_shipping_base: float
-            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price_base: float
-            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_sent_tstamp: timestamp
-            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_dvce_tstamp: timestamp
-            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             derived_tstamp: timestamp
-            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             true_tstamp: timestamp
             load_tstamp: timestamp
-            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
       expected:
         snowplow_base_events_this_run_expected:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             etl_tstamp: timestamp
             collector_tstamp: timestamp
             dvce_created_tstamp: timestamp
-            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             txn_id: integer
-            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             domain_sessionidx: integer
-            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_latitude: float
             geo_longitude: float
-            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             page_urlport: integer
-            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_urlport: integer
-            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_value: float
-            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total: float
             tr_tax: float
             tr_shipping: float
-            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price: float
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
             pp_yoffset_min: integer
             pp_yoffset_max: integer
-            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_features_pdf: boolean
             br_features_flash: boolean
             br_features_java: boolean
@@ -464,145 +467,145 @@ seeds:
             br_features_gears: boolean
             br_features_silverlight: boolean
             br_cookies: boolean
-            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_viewwidth: integer
             br_viewheight: integer
-            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_ismobile: boolean
             dvce_screenwidth: integer
             dvce_screenheight: integer
-            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             doc_width: integer
             doc_height: integer
-            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total_base: float
             tr_tax_base: float
             tr_shipping_base: float
-            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price_base: float
-            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_sent_tstamp: timestamp
-            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_dvce_tstamp: timestamp
-            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             derived_tstamp: timestamp
-            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             true_tstamp: timestamp
             load_tstamp: timestamp
-            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_quarantined_sessions_expected:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_sessions_this_run_expected:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             start_tstamp: timestamp
             end_tstamp: timestamp
         snowplow_base_events_this_run_expected_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             etl_tstamp: timestamp
             collector_tstamp: timestamp
             dvce_created_tstamp: timestamp
-            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             txn_id: integer
-            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             domain_sessionidx: integer
-            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_latitude: float
             geo_longitude: float
-            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             page_urlport: integer
-            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_urlport: integer
-            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_value: float
-            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total: float
             tr_tax: float
             tr_shipping: float
-            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price: float
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
             pp_yoffset_min: integer
             pp_yoffset_max: integer
-            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_features_pdf: boolean
             br_features_flash: boolean
             br_features_java: boolean
@@ -613,145 +616,145 @@ seeds:
             br_features_gears: boolean
             br_features_silverlight: boolean
             br_cookies: boolean
-            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_viewwidth: integer
             br_viewheight: integer
-            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_ismobile: boolean
             dvce_screenwidth: integer
             dvce_screenheight: integer
-            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             doc_width: integer
             doc_height: integer
-            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total_base: float
             tr_tax_base: float
             tr_shipping_base: float
-            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price_base: float
-            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_sent_tstamp: timestamp
-            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_dvce_tstamp: timestamp
-            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             derived_tstamp: timestamp
-            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             true_tstamp: timestamp
             load_tstamp: timestamp
-            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_quarantined_sessions_expected_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_sessions_this_run_expected_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             start_tstamp: timestamp
             end_tstamp: timestamp
         snowplow_base_events_this_run_expected_sessions_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            app_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            platform: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             etl_tstamp: timestamp
             collector_tstamp: timestamp
             dvce_created_tstamp: timestamp
-            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             txn_id: integer
-            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            name_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_tracker: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_collector: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            v_etl: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_id: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_ipaddress: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             domain_sessionidx: integer
-            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            network_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_latitude: float
             geo_longitude: float
-            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_domain: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ip_netspeed: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_url: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_title: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_referrer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             page_urlport: integer
-            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            page_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            page_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlscheme: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlhost: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_urlport: integer
-            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_urlpath: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlquery: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_urlfragment: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            refr_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_medium: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_source: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_term: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_content: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_campaign: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_value: float
-            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total: float
             tr_tax: float
             tr_shipping: float
-            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price: float
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
             pp_yoffset_min: integer
             pp_yoffset_max: integer
-            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            useragent: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_renderengine: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            br_lang: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_features_pdf: boolean
             br_features_flash: boolean
             br_features_java: boolean
@@ -762,57 +765,57 @@ seeds:
             br_features_gears: boolean
             br_features_silverlight: boolean
             br_cookies: boolean
-            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            br_colordepth: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             br_viewwidth: integer
             br_viewheight: integer
-            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            os_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_family: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_manufacturer: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            os_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            dvce_type: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_ismobile: boolean
             dvce_screenwidth: integer
             dvce_screenheight: integer
-            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            doc_charset: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             doc_width: integer
             doc_height: integer
-            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_total_base: float
             tr_tax_base: float
             tr_shipping_base: float
-            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_price_base: float
-            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            mkt_network: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            etl_tags: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             dvce_sent_tstamp: timestamp
-            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            refr_domain_userid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             refr_dvce_tstamp: timestamp
-            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            domain_sessionid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             derived_tstamp: timestamp
-            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            event_vendor: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_format: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_version: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            event_fingerprint: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             true_tstamp: timestamp
             load_tstamp: timestamp
-            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            contexts_nl_basjes_yauaa_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            custom_contents: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_quarantined_sessions_expected_sessions_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
         snowplow_base_sessions_this_run_expected_sessions_custom:
           +column_types:
-            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
-            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'varchar' }}"
+            session_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             start_tstamp: timestamp
             end_tstamp: timestamp
