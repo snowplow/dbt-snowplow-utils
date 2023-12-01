@@ -51,7 +51,11 @@ You may obtain a copy of the Snowplow Community License Version 1.0 at https://d
     begin transaction;
       --temp table to find the greatest last_success per model.
       --this protects against partial backfills causing the last_success to move back in time.
-      create temporary table snowplow_models_last_success as (
+      create temporary table snowplow_models_last_success (
+        model varchar,
+        last_success {{type_timestamp()}}
+      );
+      insert into snowplow_models_last_success (
         select
           a.model,
           greatest(a.last_success, b.last_success) as last_success
