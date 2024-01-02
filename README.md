@@ -26,19 +26,22 @@ Includes:
     - [snowplow\_web\_delete\_from\_manifest (source)](#snowplow_web_delete_from_manifest-source)
     - [snowplow\_mobile\_delete\_from\_manifest (source)](#snowplow_mobile_delete_from_manifest-source)
     - [get\_value\_by\_target (source)](#get_value_by_target-source)
-    - [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
     - [set\_query\_tag (source)](#set_query_tag-source)
-    - [get\_array\_to\_string (source)](#get_array_to_string-source)
-    - [get\_split\_to\_array (source)](#get_split_to_array-source)
-    - [get\_string\_agg (source)](#get_string_agg-source)
     - [get\_sde\_or\_context (source)](#get_sde_or_context-source)
     - [get\_field (source)](#get_field-source)
-    - [timestamp\_diff (source)](#timestamp_diff-source)
-    - [timestamp\_add (source)](#timestamp_add-source)
-    - [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
-    - [to\_unixtstamp (source)](#to_unixtstamp-source)
-    - [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
-    - [unnest (source)](#unnest-source)
+    - [Array functions](#array-functions)
+      - [get\_array\_to\_string (source)](#get_array_to_string-source)
+      - [get\_split\_to\_array (source)](#get_split_to_array-source)
+      - [get\_string\_agg (source)](#get_string_agg-source)
+      - [get\_array\size (source)](#get_array_size-source)
+      - [unnest (source)](#unnest-source)
+    - [Date & time functions](#date-&-time-functions)
+      - [timestamp\_diff (source)](#timestamp_diff-source)
+      - [timestamp\_add (source)](#timestamp_add-source)
+      - [cast\_to\_tstamp (source)](#cast_to_tstamp-source)
+      - [to\_unixtstamp (source)](#to_unixtstamp-source)
+      - [current\_timestamp\_in\_utc (source)](#current_timestamp_in_utc-source)
+      - [n\_timedeltas\_ago (source)](#n_timedeltas_ago-source)
   - [Materializations](#materializations)
     - [Optimized incremental](#optimized-incremental)
     - [BigQuery](#bigquery)
@@ -293,38 +296,6 @@ vars:
 
 - `dev_value` if running against your dev target, otherwise `default_value`.
 
-### n_timedeltas_ago ([source](macros/utils/n_timedeltas_ago.sql))
-
-This macro takes the current timestamp and subtracts `n` units, as defined by the `timedelta_attribute`, from it. This is achieved using the Python datetime module, rather than querying your database.
-
-**Arguments:**
-
-- `n`: The number of timedeltas to subtract from the current timestamp.
-- `timedelta_attribute`: The type of units to subtract. This can be any valid attribute of the [timedelta](https://docs.python.org/3/library/datetime.html#timedelta-objects) object.
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.n_timedeltas_ago(1, 'weeks') }}
-```
-
-**Returns:**
-
-- Current timestamp minus `n` units.
-
-By combining this with the `get_value_by_target` macro, you can dynamically set dates depending on your environment:
-
-```yml
-# dbt_project.yml
-...
-vars:
-  snowplow_mobile:
-    snowplow__start_date: "{{ snowplow_utils.get_value_by_target(
-                                      dev_value=snowplow_utils.n_timedeltas_ago(1, 'weeks'),
-                                      default_value='2020-01-01',
-                                      dev_target_name='dev') }}"
-```
-
 ### set_query_tag ([source](macros/utils/set_query_tag.sql))
 
 This macro takes a provided statement as argument and generates the SQL command to set this statement as the query_tag for Snowflake databases, and does nothing otherwise. It can be used to safely set the query_tag regardless of database type.
@@ -345,57 +316,6 @@ This macro takes a provided statement as argument and generates the SQL command 
 - The SQL statement which will update the query tag in Snowflake, or nothing in other databases.
 
 
-### get_array_to_string ([source](macros/utils/cross_db/get_array_to_string.sql))
-
-This macro takes care of harmonizing cross-db functions that flatten an array to a string. It takes an array column, a column prefix and a delimiter as an argument.
-
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.get_array_to_string('array_column', 'column_prefix', 'delimiter') }}
-```
-
-**Returns:**
-
- - The database equivalent of a string datatype with the maximum allowed length
-### get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
-
-This macro takes care of harmonizing cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
-
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.get_split_to_array('string_column', 'column_prefix', 'delimiter') }}
-```
-
-**Returns:**
-
-- An array field.
-
-### get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
-
-This macro takes care of harmonizing cross-db `list_agg`, `string_agg` type functions. These are aggregate functions that take all expressions from rows and concatenate them into a single string.
-
-A base column and its prefix have to be provided, the separator is optional (default is ',').
-
-By default ordering is defined by sorting the base column in ascending order. If you wish to order on a different column, the `order_by_column` and `order_by_column_prefix` have to be provided. If you wish to order in descending order, then set `order_desc` to `true`.
-
-In case the field used for sorting happens to be of numeric value (regardless of whether it is stored as a string or as a numeric type) the `sort_numeric` parameter should be set to true, which takes care of conversions from sting to numeric if needed.
-
-There is also an optional boolean parameter called `is_distinct` which, when enabled, takes care of deduping individual elements within the array.
-
-**Usage:**
-
-```sql
-{{ snowplow_utils.get_string_agg('base_column', 'column_prefix', ';', 'order_by_col', sort_numeric=true, order_by_column_prefix='order_by_column_prefix', is_distict=True, order_desc=True) }}
-
-```
-
-**Returns:**
-
-- The database equivalent of a string datatype with the maximum allowed length
 
 ### get_sde_or_context ([source](macros/utils/get_context_or_sde.sql))
 
@@ -507,8 +427,95 @@ from
 
 ``````
 
+### Array functions
 
-### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
+
+#### get_array_to_string ([source](macros/utils/cross_db/get_array_to_string.sql))
+
+This macro takes care of harmonizing cross-db functions that flatten an array to a string. It takes an array column, a column prefix and a delimiter as an argument.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_array_to_string('array_column', 'column_prefix', 'delimiter') }}
+```
+
+**Returns:**
+
+ - The database equivalent of a string datatype with the maximum allowed length
+#### get_split_to_array ([source](macros/utils/cross_db/get_split_to_array.sql))
+
+This macro takes care of harmonizing cross-db functions that create an array out of a string. It takes a string column, a column prefix and a delimiter as an argument.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_split_to_array('string_column', 'column_prefix', 'delimiter') }}
+```
+
+**Returns:**
+
+- An array field.
+
+#### get_string_agg ([source](macros/utils/cross_db/get_string_agg.sql))
+
+This macro takes care of harmonizing cross-db `list_agg`, `string_agg` type functions. These are aggregate functions that take all expressions from rows and concatenate them into a single string.
+
+A base column and its prefix have to be provided, the separator is optional (default is ',').
+
+By default ordering is defined by sorting the base column in ascending order. If you wish to order on a different column, the `order_by_column` and `order_by_column_prefix` have to be provided. If you wish to order in descending order, then set `order_desc` to `true`.
+
+In case the field used for sorting happens to be of numeric value (regardless of whether it is stored as a string or as a numeric type) the `sort_numeric` parameter should be set to true, which takes care of conversions from sting to numeric if needed.
+
+There is also an optional boolean parameter called `is_distinct` which, when enabled, takes care of deduping individual elements within the array.
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_string_agg('base_column', 'column_prefix', ';', 'order_by_col', sort_numeric=true, order_by_column_prefix='order_by_column_prefix', is_distict=True, order_desc=True) }}
+
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with the maximum allowed length
+
+#### get_array_size ([source](macros/utils/cross_db/get_array_size.sql))
+
+This macro takes care of harmonizing cross-db `get_array` type functions. It returns the number of elements in an array.
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.get_array_size('array_column') }}
+
+```
+
+**Returns:**
+
+- The the number of elements in an array.
+
+#### unnest ([source](macros/utils/cross_db/unnest.sql))
+
+This macro takes care of unnesting of arrays regardles of the data warehouse. An id column and the colum to base the unnesting off of needs to be specified as well as a field alias and the source table. Optionally you can extract the indexed element number (starting from 0) to maintain the original order by setting the 'with_index' variable to true.
+
+
+**Usage:**
+
+```sql
+{{ snowplow_utils.unnest('id_column', 'array_to_be_unnested', 'field_alias', 'source_table', with_index= false) }}
+```
+
+**Returns:**
+
+- The database equivalent of a string datatype with the maximum allowed length. Optionally retruns the index column.
+
+
+
+### Date & time functions
+#### timestamp_diff ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro mimics the utility of the dbt_utils version however for BigQuery it ensures that the timestamp difference is calculated, similar to the other DB engines which is not the case in the dbt_utils macro. This macro calculates the difference between two dates. Note: The datepart argument is database-specific.
 
@@ -528,7 +535,7 @@ This macro mimics the utility of the dbt_utils version however for BigQuery it e
 
 - The timestamp difference between two fields denoted in the requested unit
 
-### timestamp_add ([source](macros/utils/cross_db/timestamp_functions.sql))
+#### timestamp_add ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro mimics the utility of the dbt_utils version however for BigQuery it ensures that the timestamp difference is calculated, similar to the other DB engines which is not the case in the dbt_utils macro. This macro adds a date/time interval to the supplied date/timestamp. Note: The datepart argument is database-specific.
 
@@ -549,7 +556,7 @@ This macro mimics the utility of the dbt_utils version however for BigQuery it e
 
 - The new timestamp that results in adding the interval to the provided timestamp.
 
-### cast_to_tstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
+#### cast_to_tstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro casts a column to a timestamp across databases. It is an adaptation of the `type_timestamp()` macro from dbt-core.
 
@@ -567,7 +574,7 @@ This macro casts a column to a timestamp across databases. It is an adaptation o
 
 - The field as a timestamp
 
-### to_unixtstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
+#### to_unixtstamp ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro casts a column to a unix timestamp across databases.
 
@@ -585,7 +592,7 @@ This macro casts a column to a unix timestamp across databases.
 
 - The field as a unix timestamp
 
-### current_timestamp_in_utc ([source](macros/utils/cross_db/timestamp_functions.sql))
+#### current_timestamp_in_utc ([source](macros/utils/cross_db/timestamp_functions.sql))
 
 This macro returns the current timestamp in UTC.
 
@@ -598,21 +605,37 @@ This macro returns the current timestamp in UTC.
 **Returns:**
 The current timestamp in UTC.
 
+### n_timedeltas_ago ([source](macros/utils/n_timedeltas_ago.sql))
 
-### unnest ([source](macros/utils/cross_db/unnest.sql))
+This macro takes the current timestamp and subtracts `n` units, as defined by the `timedelta_attribute`, from it. This is achieved using the Python datetime module, rather than querying your database.
 
-This macro takes care of unnesting of arrays regardles of the data warehouse. An id column and the colum to base the unnesting off of needs to be specified as well as a field alias and the source table.
+**Arguments:**
 
+- `n`: The number of timedeltas to subtract from the current timestamp.
+- `timedelta_attribute`: The type of units to subtract. This can be any valid attribute of the [timedelta](https://docs.python.org/3/library/datetime.html#timedelta-objects) object.
 
 **Usage:**
 
 ```sql
-{{ snowplow_utils.unnest('id_column', 'array_to_be_unnested', 'field_alias', 'source_table') }}
+{{ snowplow_utils.n_timedeltas_ago(1, 'weeks') }}
 ```
 
 **Returns:**
 
-- The database equivalent of a string datatype with the maximum allowed length
+- Current timestamp minus `n` units.
+
+By combining this with the `get_value_by_target` macro, you can dynamically set dates depending on your environment:
+
+```yml
+# dbt_project.yml
+...
+vars:
+  snowplow_mobile:
+    snowplow__start_date: "{{ snowplow_utils.get_value_by_target(
+                                      dev_value=snowplow_utils.n_timedeltas_ago(1, 'weeks'),
+                                      default_value='2020-01-01',
+                                      dev_target_name='dev') }}"
+```
 ## Materializations
 
 ### Optimized incremental
