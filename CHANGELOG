@@ -1,3 +1,22 @@
+snowplow-utils 0.16.0 (2024-01-26)
+---------------------------------------
+## Summary
+This release contains a new array size macro as well as the optional ability for the unnest macros to also surface the index of the original array element for preserving the order. It also contains some fixes for redshift. Please note that from this version onwards this package is under the SPAL license.
+
+# Features
+- Add get_array_size macro
+- Add optional index to unnest
+
+## Fixes
+- Fix existing tests for redshift
+- Fix issue with multiple end hooks failing (Close #152)
+
+## Under the hood
+- Update license to SPAL
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.15.2 (2023-10-13)
 ---------------------------------------
 ## Summary
