@@ -1,10 +1,9 @@
 {#
 Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
-This program is licensed to you under the Snowplow Community License Version 1.0,
-and you may not use this file except in compliance with the Snowplow Community License Version 1.0.
-You may obtain a copy of the Snowplow Community License Version 1.0 at https://docs.snowplow.io/community-license-1.0
+This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
+and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
+You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
-
 {# post-hook for incremental runs #}
 {% macro snowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) %}
 
