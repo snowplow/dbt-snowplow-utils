@@ -1,3 +1,14 @@
+snowplow-utils 0.16.1 (2024-01-29)
+---------------------------------------
+## Summary
+This release contains a fix to the unnest macro for redshift, which meant the query wasn't complete when using it without the index.
+
+## Fixes
+- Fix bug in redshift unnest macro
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.0 (2024-01-26)
 ---------------------------------------
 ## Summary
