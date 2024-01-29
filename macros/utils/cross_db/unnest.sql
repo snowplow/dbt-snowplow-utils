@@ -38,6 +38,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% endmacro %}
 
 {% macro redshift__unnest(id_column, unnest_column, field_alias, source_table, with_index=false) %}
-    select {{ id_column }}, {{ field_alias }} {% if with_index %} , index as source_index
-    from {{ source_table }} p, p.{{ unnest_column }} as {{ field_alias }} at index {% endif %} 
+    select {{ id_column }}, {{ field_alias }} {% if with_index %} , index as source_index {% endif %} 
+    from {{ source_table }} p, p.{{ unnest_column }} as {{ field_alias }}{% if with_index %}  at index {% endif %}
 {% endmacro %}
