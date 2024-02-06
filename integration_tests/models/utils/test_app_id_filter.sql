@@ -27,3 +27,31 @@ select
   *
 from data
 where {{ snowplow_utils.app_id_filter("c") }}
+
+union all
+
+select
+  *
+from data
+where {{ snowplow_utils.app_id_filter(["a",null]) }}
+
+union all
+
+select
+  *
+from data
+where {{ snowplow_utils.app_id_filter([null]) }}
+
+union all
+
+select
+  *
+from data
+where {{ snowplow_utils.app_id_filter(null) }}
+
+union all
+
+select
+  *
+from data
+where {{ snowplow_utils.app_id_filter() }}

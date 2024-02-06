@@ -27,3 +27,31 @@ select
   *
 from data
 where app_id in ('c')
+
+union all
+
+select
+  *
+from data
+where (app_id in ('a') or app_id is null)
+
+union all
+
+select
+  *
+from data
+where app_id is null
+
+union all
+
+select
+  *
+from data
+where app_id is null
+
+union all
+
+select
+  *
+from data
+where 1=1
