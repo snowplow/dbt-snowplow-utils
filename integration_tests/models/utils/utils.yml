@@ -9,3 +9,7 @@ models:
     tests:
       - dbt_utils.equality:
           compare_model: ref('expected_snowplow_delete_from_manifest')
+  - name: test_parse_agg_dict
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('expected_parse_agg_dict')

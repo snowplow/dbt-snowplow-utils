@@ -1,3 +1,14 @@
+snowplow-utils 0.16.2 (2024-02-XX)
+---------------------------------------
+## Summary
+XXX
+
+## Fixes
+- Add new `parse_agg_dict` macro for use to generate aggregation sql in other packages
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.1 (2024-01-29)
 ---------------------------------------
 ## Summary

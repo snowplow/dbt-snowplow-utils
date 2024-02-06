@@ -125,3 +125,9 @@ macros:
       - name: prefix
         type: string
         description: A string to prefix (additional `_` added automatically) the column names with. If not provided `root_id` and `root_tstamp` will be prefixed with the schema name.
+  - name: parse_agg_dict
+    description: '{{ doc("macro_parse_agg_dict") }}'
+    arguments:
+      - name: agg_dict
+        type: dict
+        description: The dictonary to parse, with keys `type`, `field`, and `alias`
