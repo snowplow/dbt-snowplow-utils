@@ -358,3 +358,26 @@ from
 
 {% endraw %}
 {% enddocs %}
+{% docs macro_parse_agg_dict %}
+{% raw %}
+
+This macro allows you to provide aggregations in a consistent and restricted way to avoid having to write the sql yourself. This is mostly for use within other packages to allow aggregations but not allow the user to add arbitrary SQL.
+
+#### Returns
+
+SQL snippet for the specified aggregation, aliased.
+
+#### Usage
+
+Extracting a single field
+```sql
+
+select
+{{ snowplow_utils.parse_agg_dict({'type': 'countd', 'field': 'event_name', 'alias': 'distinct_event_types'})}}
+from 
+    my_events_table a
+
+```
+
+{% endraw %}
+{% enddocs %}
