@@ -5,15 +5,17 @@ and you may not use this file except in compliance with the Snowplow Personal an
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
 {% macro app_id_filter(app_ids) %}
-
   {%- if app_ids|length -%}
-
-    app_id in ('{{ app_ids|join("','") }}') --filter on app_id if provided
-
+  ( 
+    1=0
+    {%- if app_ids|select("defined")|list|length %}
+        or app_id in ('{{ app_ids|select("defined")|join("','") }}') --filter on app_id if provided
+    {%- endif %}
+    {%- if app_ids|select("undefined")|list|length %}
+        or app_id is null
+    {% endif %}
+  )
   {%- else -%}
-
-    true
-
+    (1=1)
   {%- endif -%}
-
 {% endmacro %}
