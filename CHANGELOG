@@ -7,7 +7,7 @@ XXX
 - Add new `parse_agg_dict` macro for use to generate aggregation sql in other packages
 - Overwrite default dbt `apply_grants` macro to enable using a variable to define grant targets
 - Add new `grant_usage_on_schemas_where_select` macro to add as a post-hook in package to grant usage for schemas
-
+- Ensure only one user id even when a custom user sql is provided for the lifecycles manifest table
 
 ## Upgrading
 To upgrade, bump the package version in your `packages.yml` file.
