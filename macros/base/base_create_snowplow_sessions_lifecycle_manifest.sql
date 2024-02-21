@@ -38,7 +38,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 {% do exceptions.raise_compiler_error("Need to specify either session identifiers or custom session SQL") %}
             {%- endif %}
             {%- if user_sql -%}
-                {{ user_sql }} as user_identifier,
+                max({{ user_sql }}) as user_identifier,
             {%- elif user_identifiers|length > 0 %}
                 max(
                     COALESCE(
@@ -189,7 +189,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 {% do exceptions.raise_compiler_error("Need to specify either session identifiers or custom session SQL") %}
             {% endif %}
             {% if user_sql %}
-                {{ user_sql }} as user_identifier,
+                max({{ user_sql }}) as user_identifier,
             {% elif user_identifiers|length > 0 %}
                 max(
                     COALESCE(
