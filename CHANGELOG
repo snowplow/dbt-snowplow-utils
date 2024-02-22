@@ -1,12 +1,12 @@
-snowplow-utils 0.16.2 (2024-02-XX)
+snowplow-utils 0.16.2 (2024-02-26)
 ---------------------------------------
 ## Summary
-XXX
+This releases adds two new sets of macros, one is `parse_agg_dict` that generates aggregation sql, and the other is `apply_grants` which allows the usage of the `snowplow__grant_select_to` variable to grant select on models to any user/role in that list (does not support BigQuery). We also fix a rare edge case where custom user identifiers made from sql could lead to duplicate sessions in the lifecycle table.
 
 ## Features
 - Add new `parse_agg_dict` macro for use to generate aggregation sql in other packages
 - Overwrite default dbt `apply_grants` macro to enable using a variable to define grant targets
-- Add new `grant_usage_on_schemas_where_select` macro to add as a post-hook in package to grant usage for schemas
+- Add new `default__grant_usage_on_schemas_built_into` macro to add as a post-hook in package to grant usage for schemas
 - Ensure only one user id even when a custom user sql is provided for the lifecycles manifest table
 
 ## Upgrading
