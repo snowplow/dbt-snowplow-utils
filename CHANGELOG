@@ -1,3 +1,14 @@
+snowplow-utils 0.16.3 (2024-03-11)
+---------------------------------------
+## Summary
+This releases adds the database argument to the `get_sde_or_context` macro. 
+
+## Features
+- Add `database` argument to `get_sde_or_context` macro
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.2 (2024-02-26)
 ---------------------------------------
 ## Summary
