@@ -317,7 +317,7 @@ This macro takes a provided statement as argument and generates the SQL command 
 
 
 
-### get_sde_or_context ([source](macros/utils/get_context_or_sde.sql))
+### get_sde_or_context ([source](macros/utils/get_sde_or_context.sql))
 
 This macro exists for Redshift and Postgres users to more easily select their self-describing event and context tables and apply de-duplication before joining onto their (already de-duplicated) events table. The `root_id` and `root_tstamp` columns are by default returned as `schema_name_id` and `schema_name_tstamp` respectively, where `schema_name` is the value in the `schema_name` column of the table. In the case where multiple entities may be sent in the context (e.g. products in a search results), you should set the `single_entity` argument to `false` and use an additional criteria in your join (see [the snowplow docs](https://docs.snowplow.io/docs/modeling-your-data/modeling-your-data-with-dbt/dbt-advanced-usage/dbt-duplicates/) for further details).
 
