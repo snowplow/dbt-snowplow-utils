@@ -125,6 +125,12 @@ macros:
       - name: prefix
         type: string
         description: A string to prefix (additional `_` added automatically) the column names with. If not provided `root_id` and `root_tstamp` will be prefixed with the schema name.
+      - name: single_entity
+        type: boolean
+        description: Whether the entity is a single context or not (default true)
+      - name: database
+        type: string
+        description: The database for the context or sde table (default `target.database`)
   - name: parse_agg_dict
     description: '{{ doc("macro_parse_agg_dict") }}'
     arguments:

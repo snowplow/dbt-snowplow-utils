@@ -119,7 +119,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% if unique_session_identifiers -%}
             {% for identifier in unique_session_identifiers.values() %}
                 {% if identifier['schema']|lower != 'atomic' %}
-                    {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, identifier['schema'], lower_limit, upper_limit, identifier['prefix']) }},
+                    {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, identifier['schema'], lower_limit, upper_limit, identifier['prefix'], database=snowplow_events_database) }},
                 {%- endif -%}
             {% endfor %}
         {% endif %}
@@ -144,7 +144,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                     {%- set single_entity = ent_or_sde['single_entity'] -%}
                 {%- endif %}
                 {% if ent_or_sde['schema'] not in unique_session_identifiers.keys() %} {# Exclude any that we have already made above #}
-                    {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, name, lower_limit, upper_limit, prefix, single_entity) }},
+                    {{ snowplow_utils.get_sde_or_context(snowplow_events_schema, name, lower_limit, upper_limit, prefix, single_entity, database=snowplow_events_database) }},
                 {% endif %}
             {% endfor -%}
         {%- endif %}

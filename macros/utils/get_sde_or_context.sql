@@ -4,20 +4,20 @@ This program is licensed to you under the Snowplow Personal and Academic License
 and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
-{% macro get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true) %}
-    {{ return(adapter.dispatch('get_sde_or_context', 'snowplow_utils')(schema, identifier, lower_limit, upper_limit, prefix, single_entity)) }}
+{% macro get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true, database = target.database) %}
+    {{ return(adapter.dispatch('get_sde_or_context', 'snowplow_utils')(schema, identifier, lower_limit, upper_limit, prefix, single_entity, database)) }}
 {% endmacro %}
 
-{% macro default__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true) %}
+{% macro default__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true, database = target.database) %}
     {% if execute %}
         {% do exceptions.raise_compiler_error('Macro get_sde_or_context is only for Postgres or Redshift, it is not supported for' ~ target.type) %}
     {% endif %}
 {% endmacro %}
 
 
-{% macro postgres__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true) %}
+{% macro postgres__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true, database = target.database) %}
     {# Create a relation from the inputs then get all columns in that context/sde table #}
-    {% set relation = api.Relation.create(schema = schema, identifier = identifier) %}
+    {% set relation = api.Relation.create(database = database, schema = schema, identifier = identifier) %}
     {# Get the schema name to be able to alias the timestamp and id #}
     {% set schema_get_query %}
         select schema_name from {{ relation }}
