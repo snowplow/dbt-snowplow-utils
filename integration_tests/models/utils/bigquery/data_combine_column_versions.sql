@@ -38,7 +38,13 @@ with data as (
               struct('remote' as name, 22 as price)
             ] as accessories
         ) as specs
-    ) as product_v1
+    ) as product_v1,
+    struct('Alice' as f_name, 29 as numeric_col) as person_1_0_0,
+    struct('Bob' as f_name, 30 as numeric_col) as person_1_0_1,
+    struct('Charlie' as f_name, 31 as numeric_col) as person_1_0_2,
+    struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_0,
+    struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_30,
+    struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_31
 
 )
 

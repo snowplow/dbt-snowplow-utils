@@ -24,7 +24,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
   {%- set matched_columns = snowplow_utils.get_columns_in_relation_by_column_prefix(relation, column_prefix) -%}
 
-  {# Removes excluded versions, assuming column name ends with a version of format 'X_X_X' #}
+  {# Removes excluded versions, technically removes any column with that suffix #}
   {%- set filter_columns_by_version = snowplow_utils.exclude_column_versions(matched_columns, exclude_versions) -%}
 
   {%- set flattened_fields_by_col_version = [] -%}
