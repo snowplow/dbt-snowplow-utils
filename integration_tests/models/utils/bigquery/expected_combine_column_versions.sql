@@ -20,7 +20,10 @@ with prep as (
     coalesce(product_v2.specs.volume) as specs_volume,
     coalesce(product_v2.specs.accessories, product_v1.specs.accessories) as specs_accessories,
     -- Test 4
-    coalesce(product_v2.specs.volume) as product_volume
+    coalesce(product_v2.specs.volume) as product_volume,
+    -- Test 5
+    coalesce(person_1_1_31.f_name, person_1_1_0.f_name, person_1_0_0.f_name) as f_name,
+    coalesce(person_1_1_31.numeric_col, person_1_1_0.numeric_col, person_1_0_0.numeric_col) as numeric_col,
 
   from {{ ref('data_combine_column_versions') }}
 )

@@ -35,6 +35,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                                                               include_field_alias=false,
                                                               required_fields=['specs.volume']) %}
 
+{% set test_5_actual = snowplow_utils.combine_column_versions(relation=ref('data_combine_column_versions'),
+                                                              column_prefix='person_1',
+                                                              exclude_versions=['1_0_1', '1_0_2', '1_1_30']) %}
+
 with prep as (
    select
       -- Test 1
@@ -44,7 +48,9 @@ with prep as (
       -- Test 3
       {{ test_3_actual|join(',\n') }},
       -- Test 4
-      {{ test_4_actual|join(',') }} as product_volume
+      {{ test_4_actual|join(',') }} as product_volume,
+      -- Test 5
+      {{ test_5_actual|join(',') }}
 
    from {{ ref('data_combine_column_versions') }} a
 )
