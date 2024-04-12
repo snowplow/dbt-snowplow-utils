@@ -1,3 +1,14 @@
+snowplow-utils 0.16.4 (2024-04-15)
+---------------------------------------
+## Summary
+This release adds more flexibility to the `exclude_versions` argument of the `combine_column_versions` macro for BigQuery to allow removal of any column with the suffix of the specified version.
+
+## Fixes
+- Remove hardcoded structure requirement to exclude column versions.
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.3 (2024-03-11)
 ---------------------------------------
 ## Summary
