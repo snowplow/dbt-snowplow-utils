@@ -1,3 +1,14 @@
+snowplow-utils 0.16.5 (2024-05-09)
+---------------------------------------
+## Summary
+This release moves the custom sql part of the events this run macro for redshift to the same level as the custom entities or SDEs are joined so that they can be used in any custom sql.
+
+## Features
+- Allow usage of entity and SDE fields in custom SQL for redshift.
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.4 (2024-04-15)
 ---------------------------------------
 ## Summary
