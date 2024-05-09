@@ -35,17 +35,17 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                     ) as session_identifier,
                 {%- endif %}
                 e.*
-                {% if custom_sql %}
-                    , {{ custom_sql }}
-                {% endif %}
 
             from {{ snowplow_events }} e
 
         )
 
         select
-            a.*,
-            b.user_identifier -- take user_identifier from manifest. This ensures only 1 domain_userid per session.
+            a.*
+            ,b.user_identifier -- take user_identifier from manifest. This ensures only 1 domain_userid per session.
+            {% if custom_sql %}
+                , {{ custom_sql }}
+            {% endif %}
 
         from identified_events as a
         inner join {{ sessions_this_run }} as b
@@ -169,9 +169,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                         ) as session_identifier,
                 {%- endif %}
                     e.*
-                    {% if custom_sql %}
-                    , {{ custom_sql }}
-                    {%- endif %}
 
             from {{ snowplow_events }} e
             {% if unique_session_identifiers|length > 0 %}
@@ -203,7 +200,11 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
         )
 
-        select *
+        select 
+            *
+            {% if custom_sql %}
+            , {{ custom_sql }}
+            {%- endif %}
 
         from events_this_run as e
         {%- if entities_or_sdes -%}
