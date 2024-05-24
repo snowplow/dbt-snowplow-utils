@@ -99,7 +99,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% set lower_limit, upper_limit = limits[0], limits[1] %}
         -- use those calculated min + max values to limit 'target' scan, to only the days with new data
         {% set predicate_override %}
-            {{ date_column }} between '{{ lower_limit }}' and '{{ upper_limit }}'
+            {{target_tb}}.{{ date_column }} between '{{ lower_limit }}' and '{{ upper_limit }}'
         {% endset %}
     {% endif %}
     {# Combine predicates with user provided ones #}
