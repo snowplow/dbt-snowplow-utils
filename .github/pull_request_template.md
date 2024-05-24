@@ -31,7 +31,6 @@ https://docs.github.com/en/free-pro-team@latest/github/managing-your-work-on-git
 -->
 
 ## Checklist
-- [ ] 🎉 I have verified that these changes work in Redshift
 - [ ] 💣 Is your change a breaking change?
 - [ ] 📖 I have updated the CHANGELOG.md
 
