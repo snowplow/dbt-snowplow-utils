@@ -1,3 +1,14 @@
+snowplow-utils 0.16.6 (2024-05-24)
+---------------------------------------
+## Summary
+This release adds support for a list of unique keys when using the snowplow optimized incremental approach with the delete+insert strategy.
+
+## Features
+- Support list of unique keys when using delete+insert strategy with snowplow optimize
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.5 (2024-05-09)
 ---------------------------------------
 ## Summary
