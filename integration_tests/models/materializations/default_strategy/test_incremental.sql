@@ -12,7 +12,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {{
   config(
     materialized='incremental',
-    unique_key='id',
+    unique_key=['id', 'id2'],
     upsert_date_key='start_tstamp',
     partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
       "field": "start_tstamp",
@@ -36,6 +36,7 @@ with data as (
 
   select
     id,
+    id2,
     start_tstamp
 
   from data
@@ -45,6 +46,7 @@ with data as (
 
   select
     id,
+    id2,
     start_tstamp
 
   from data

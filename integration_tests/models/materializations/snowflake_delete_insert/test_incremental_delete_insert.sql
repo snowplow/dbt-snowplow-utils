@@ -13,7 +13,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   config(
     materialized='incremental',
     incremental_strategy='delete+insert',
-    unique_key='id',
+    unique_key=['id', 'id2'],
     upsert_date_key='start_tstamp',
     tags=["requires_script"],
     snowplow_optimize=true
@@ -28,6 +28,7 @@ with data as (
 
   select
     id,
+    id2,
     start_tstamp
 
   from data
@@ -37,6 +38,7 @@ with data as (
 
   select
     id,
+    id2,
     start_tstamp
 
   from data
