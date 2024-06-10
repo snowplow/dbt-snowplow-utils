@@ -1,3 +1,17 @@
+snowplow-utils 0.16.7 (2024-06-10)
+---------------------------------------
+## Summary
+This release extends support for the combine_column_versions macro to support column prefixes not ending in a major version number (when used in combination with exclude column versions).
+
+## Features
+- Extend functionality of combine_column_versions
+
+## Under the hood
+- Update some of our test to pass with newer versions of dbt utils
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.6 (2024-05-24)
 ---------------------------------------
 ## Summary
