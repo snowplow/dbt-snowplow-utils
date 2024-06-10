@@ -44,7 +44,11 @@ with data as (
     struct('Charlie' as f_name, 31 as numeric_col) as person_1_0_2,
     struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_0,
     struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_30,
-    struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_31
+    struct('Dog the bounty' as f_name, 50 as numeric_col) as person_1_1_31,
+    struct('a' as field_1, 2 as field_2) as test_1_0_0,
+    struct('b' as field_1, 3 as field_2) as test_1_1_0,
+    struct('b' as field_1, 3 as field_2) as test_1_1_15,
+    struct('c' as field_1, 4 as field_2) as test_new_1_0_0
 
 )
 

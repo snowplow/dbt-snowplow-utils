@@ -24,6 +24,9 @@ with prep as (
     -- Test 5
     coalesce(person_1_1_31.f_name, person_1_1_0.f_name, person_1_0_0.f_name) as f_name,
     coalesce(person_1_1_31.numeric_col, person_1_1_0.numeric_col, person_1_0_0.numeric_col) as numeric_col,
+    -- Test 6
+    coalesce(test_1_1_15.field_1, test_1_0_0.field_1) as field_1,
+    coalesce(test_1_1_15.field_2, test_1_0_0.field_2) as field_2
 
   from {{ ref('data_combine_column_versions') }}
 )
