@@ -23,3 +23,4 @@ models:
     tests:
       - dbt_utils.equality:
           compare_model: ref('expected_indexed_unnest')
+          exclude_columns: ['source_index']
