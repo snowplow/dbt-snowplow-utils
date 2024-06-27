@@ -105,7 +105,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     transform(
       array_sort(
         FILTER(collect_list(
-          ARRAY({{column_prefix}}.{{base_column}}::string, {{order_by_column_prefix}}.{{order_by_column}}::string)), x -> x[0] is not null), (left, right) ->
+          ARRAY(CAST({{column_prefix}}.{{base_column}} AS string), CAST({{order_by_column_prefix}}.{{order_by_column}} AS string))), x -> x[0] is not null), (left, right) ->
 
           {%- if sort_numeric -%}
             CASE WHEN cast(left[1] as numeric(38, 9)) {% if order_desc %} > {% else %} < {% endif %} cast(right[1] as numeric(38, 9)) THEN -1
