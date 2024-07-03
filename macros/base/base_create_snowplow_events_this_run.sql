@@ -58,7 +58,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
         {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
-            and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
+            and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('day', -days_late_allowed, lower_limit) }}
             and a.derived_tstamp <= {{ upper_limit }}
         {% endif %}
 
