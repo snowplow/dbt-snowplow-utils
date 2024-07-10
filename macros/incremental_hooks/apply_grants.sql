@@ -6,7 +6,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 #}
 
 {# Note this does not work for bigquery due to the role/IAM type approach they have to grants, so BQ users should not supply values to this var #}
-{% macro default__apply_grants(relation, grant_config, should_revoke=True) %}
+{% macro default__apply_grants(relation, grant_config={}, should_revoke=True) %}   
     {# 
         We only want to enforce this if the package user is managing grants this way - if they are doing it in database we should 
         pass {} so that it's a no-op 
