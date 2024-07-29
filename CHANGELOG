@@ -1,3 +1,17 @@
+snowplow-utils 0.16.8 (2024-07-29)
+---------------------------------------
+## Summary
+This release extends support for those users who would like to use the Snowplow incremental base macros but are using specific older versions of the AMP tracker or the Pixel tracker which do not send dvce_created / dvce_sent_tstamp fields. It also fixes a bug in the apply_grands() macro when the users does not have a grants config defined.
+
+## Features
+- Add allow_null_dvce_tstamps var
+
+## Fixes
+- Add default for grant_config macro
+
+## Upgrading
+To upgrade, bump the package version in your `packages.yml` file.
+
 snowplow-utils 0.16.7 (2024-06-10)
 ---------------------------------------
 ## Summary

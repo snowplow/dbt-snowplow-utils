@@ -750,7 +750,7 @@ This macro generates the sessions lifecycle manifest table that Snowplow leverag
 - `user_identifiers`: An array of key:value maps of user identifiers that have at least the following properties: `schema`, `field`.
 - `user_sql`: A SQL statement that will be used to create the `user_identifier`.
 - `quarantined_sessions`: The name of the table containing all quarantined sessions.
-- `derived_tstamp_partitioned`: Whether or not to partition on derived timestamps (BQ only).
+- `derived_tstamp_partitioned`: Whether or not the events table is partitioned on derived timestamps (BQ only), used for optimization.
 - `days_late_allowed`: The maximum allowed number of days between the event creation and it being sent to the collector.
 - `max_session_days`: The maximum allowed session length in days.
 - `app_ids`: A list of app_ids to filter the events table on for processing within the package.
