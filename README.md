@@ -750,7 +750,7 @@ This macro generates the sessions lifecycle manifest table that Snowplow leverag
 - `user_identifiers`: An array of key:value maps of user identifiers that have at least the following properties: `schema`, `field`.
 - `user_sql`: A SQL statement that will be used to create the `user_identifier`.
 - `quarantined_sessions`: The name of the table containing all quarantined sessions.
-- `derived_tstamp_partitioned`: Whether or not to partition on derived timestamps (BQ only).
+- `derived_tstamp_partitioned`: Whether or not the events table is partitioned on derived timestamps (BQ only), used for optimization.
 - `days_late_allowed`: The maximum allowed number of days between the event creation and it being sent to the collector.
 - `max_session_days`: The maximum allowed session length in days.
 - `app_ids`: A list of app_ids to filter the events table on for processing within the package.
@@ -760,6 +760,7 @@ This macro generates the sessions lifecycle manifest table that Snowplow leverag
 - `event_limits_table`: The name of the table where your Snowplow event limits are stored.
 - `incremental_manifest_table`: The name of the incremental manifest table.
 - `package_name`: The name of the package you are running this macro under.
+- `allow_null_dvce_tstamps`: A boolean to allow nulls for the dvce_created_tstamp or dvce_sent_tstamp fields for certain tracker users when it is safe to bypass the events sent late check/filter using days_late_allowed
 
 **Usage:**
 
@@ -829,6 +830,7 @@ This macro generates the events this run table that Snowplow leverages.
 - `snowplow_events_table`: The name of your events table where your events land.
 - `entities_or_sdes`: In Redshift & Postgres, due to the shredded table design (meaning each context is loaded separately into a table), you need to specify which contexts you want to be included in the snowplow_base_events_this_run table, which you can do using this variable. This needs to be an array of key:value maps with the following properties: `name`, `prefix`, `alias`, `single_entity`
 - `custom_sql`: Any custom SQL you want to include within your `events_this_run` table
+- `allow_null_dvce_tstamps`: A boolean to allow nulls for the dvce_created_tstamp or dvce_sent_tstamp fields for certain tracker users when it is safe to bypass the events sent late check/filter using days_late_allowed
 
 **Usage:**
 
