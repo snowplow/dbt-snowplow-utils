@@ -14,7 +14,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% set lower_limit, upper_limit, _ = snowplow_utils.return_base_new_event_limits(base_event_limits) %}
     {% set session_lookback_limit = snowplow_utils.get_session_lookback_limit(lower_limit) %}
     {% set is_run_with_new_events = snowplow_utils.is_run_with_new_events(package_name, event_limits_table, incremental_manifest_table) %}
-    {% set snowplow_events = api.Relation.create(database=snowplow_events_database, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
+    {% set snowplow_events = api.Relation.create(database=none, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
 
     {% set sessions_lifecycle_manifest_query %}
 
@@ -140,7 +140,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% set lower_limit, upper_limit, _ = snowplow_utils.return_base_new_event_limits(base_event_limits) %}
     {% set session_lookback_limit = snowplow_utils.get_session_lookback_limit(lower_limit) %}
     {% set is_run_with_new_events = snowplow_utils.is_run_with_new_events(package_name, event_limits_table, incremental_manifest_table) %}
-    {% set snowplow_events = api.Relation.create(database=snowplow_events_database, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
+    {% set snowplow_events = api.Relation.create(database=none, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
 
     {% set sessions_lifecycle_manifest_query %}
 

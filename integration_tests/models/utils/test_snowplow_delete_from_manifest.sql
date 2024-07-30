@@ -14,6 +14,5 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 -- Note: Test covers functionality however when running the macro on-run-start hook, transaction behaviour changes.
 -- Wrapped delete statement in transation so it commits. BQ wouldnt just support 'commit;' without opening trans. Snowflake behaviour untested.
 
-select *
-
-from {{ ref('data_snowplow_delete_from_manifest_staging') }}
+SELECT *
+FROM {{ ref('data_snowplow_delete_from_manifest_staging') }}

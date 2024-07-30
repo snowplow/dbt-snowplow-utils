@@ -17,7 +17,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% macro postgres__get_sde_or_context(schema, identifier, lower_limit, upper_limit, prefix = none, single_entity = true, database = target.database) %}
     {# Create a relation from the inputs then get all columns in that context/sde table #}
-    {% set relation = api.Relation.create(database = database, schema = schema, identifier = identifier) %}
+    {% set relation = api.Relation.create(database = none, schema = schema, identifier = identifier) %}
     {# Get the schema name to be able to alias the timestamp and id #}
     {% set schema_get_query %}
         select schema_name from {{ relation }}
