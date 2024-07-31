@@ -1,0 +1,59 @@
+name: Spark Deployment with S3 Iceberg Glue Catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        default: 'production'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+
+    - name: Build with Maven
+      run: mvn clean package
+
+    - name: Deploy to Spark
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
+        ./bin/spark-submit \
+          --packages org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.0 \
+          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
+          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
+          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
+          --class com.example.SparkApp \
+          target/spark-app.jar
+
+    - name: Create Sample Table
+      env:
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
+        ./bin/spark-sql \
+          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
+          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
+          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
+          -e "CREATE TABLE glue.default.users (id INT, name STRING)"
+
+    - name: Verify Deployment
+      env:
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
+        ./bin/spark-sql \
+          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
+          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
+          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
+          -e "SHOW TABLES IN glue.default"
