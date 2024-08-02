@@ -71,7 +71,7 @@ integration_tests:
     spark:
       type: spark
       method: thrift
-      host: "{{ env_var('SPARK_MASTER_HOST') }}"
+      host: "{{ env_var('SPARK_MASTER_HOST', 'localhost') }}"
       port: 10000
       user: "{{ env_var('SPARK_USER', 'spark') }}"
       schema: "{{ env_var('SPARK_SCHEMA', 'default') }}"

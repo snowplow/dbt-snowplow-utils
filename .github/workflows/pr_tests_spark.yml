@@ -120,7 +120,7 @@ jobs:
                 - "10000:10000"
               environment:
                 - SPARK_MODE=master
-                - SPARK_MASTER_HOST=spark-master
+                - SPARK_MASTER_HOST=localhost
                 - SPARK_MASTER_PORT=7077
                 - SPARK_MASTER_WEBUI_PORT=8080
 
@@ -163,11 +163,15 @@ jobs:
         run: |
           echo "Waiting for Thrift Server to be fully operational..."
           sleep 30
-
+      - name: Check Thrift Server status
+        run: |
+          docker-compose exec -T spark-master bash -c "curl localhost:10000"
+      - name: DBT debug
+        run: |
+          dbt debug --target spark
       - name: 'Pre-test: Drop ci schemas'
         run: |
           dbt run-operation post_ci_cleanup --target spark
-
       - name: Run tests
         run: ./.scripts/integration_tests.sh -d spark
 
