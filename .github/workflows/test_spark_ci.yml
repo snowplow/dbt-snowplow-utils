@@ -36,40 +36,54 @@ jobs:
         cat > Dockerfile << EOL
         FROM openjdk:11-jre-slim
 
-        # Set environment variables
         ENV SPARK_VERSION=3.5.1
         ENV HADOOP_VERSION=3.3.4
-        ENV ICEBERG_VERSION=1.4.2
-        ENV AWS_SDK_VERSION=1.12.581
+        ENV SPARK_HOME=/spark
 
-        # Install necessary tools
-        RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping
+        RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools
 
-        # Download and install Spark
-        RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://archive.apache.org/dist/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz || \
-            (echo "Failed to download Spark. Retrying with alternative mirror..." && \
-             wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz) && \
+        RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
             tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
-            mv spark-\${SPARK_VERSION}-bin-hadoop3 /spark && \
+            mv spark-\${SPARK_VERSION}-bin-hadoop3 \${SPARK_HOME} && \
             rm spark-\${SPARK_VERSION}-bin-hadoop3.tgz
 
-        # Set Spark environment variables
-        ENV SPARK_HOME=/spark
-        ENV PATH=\$PATH:\$SPARK_HOME/bin:\$SPARK_HOME/sbin
+        ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
 
-        # Download necessary JARs
-        RUN mkdir -p /spark/jars && \
-            wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/\${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-\${ICEBERG_VERSION}.jar -O /spark/jars/iceberg-spark-runtime.jar && \
-            wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/\${ICEBERG_VERSION}/iceberg-aws-bundle-\${ICEBERG_VERSION}.jar -O /spark/jars/iceberg-aws-bundle.jar && \
-            wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/\${HADOOP_VERSION}/hadoop-aws-\${HADOOP_VERSION}.jar -O /spark/jars/hadoop-aws.jar && \
-            wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/\${AWS_SDK_VERSION}/aws-java-sdk-bundle-\${AWS_SDK_VERSION}.jar -O /spark/jars/aws-java-sdk-bundle.jar
-
-        # Create directory for Spark events
-        RUN mkdir -p /tmp/spark-events
-
-        WORKDIR /spark
+        WORKDIR \${SPARK_HOME}
 
         CMD ["bash"]
+        EOL
+
+    - name: Update docker-compose.yml
+      run: |
+        cat > docker-compose.yml << EOL
+        version: '3'
+
+        services:
+          spark-master:
+            build: .
+            command: bin/spark-class org.apache.spark.deploy.master.Master
+            ports:
+              - "8080:8080"
+              - "7077:7077"
+            environment:
+              - SPARK_MODE=master
+              - SPARK_MASTER_HOST=spark-master
+              - SPARK_MASTER_PORT=7077
+              - SPARK_MASTER_WEBUI_PORT=8080
+
+          spark-worker:
+            build: .
+            command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+            depends_on:
+              - spark-master
+            environment:
+              - SPARK_MODE=worker
+              - SPARK_WORKER_CORES=2
+              - SPARK_WORKER_MEMORY=2g
+              - SPARK_WORKER_PORT=8081
+              - SPARK_WORKER_WEBUI_PORT=8081
+              - SPARK_MASTER=spark://spark-master:7077
         EOL
 
     - name: Build and start Spark cluster
@@ -82,41 +96,29 @@ jobs:
         echo "Waiting for Spark services to start..."
         sleep 60
 
-    - name: Check Spark installation
+    - name: Check Spark master status
       run: |
-        echo "Checking Spark installation..."
-        docker-compose exec -T spark-master /bin/bash -c "ls -R /spark"
-        docker-compose exec -T spark-master /bin/bash -c "find /spark -name '*examples*.jar'"
+        docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark"
+        docker-compose exec -T spark-master bash -c "netstat -tuln"
 
-    - name: Run network diagnostics
+    - name: Check Spark worker status
       run: |
-        docker-compose exec -T spark-master /bin/bash -c "hostname && hostname -I"
-        docker-compose exec -T spark-worker /bin/bash -c "hostname && hostname -I"
-        docker-compose exec -T thrift-server /bin/bash -c "hostname && hostname -I"
+        docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark"
+        docker-compose exec -T spark-worker bash -c "netstat -tuln"
+
+    - name: Check network connectivity
+      run: |
+        docker-compose exec -T spark-worker ping -c 4 spark-master
+
+    - name: Check Spark logs
+      run: |
+        docker-compose logs spark-master
+        docker-compose logs spark-worker
 
     - name: Run test Spark job
       run: |
         echo "Running Spark Pi example job..."
-        docker-compose exec -T spark-master /bin/bash -c '
-          EXAMPLE_JAR=$(find /spark -name "*examples*.jar" | head -n 1)
-          if [ -n "$EXAMPLE_JAR" ]; then
-            /spark/bin/spark-submit \
-              --class org.apache.spark.examples.SparkPi \
-              --master spark://spark-master:7077 \
-              --deploy-mode client \
-              $EXAMPLE_JAR 10
-          else
-            echo "Spark examples JAR not found"
-            exit 1
-          fi
-        '
-        echo "Spark job completed."
-
-    - name: Verify Spark Thrift Server
-      run: |
-        echo "Verifying Spark Thrift Server..."
-        docker-compose exec -T thrift-server /spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES; SHOW TABLES IN default;"
-        echo "Thrift Server verification completed."
+        docker-compose exec -T spark-master bin/spark-submit --master spark://spark-master:7077 --class org.apache.spark.examples.SparkPi examples/jars/spark-examples_2.12-3.5.1.jar 10
 
     - name: Cleanup
       if: always()
