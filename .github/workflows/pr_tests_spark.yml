@@ -173,6 +173,17 @@ jobs:
           docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
           docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
 
+      - name: Check Logs Spark Master
+        run: docker-compose logs spark-master
+      - name: Check if the Thrift Server is running in Spark Master
+        run: docker-compose exec spark-master bash -c "ps aux | grep ThriftServer"
+      - name: Check if port 10000 is actually listening inside the spark-master container
+        run: docker-compose exec spark-master bash -c "netstat -tuln | grep 10000"
+      - name: Try to connect to the Thrift server from the spark-master container itself
+        run: docker-compose exec spark-master bash -c "curl localhost:10000"
+      - name: Verify Spark configuration
+        run: docker-compose exec spark-master bash -c "cat /spark/conf/spark-defaults.conf"
+
       - name: Check Thrift Server
         run: |
           docker-compose exec -T spark-master bash -c "curl localhost:10000"
