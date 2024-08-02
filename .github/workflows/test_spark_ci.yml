@@ -8,7 +8,6 @@ on:
       - 'feature/**'
       - 'dev'
       - 'staging'
-      - 'template-spark-tests'
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -26,38 +25,59 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    - name: Locate project files
+      id: locate-files
+      run: |
+        if [ -f "./download_jars.sh" ]; then
+          echo "::set-output name=jars_script::./download_jars.sh"
+        elif [ -f "./scripts/download_jars.sh" ]; then
+          echo "::set-output name=jars_script::./scripts/download_jars.sh"
+        else
+          echo "download_jars.sh not found"
+          exit 1
+        fi
+
+        if [ -f "./docker-compose.yml" ]; then
+          echo "::set-output name=compose_file::./docker-compose.yml"
+        elif [ -f "./docker/docker-compose.yml" ]; then
+          echo "::set-output name=compose_file::./docker/docker-compose.yml"
+        else
+          echo "docker-compose.yml not found"
+          exit 1
+        fi
+
     - name: Download JARs
       run: |
-        chmod +x ./scripts/download_jars.sh
-        ./scripts/download_jars.sh
+        chmod +x ${{ steps.locate-files.outputs.jars_script }}
+        ${{ steps.locate-files.outputs.jars_script }}
 
     - name: Build and start Spark cluster
       run: |
-        docker-compose -f docker/docker-compose.yml build
-        docker-compose -f docker/docker-compose.yml up -d
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} build
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} up -d
 
     - name: Wait for services to start
       run: |
         echo "Waiting for Spark services to start..."
-        sleep 60  # Increased wait time to ensure Thrift server is fully operational
+        sleep 60
 
     - name: Run network diagnostics
       run: |
-        docker-compose -f docker/docker-compose.yml exec -T spark-master /bin/bash -c "/scripts/start-service.sh"
-        docker-compose -f docker/docker-compose.yml exec -T spark-worker /bin/bash -c "/scripts/start-service.sh"
-        docker-compose -f docker/docker-compose.yml exec -T thrift-server /bin/bash -c "/scripts/start-service.sh"
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} exec -T spark-master /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} exec -T spark-worker /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} exec -T thrift-server /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
 
     - name: Run test Spark job
       run: |
-        docker-compose -f docker/docker-compose.yml exec -T spark-master /spark/bin/spark-submit --class org.apache.spark.examples.SparkPi \
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} exec -T spark-master /spark/bin/spark-submit --class org.apache.spark.examples.SparkPi \
           --master spark://spark-master:7077 \
           --deploy-mode client \
           /spark/examples/jars/spark-examples*.jar 10
 
     - name: Verify Spark Thrift Server
       run: |
-        docker-compose -f docker/docker-compose.yml exec -T thrift-server /spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES; SHOW TABLES IN default;"
+        docker-compose -f ${{ steps.locate-files.outputs.compose_file }} exec -T thrift-server /spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES; SHOW TABLES IN default;"
 
     - name: Cleanup
       if: always()
-      run: docker-compose -f docker/docker-compose.yml down
+      run: docker-compose -f ${{ steps.locate-files.outputs.compose_file }} down
