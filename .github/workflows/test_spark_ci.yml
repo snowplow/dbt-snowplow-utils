@@ -33,7 +33,11 @@ jobs:
 
     - name: Update Dockerfile
       run: |
-        sed -i 's|RUN wget https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz|RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz || \\\n    (echo "Failed to download Spark. Retrying with alternative mirror..." && \\\n     wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz)|g' Dockerfile
+        sed -i '
+        s|RUN wget https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz|RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz || \
+            (echo "Failed to download Spark. Retrying with alternative mirror..." && \
+             wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz)|
+        ' Dockerfile
 
     - name: Build and start Spark cluster
       run: |
