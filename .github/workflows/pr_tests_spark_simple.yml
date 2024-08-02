@@ -9,7 +9,7 @@ on:
       - 'dev'
       - 'staging'
       - 'template-spark-tests'
-      - 'spark_prep'
+    #   - 'spark_prep'
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

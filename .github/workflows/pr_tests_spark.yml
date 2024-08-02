@@ -9,7 +9,7 @@ on:
       - dev
       - staging
       - template-spark-tests
-    #   - spark_prep
+      - spark_prep
 
 concurrency: dbt_integration_tests
 env:
