@@ -154,24 +154,39 @@ jobs:
           echo "Waiting for Spark services to start..."
           sleep 60
 
+      - name: Print Docker logs
+        run: |
+          echo "Docker logs for spark-master:"
+          docker-compose logs --tail=1000 spark-master
+          echo "Docker logs for spark-worker:"
+          docker-compose logs --tail=1000 spark-worker
+
+      - name: Inspect Docker containers
+        run: |
+          echo "Inspecting spark-master container:"
+          docker inspect integration_tests_spark-master_1
+          echo "Inspecting spark-worker container:"
+          docker inspect integration_tests_spark-worker_1
+
       - name: Check Spark cluster status
         run: |
           docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
           docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
 
+      - name: Check Thrift Server
+        run: |
+          docker-compose exec -T spark-master bash -c "curl localhost:10000"
+          docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
+
       - name: Wait for Thrift Server
         run: |
           echo "Waiting for Thrift Server to be fully operational..."
           sleep 30
-      - name: Check Thrift Server status
-        run: |
-          docker-compose exec -T spark-master bash -c "curl localhost:10000"
-      - name: DBT debug
-        run: |
-          dbt debug --target spark
+
       - name: 'Pre-test: Drop ci schemas'
         run: |
           dbt run-operation post_ci_cleanup --target spark
+
       - name: Run tests
         run: ./.scripts/integration_tests.sh -d spark
 
