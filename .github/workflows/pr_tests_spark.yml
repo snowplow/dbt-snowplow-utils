@@ -1,4 +1,4 @@
-name: pr_tests_2
+name: pr_tests_spark
 on:
     pull_request:
         branches:
@@ -9,6 +9,7 @@ on:
             - dev
             - staging
             - template-spark-tests
+            - spark_prep
 concurrency: dbt_integration_tests
 env:
     DBT_PROFILES_DIR: ./ci
