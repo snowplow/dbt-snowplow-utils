@@ -31,31 +31,32 @@ jobs:
         sudo chmod +x /usr/local/bin/docker-compose
         docker-compose --version
 
-    - name: Update Dockerfile
+    - name: Create Dockerfile
       run: |
-        cat > Dockerfile << EOL
+        cat << EOF > Dockerfile
         FROM openjdk:11-jdk-slim
 
         ENV SPARK_VERSION=3.5.1
         ENV HADOOP_VERSION=3.3.4
         ENV SPARK_HOME=/spark
-        ENV PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
 
         RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools
 
-        RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
-            tar -xvzf spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
-            mv spark-${SPARK_VERSION}-bin-hadoop3 ${SPARK_HOME} && \
-            rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
+        RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
+            tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
+            mv spark-\${SPARK_VERSION}-bin-hadoop3 \${SPARK_HOME} && \
+            rm spark-\${SPARK_VERSION}-bin-hadoop3.tgz
 
-        WORKDIR ${SPARK_HOME}
+        ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
+
+        WORKDIR \${SPARK_HOME}
 
         CMD ["bash"]
-        EOL
+        EOF
 
-    - name: Update docker-compose.yml
+    - name: Create docker-compose.yml
       run: |
-        cat > docker-compose.yml << EOL
+        cat << EOF > docker-compose.yml
         version: '3'
 
         services:
@@ -83,7 +84,7 @@ jobs:
               - SPARK_WORKER_PORT=8081
               - SPARK_WORKER_WEBUI_PORT=8081
               - SPARK_MASTER=spark://spark-master:7077
-        EOL
+        EOF
 
     - name: Build and start Spark cluster
       run: |
@@ -100,16 +101,16 @@ jobs:
         docker-compose exec -T spark-master bash -c "jps"
         docker-compose exec -T spark-master bash -c "ps aux | grep spark"
         docker-compose exec -T spark-master bash -c "netstat -tuln"
-        docker-compose exec -T spark-master bash -c "ls -l $SPARK_HOME"
-        docker-compose exec -T spark-master bash -c "cat $SPARK_HOME/conf/spark-env.sh"
+        docker-compose exec -T spark-master bash -c "ls -l \$SPARK_HOME"
+        docker-compose exec -T spark-master bash -c "cat \$SPARK_HOME/conf/spark-env.sh || echo 'spark-env.sh not found'"
 
     - name: Check Spark worker status
       run: |
         docker-compose exec -T spark-worker bash -c "jps"
         docker-compose exec -T spark-worker bash -c "ps aux | grep spark"
         docker-compose exec -T spark-worker bash -c "netstat -tuln"
-        docker-compose exec -T spark-worker bash -c "ls -l $SPARK_HOME"
-        docker-compose exec -T spark-worker bash -c "cat $SPARK_HOME/conf/spark-env.sh"
+        docker-compose exec -T spark-worker bash -c "ls -l \$SPARK_HOME"
+        docker-compose exec -T spark-worker bash -c "cat \$SPARK_HOME/conf/spark-env.sh || echo 'spark-env.sh not found'"
 
     - name: Check network connectivity
       run: |
@@ -117,10 +118,10 @@ jobs:
 
     - name: Check Spark logs
       run: |
-        docker-compose exec -T spark-master bash -c "ls -l $SPARK_HOME/logs"
-        docker-compose exec -T spark-master bash -c "cat $SPARK_HOME/logs/*"
-        docker-compose exec -T spark-worker bash -c "ls -l $SPARK_HOME/logs"
-        docker-compose exec -T spark-worker bash -c "cat $SPARK_HOME/logs/*"
+        docker-compose exec -T spark-master bash -c "ls -l \$SPARK_HOME/logs || echo 'No logs found'"
+        docker-compose exec -T spark-master bash -c "cat \$SPARK_HOME/logs/* || echo 'No logs to display'"
+        docker-compose exec -T spark-worker bash -c "ls -l \$SPARK_HOME/logs || echo 'No logs found'"
+        docker-compose exec -T spark-worker bash -c "cat \$SPARK_HOME/logs/* || echo 'No logs to display'"
 
     - name: Run test Spark job
       run: |
