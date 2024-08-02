@@ -9,7 +9,7 @@ on:
         - 'staging'
         
 
-concurrency: dbt_integration_tests
+# concurrency: dbt_integration_tests
 
 env:
   # Set profiles.yml directory
