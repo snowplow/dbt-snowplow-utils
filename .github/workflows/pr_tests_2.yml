@@ -1,165 +1,191 @@
-name: pr_tests
-
+name: pr_tests_2
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches:
-      - 'main'
-      - 'feature/**'
-      - 'dev'
-      - 'staging'
-
+    pull_request:
+        branches:
+            - main
+    push:
+        branches:
+            - feature/**
+            - dev
+            - staging
 concurrency: dbt_integration_tests
-
 env:
-  DBT_PROFILES_DIR: ./ci
-  SPARK_MASTER_HOST: spark-master
-  SPARK_USER: spark
-  SPARK_SCHEMA: default
-
+    DBT_PROFILES_DIR: ./ci
+    SPARK_MASTER_HOST: spark-master
+    SPARK_USER: spark
+    SPARK_SCHEMA: default
 jobs:
-  pr_tests:
-    name: pr_tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./integration_tests
-    strategy:
-      matrix:
-        dbt_version: ["1.*"]
-        warehouse: ["spark"]
-    steps:
-      - name: Check out
-        uses: actions/checkout@v3
+    pr_tests:
+        name: pr_tests
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./integration_tests
+        strategy:
+            matrix:
+                dbt_version:
+                    - 1.*
+                warehouse:
+                    - spark
+        steps:
+            -
+                name: Check out
+                uses: actions/checkout@v3
+            -
+                name: Set SCHEMA_SUFFIX env
+                run: >-
+                    echo "SCHEMA_SUFFIX=$(echo ${DBT_VERSION%.*} | tr . _)" >>
+                    $GITHUB_ENV
+                env:
+                    DBT_VERSION: '${{ matrix.dbt_version }}'
+            -
+                name: Set DEFAULT_TARGET env
+                run: |
+                    echo "DEFAULT_TARGET=${{ matrix.warehouse }}" >> $GITHUB_ENV
+            -
+                name: Python setup
+                uses: actions/setup-python@v4
+                with:
+                    python-version: 3.8.x
+            -
+                name: Pip cache
+                uses: actions/cache@v3
+                with:
+                    path: ~/.cache/pip
+                    key: >-
+                        ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{
+                        matrix.warehouse }}
+                    restore-keys: >
+                        ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{
+                        matrix.warehouse }}
+            -
+                name: Install spark dependencies
+                run: >
+                    pip install --upgrade pip wheel setuptools
 
-      - name: Set SCHEMA_SUFFIX env
-        run: echo "SCHEMA_SUFFIX=$(echo ${DBT_VERSION%.*} | tr . _)" >> $GITHUB_ENV
-        env:
-          DBT_VERSION: ${{ matrix.dbt_version }}
+                    pip install -Iv "dbt-spark[PyHive]"==${{ matrix.dbt_version
+                    }} --upgrade
 
-      - name: Set DEFAULT_TARGET env
-        run: |
-         echo "DEFAULT_TARGET=${{ matrix.warehouse }}" >> $GITHUB_ENV
+                    dbt deps
+            -
+                name: Set up Docker Buildx
+                uses: docker/setup-buildx-action@v1
+            -
+                name: Create Dockerfile
+                run: >
+                    cat << EOF > Dockerfile
 
-      - name: Python setup
-        uses: actions/setup-python@v4
-        with:
-         python-version: "3.8.x"
+                    FROM openjdk:11-jdk-slim
 
-      - name: Pip cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
 
-      - name: Install spark dependencies
-        run: |
-          pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-spark[PyHive]"==${{ matrix.dbt_version }} --upgrade
-          dbt deps
+                    ENV SPARK_VERSION=3.5.1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+                    ENV HADOOP_VERSION=3.3.4
 
-      - name: Create Dockerfile
-        run: |
-          cat << EOF > Dockerfile
-          FROM openjdk:11-jdk-slim
+                    ENV SPARK_HOME=/spark
 
-          ENV SPARK_VERSION=3.5.1
-          ENV HADOOP_VERSION=3.3.4
-          ENV SPARK_HOME=/spark
 
-          RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools
+                    RUN apt-get update && apt-get install -y curl wget procps
+                    rsync ssh iputils-ping net-tools
 
-          RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
-              tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
-              mv spark-\${SPARK_VERSION}-bin-hadoop3 \${SPARK_HOME} && \
-              rm spark-\${SPARK_VERSION}-bin-hadoop3.tgz
 
-          ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
+                    RUN wget --tries=5 --retry-connrefused --waitretry=1
+                    --timeout=20
+                    https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz
+                    && \
+                        tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
+                        mv spark-\${SPARK_VERSION}-bin-hadoop3 \${SPARK_HOME} && \
+                        rm spark-\${SPARK_VERSION}-bin-hadoop3.tgz
 
-          WORKDIR \${SPARK_HOME}
+                    ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
 
-          CMD ["bash"]
-          EOF
 
-      - name: Create docker-compose.yml
-        run: |
-          cat << EOF > docker-compose.yml
-          version: '3'
+                    WORKDIR \${SPARK_HOME}
 
-          services:
-            spark-master:
-              build: .
-              command: |
-                bash -c "
-                /spark/sbin/start-master.sh &&
-                /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
-                tail -f /spark/logs/*"
-              ports:
-                - "8080:8080"
-                - "7077:7077"
-                - "10000:10000"
-              environment:
-                - SPARK_MODE=master
-                - SPARK_MASTER_HOST=spark-master
-                - SPARK_MASTER_PORT=7077
-                - SPARK_MASTER_WEBUI_PORT=8080
 
-            spark-worker:
-              build: .
-              command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
-              depends_on:
-                - spark-master
-              environment:
-                - SPARK_MODE=worker
-                - SPARK_WORKER_CORES=2
-                - SPARK_WORKER_MEMORY=2g
-                - SPARK_WORKER_PORT=8081
-                - SPARK_WORKER_WEBUI_PORT=8081
-                - SPARK_MASTER=spark://spark-master:7077
-          EOF
+                    CMD ["bash"]
 
-      - name: Build and start Spark cluster
-        run: |
-          docker-compose build --no-cache
-          docker-compose up -d
+                    EOF
+            -
+                name: Create docker-compose.yml
+                run: |
+                    cat << EOF > docker-compose.yml
+                    version: '3'
 
-      - name: Wait for services to start
-        run: |
-          echo "Waiting for Spark services to start..."
-          sleep 60
+                    services:
+                      spark-master:
+                        build: .
+                        command: |
+                          bash -c "
+                          /spark/sbin/start-master.sh &&
+                          /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
+                          tail -f /spark/logs/*"
+                        ports:
+                          - "8080:8080"
+                          - "7077:7077"
+                          - "10000:10000"
+                        environment:
+                          - SPARK_MODE=master
+                          - SPARK_MASTER_HOST=spark-master
+                          - SPARK_MASTER_PORT=7077
+                          - SPARK_MASTER_WEBUI_PORT=8080
 
-      - name: Check Spark cluster status
-        run: |
-          docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
-          docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
+                      spark-worker:
+                        build: .
+                        command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+                        depends_on:
+                          - spark-master
+                        environment:
+                          - SPARK_MODE=worker
+                          - SPARK_WORKER_CORES=2
+                          - SPARK_WORKER_MEMORY=2g
+                          - SPARK_WORKER_PORT=8081
+                          - SPARK_WORKER_WEBUI_PORT=8081
+                          - SPARK_MASTER=spark://spark-master:7077
+                    EOF
+            -
+                name: Build and start Spark cluster
+                run: |
+                    docker-compose build --no-cache
+                    docker-compose up -d
+            -
+                name: Wait for services to start
+                run: |
+                    echo "Waiting for Spark services to start..."
+                    sleep 60
+            -
+                name: Check Spark cluster status
+                run: >
+                    docker-compose exec -T spark-master bash -c "jps && ps aux |
+                    grep spark && netstat -tuln"
 
-      - name: Run Spark test job
-        run: |
-          docker-compose exec -T spark-master bin/spark-submit --master spark://spark-master:7077 --class org.apache.spark.examples.SparkPi examples/jars/spark-examples_2.12-3.5.1.jar 10
-
-      - name: Wait for Thrift Server
-        run: |
-          echo "Waiting for Thrift Server to be fully operational..."
-          sleep 30
-
-      - name: "Pre-test: Drop ci schemas"
-        run: |
-          dbt run-operation post_ci_cleanup --target spark
-
-      - name: Run tests
-        run: ./.scripts/integration_tests.sh -d spark
-
-      - name: "Post-test: Drop ci schemas"
-        run: |
-          dbt run-operation post_ci_cleanup --target spark
-
-      - name: Cleanup Spark cluster
-        if: always()
-        run: |
-          docker-compose downs
+                    docker-compose exec -T spark-worker bash -c "jps && ps aux |
+                    grep spark && netstat -tuln"
+            -
+                name: Run Spark test job
+                run: >
+                    docker-compose exec -T spark-master bin/spark-submit
+                    --master spark://spark-master:7077 --class
+                    org.apache.spark.examples.SparkPi
+                    examples/jars/spark-examples_2.12-3.5.1.jar 10
+            -
+                name: Wait for Thrift Server
+                run: |
+                    echo "Waiting for Thrift Server to be fully operational..."
+                    sleep 30
+            -
+                name: 'Pre-test: Drop ci schemas'
+                run: |
+                    dbt run-operation post_ci_cleanup --target spark
+            -
+                name: Run tests
+                run: ./.scripts/integration_tests.sh -d spark
+            -
+                name: 'Post-test: Drop ci schemas'
+                run: |
+                    dbt run-operation post_ci_cleanup --target spark
+            -
+                name: Cleanup Spark cluster
+                if: always()
+                run: |
+                    docker-compose downs
