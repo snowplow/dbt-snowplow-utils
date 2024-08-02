@@ -66,12 +66,13 @@ integration_tests:
       http_path: "{{ env_var('DATABRICKS_TEST_HTTP_PATH') }}"
       token: "{{ env_var('DATABRICKS_TEST_TOKEN') }}"
       threads: 4
-
     spark:
       type: spark
-      schema: "gh_sp_utils_dbt_{{ env_var('SCHEMA_SUFFIX') }}"
-      host: "{{ env_var('DATABRICKS_TEST_HOST') }}"
-      http_path: "{{ env_var('DATABRICKS_TEST_HTTP_PATH') }}"
-      token: "{{ env_var('DATABRICKS_TEST_TOKEN') }}"
-      endpoint: "{{ env_var('DATABRICKS_TEST_ENDPOINT') }}"
-      threads: 4
+      method: thrift
+      host: "{{ env_var('SPARK_MASTER_HOST', 'localhost') }}"
+      port: "{{ env_var('SPARK_THRIFT_PORT', '10000') }}"
+      user: "{{ env_var('SPARK_USER', 'spark') }}"
+      schema: "{{ env_var('SPARK_SCHEMA', 'default') }}"
+      connect_retries: 5
+      connect_timeout: 60
+      threads: 1
