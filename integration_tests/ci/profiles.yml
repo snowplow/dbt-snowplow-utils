@@ -70,7 +70,7 @@ integration_tests:
       type: spark
       method: thrift
       host: "{{ env_var('SPARK_MASTER_HOST', 'localhost') }}"
-      port: "{{ env_var('SPARK_THRIFT_PORT', '10000') }}"
+      port: "{{ env_var('SPARK_THRIFT_PORT', '10000') | as_number  }}"
       user: "{{ env_var('SPARK_USER', 'spark') }}"
       schema: "{{ env_var('SPARK_SCHEMA', 'default') }}"
       connect_retries: 5
