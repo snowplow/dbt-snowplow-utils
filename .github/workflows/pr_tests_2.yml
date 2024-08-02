@@ -2,22 +2,14 @@ name: pr_tests
 
 on:
   pull_request:
-  push:
-    branches:
-        - 'feature/**'
-        - 'dev'
-        - 'staging'
-        
 
-# concurrency: dbt_integration_tests
+concurrency: dbt_integration_tests
 
 env:
-  # Set profiles.yml directory
   DBT_PROFILES_DIR: ./ci
-
-  # Spark Connection
   SPARK_MASTER_HOST: spark-master
-  SPARK_MASTER_PORT: 7077
+  SPARK_USER: spark
+  SPARK_SCHEMA: default
 
 jobs:
   pr_tests:
@@ -59,16 +51,11 @@ jobs:
       - name: Install spark dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-${{ matrix.warehouse }}[ODBC,PyHive]"==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv "dbt-spark[PyHive]"==${{ matrix.dbt_version }} --upgrade
           dbt deps
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose --version
 
       - name: Create Dockerfile
         run: |
@@ -101,10 +88,15 @@ jobs:
           services:
             spark-master:
               build: .
-              command: bin/spark-class org.apache.spark.deploy.master.Master
+              command: |
+                bash -c "
+                /spark/sbin/start-master.sh &&
+                /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
+                tail -f /spark/logs/*"
               ports:
                 - "8080:8080"
                 - "7077:7077"
+                - "10000:10000"
               environment:
                 - SPARK_MODE=master
                 - SPARK_MASTER_HOST=spark-master
@@ -144,18 +136,23 @@ jobs:
         run: |
           docker-compose exec -T spark-master bin/spark-submit --master spark://spark-master:7077 --class org.apache.spark.examples.SparkPi examples/jars/spark-examples_2.12-3.5.1.jar 10
 
+      - name: Wait for Thrift Server
+        run: |
+          echo "Waiting for Thrift Server to be fully operational..."
+          sleep 30
+
       - name: "Pre-test: Drop ci schemas"
         run: |
-          dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
+          dbt run-operation post_ci_cleanup --target spark
 
       - name: Run tests
-        run: ./.scripts/integration_tests.sh -d ${{ matrix.warehouse }}
+        run: ./.scripts/integration_tests.sh -d spark
 
       - name: "Post-test: Drop ci schemas"
         run: |
-          dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
+          dbt run-operation post_ci_cleanup --target spark
 
       - name: Cleanup Spark cluster
         if: always()
         run: |
-          docker-compose down
+          docker-compose downs
