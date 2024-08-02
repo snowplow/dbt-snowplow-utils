@@ -1,59 +1,63 @@
-name: Spark Deployment with S3 Iceberg Glue Catalog
+name: Spark Deployment
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment Environment'
-        required: true
-        default: 'production'
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'feature/**'
+      - 'dev'
+      - 'staging'
+      - 'template-spark-tests'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: eu-west-1
+  AWS_DEFAULT_REGION: eu-west-1
 
 jobs:
-  deploy:
+  deploy-spark:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Set up JDK 11
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
-        distribution: 'adopt'
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Build with Maven
-      run: mvn clean package
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
-    - name: Deploy to Spark
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    - name: Download JARs
       run: |
-        ./bin/spark-submit \
-          --packages org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.0 \
-          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
-          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
-          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
-          --class com.example.SparkApp \
-          target/spark-app.jar
+        chmod +x ./scripts/download_jars.sh
+        ./scripts/download_jars.sh
 
-    - name: Create Sample Table
-      env:
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    - name: Build and start Spark cluster
       run: |
-        ./bin/spark-sql \
-          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
-          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
-          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
-          -e "CREATE TABLE glue.default.users (id INT, name STRING)"
+        docker-compose -f docker/docker-compose.yml build
+        docker-compose -f docker/docker-compose.yml up -d
 
-    - name: Verify Deployment
-      env:
-        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    - name: Wait for services to start
       run: |
-        ./bin/spark-sql \
-          --conf spark.sql.catalog.glue=org.apache.iceberg.spark.SparkCatalog \
-          --conf spark.sql.catalog.glue.io.impl=org.apache.iceberg.aws.s3.S3FileIO \
-          --conf spark.sql.catalog.glue.warehouse=s3://$S3_BUCKET/warehouse \
-          -e "SHOW TABLES IN glue.default"
+        echo "Waiting for Spark services to start..."
+        sleep 60  # Increased wait time to ensure Thrift server is fully operational
+
+    - name: Run network diagnostics
+      run: |
+        docker-compose -f docker/docker-compose.yml exec -T spark-master /bin/bash -c "/scripts/start-service.sh"
+        docker-compose -f docker/docker-compose.yml exec -T spark-worker /bin/bash -c "/scripts/start-service.sh"
+        docker-compose -f docker/docker-compose.yml exec -T thrift-server /bin/bash -c "/scripts/start-service.sh"
+
+    - name: Run test Spark job
+      run: |
+        docker-compose -f docker/docker-compose.yml exec -T spark-master /spark/bin/spark-submit --class org.apache.spark.examples.SparkPi \
+          --master spark://spark-master:7077 \
+          --deploy-mode client \
+          /spark/examples/jars/spark-examples*.jar 10
+
+    - name: Verify Spark Thrift Server
+      run: |
+        docker-compose -f docker/docker-compose.yml exec -T thrift-server /spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES; SHOW TABLES IN default;"
+
+    - name: Cleanup
+      if: always()
+      run: docker-compose -f docker/docker-compose.yml down
