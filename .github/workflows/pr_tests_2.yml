@@ -2,6 +2,12 @@ name: pr_tests
 
 on:
   pull_request:
+  push:
+    branches:
+        - 'feature/**'
+        - 'dev'
+        - 'staging'
+        
 
 concurrency: dbt_integration_tests
 
