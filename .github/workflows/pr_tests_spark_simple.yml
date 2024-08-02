@@ -1,0 +1,143 @@
+name: Spark Deployment
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'feature/**'
+      - 'dev'
+      - 'staging'
+      - 'template-spark-tests'
+      - 'spark_prep'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: eu-west-1
+  AWS_DEFAULT_REGION: eu-west-1
+
+jobs:
+  deploy-spark:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Install Docker Compose
+      run: |
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
+
+    - name: Create Dockerfile
+      run: |
+        cat << EOF > Dockerfile
+        FROM openjdk:11-jdk-slim
+
+        ENV SPARK_VERSION=3.5.1
+        ENV HADOOP_VERSION=3.3.4
+        ENV SPARK_HOME=/spark
+
+        RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools
+
+        RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
+            tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
+            mv spark-\${SPARK_VERSION}-bin-hadoop3 \${SPARK_HOME} && \
+            rm spark-\${SPARK_VERSION}-bin-hadoop3.tgz
+
+        ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
+
+        WORKDIR \${SPARK_HOME}
+
+        CMD ["bash"]
+        EOF
+
+    - name: Create docker-compose.yml
+      run: |
+        cat << EOF > docker-compose.yml
+        version: '3'
+
+        services:
+          spark-master:
+            build: .
+            command: bin/spark-class org.apache.spark.deploy.master.Master
+            ports:
+              - "8080:8080"
+              - "7077:7077"
+            environment:
+              - SPARK_MODE=master
+              - SPARK_MASTER_HOST=spark-master
+              - SPARK_MASTER_PORT=7077
+              - SPARK_MASTER_WEBUI_PORT=8080
+
+          spark-worker:
+            build: .
+            command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+            depends_on:
+              - spark-master
+            environment:
+              - SPARK_MODE=worker
+              - SPARK_WORKER_CORES=2
+              - SPARK_WORKER_MEMORY=2g
+              - SPARK_WORKER_PORT=8081
+              - SPARK_WORKER_WEBUI_PORT=8081
+              - SPARK_MASTER=spark://spark-master:7077
+        EOF
+
+    - name: Build and start Spark cluster
+      run: |
+        docker-compose build --no-cache
+        docker-compose up -d
+
+    - name: Wait for services to start
+      run: |
+        echo "Waiting for Spark services to start..."
+        sleep 60
+
+    - name: Check Spark master status
+      run: |
+        docker-compose exec -T spark-master bash -c "jps"
+        docker-compose exec -T spark-master bash -c "ps aux | grep spark"
+        docker-compose exec -T spark-master bash -c "netstat -tuln"
+        docker-compose exec -T spark-master bash -c "ls -l \$SPARK_HOME"
+        docker-compose exec -T spark-master bash -c "cat \$SPARK_HOME/conf/spark-env.sh || echo 'spark-env.sh not found'"
+
+    - name: Check Spark worker status
+      run: |
+        docker-compose exec -T spark-worker bash -c "jps"
+        docker-compose exec -T spark-worker bash -c "ps aux | grep spark"
+        docker-compose exec -T spark-worker bash -c "netstat -tuln"
+        docker-compose exec -T spark-worker bash -c "ls -l \$SPARK_HOME"
+        docker-compose exec -T spark-worker bash -c "cat \$SPARK_HOME/conf/spark-env.sh || echo 'spark-env.sh not found'"
+
+    - name: Check network connectivity
+      run: |
+        docker-compose exec -T spark-worker ping -c 4 spark-master
+
+    - name: Check Spark logs
+      run: |
+        docker-compose exec -T spark-master bash -c "ls -l \$SPARK_HOME/logs || echo 'No logs found'"
+        docker-compose exec -T spark-master bash -c "cat \$SPARK_HOME/logs/* || echo 'No logs to display'"
+        docker-compose exec -T spark-worker bash -c "ls -l \$SPARK_HOME/logs || echo 'No logs found'"
+        docker-compose exec -T spark-worker bash -c "cat \$SPARK_HOME/logs/* || echo 'No logs to display'"
+
+    - name: Run test Spark job
+      run: |
+        echo "Running Spark Pi example job..."
+        docker-compose exec -T spark-master bin/spark-submit --master spark://spark-master:7077 --class org.apache.spark.examples.SparkPi examples/jars/spark-examples_2.12-3.5.1.jar 10
+    - name: 'Pre-test: Drop ci schemas'
+      run: dbt run-operation post_ci_cleanup --target spark
+
+    - name: Run tests
+      run: ./.scripts/integration_tests.sh -d spark
+
+    - name: 'Post-test: Drop ci schemas'
+      run: dbt run-operation post_ci_cleanup --target spark
+    
+    - name: Cleanup
+      if: always()
+      run: docker-compose down

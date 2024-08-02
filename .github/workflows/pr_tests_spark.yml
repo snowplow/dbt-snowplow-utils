@@ -9,7 +9,8 @@ on:
       - dev
       - staging
       - template-spark-tests
-      - spark_prep
+    #   - spark_prep
+
 concurrency: dbt_integration_tests
 env:
   DBT_PROFILES_DIR: ./ci
@@ -157,13 +158,6 @@ jobs:
         run: |
           docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
           docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
-
-      - name: Run Spark test job
-        run: >
-          docker-compose exec -T spark-master bin/spark-submit
-          --master spark://spark-master:7077 --class
-          org.apache.spark.examples.SparkPi
-          examples/jars/spark-examples_2.12-3.5.1.jar 10
 
       - name: Wait for Thrift Server
         run: |
