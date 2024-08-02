@@ -82,6 +82,12 @@ jobs:
         echo "Waiting for Spark services to start..."
         sleep 60
 
+    - name: Check Spark installation
+      run: |
+        echo "Checking Spark installation..."
+        docker-compose exec -T spark-master /bin/bash -c "ls -R /spark"
+        docker-compose exec -T spark-master /bin/bash -c "find /spark -name '*examples*.jar'"
+
     - name: Run network diagnostics
       run: |
         docker-compose exec -T spark-master /bin/bash -c "hostname && hostname -I"
@@ -91,11 +97,19 @@ jobs:
     - name: Run test Spark job
       run: |
         echo "Running Spark Pi example job..."
-        docker-compose exec -T spark-master /spark/bin/spark-submit \
-          --class org.apache.spark.examples.SparkPi \
-          --master spark://spark-master:7077 \
-          --deploy-mode client \
-          /spark/examples/jars/spark-examples*.jar 10
+        docker-compose exec -T spark-master /bin/bash -c '
+          EXAMPLE_JAR=$(find /spark -name "*examples*.jar" | head -n 1)
+          if [ -n "$EXAMPLE_JAR" ]; then
+            /spark/bin/spark-submit \
+              --class org.apache.spark.examples.SparkPi \
+              --master spark://spark-master:7077 \
+              --deploy-mode client \
+              $EXAMPLE_JAR 10
+          else
+            echo "Spark examples JAR not found"
+            exit 1
+          fi
+        '
         echo "Spark job completed."
 
     - name: Verify Spark Thrift Server
