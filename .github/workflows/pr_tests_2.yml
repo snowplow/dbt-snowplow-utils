@@ -8,6 +8,7 @@ on:
             - feature/**
             - dev
             - staging
+            - template-spark-tests
 concurrency: dbt_integration_tests
 env:
     DBT_PROFILES_DIR: ./ci
