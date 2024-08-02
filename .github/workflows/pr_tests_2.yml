@@ -59,9 +59,8 @@ jobs:
       - name: Install spark dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-${{ matrix.warehouse }}[ODBC]"==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv "dbt-${{ matrix.warehouse }}[ODBC,PyHive]"==${{ matrix.dbt_version }} --upgrade
           dbt deps
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
