@@ -43,7 +43,7 @@ jobs:
         ENV AWS_SDK_VERSION=1.12.581
 
         # Install necessary tools
-        RUN apt-get update && apt-get install -y curl wget procps rsync ssh
+        RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping
 
         # Download and install Spark
         RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://archive.apache.org/dist/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz || \
@@ -84,20 +84,25 @@ jobs:
 
     - name: Run network diagnostics
       run: |
-        docker-compose exec -T spark-master /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
-        docker-compose exec -T spark-worker /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
-        docker-compose exec -T thrift-server /bin/bash -c "hostname && hostname -I && ping -c 4 spark-master"
+        docker-compose exec -T spark-master /bin/bash -c "hostname && hostname -I"
+        docker-compose exec -T spark-worker /bin/bash -c "hostname && hostname -I"
+        docker-compose exec -T thrift-server /bin/bash -c "hostname && hostname -I"
 
     - name: Run test Spark job
       run: |
-        docker-compose exec -T spark-master /spark/bin/spark-submit --class org.apache.spark.examples.SparkPi \
+        echo "Running Spark Pi example job..."
+        docker-compose exec -T spark-master /spark/bin/spark-submit \
+          --class org.apache.spark.examples.SparkPi \
           --master spark://spark-master:7077 \
           --deploy-mode client \
           /spark/examples/jars/spark-examples*.jar 10
+        echo "Spark job completed."
 
     - name: Verify Spark Thrift Server
       run: |
+        echo "Verifying Spark Thrift Server..."
         docker-compose exec -T thrift-server /spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES; SHOW TABLES IN default;"
+        echo "Thrift Server verification completed."
 
     - name: Cleanup
       if: always()
