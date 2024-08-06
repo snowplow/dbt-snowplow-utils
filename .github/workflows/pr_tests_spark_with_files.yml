@@ -107,11 +107,11 @@ jobs:
           echo "Docker logs for thrift-server:"
           docker-compose logs --tail=1000 thrift-server
 
-      - name: Check Spark cluster status
-        run: |
-          docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
-          docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
-          docker-compose exec -T thrift-server bash -c "jps && ps aux | grep spark && netstat -tuln"
+      # - name: Check Spark cluster status
+      #   run: |
+      #     docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
+      #     docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
+      #     docker-compose exec -T thrift-server bash -c "jps && ps aux | grep spark && netstat -tuln"
 
       - name: Check Spark Master UI
         run: |
