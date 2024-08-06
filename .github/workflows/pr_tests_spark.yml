@@ -106,6 +106,8 @@ jobs:
           cat << EOF > spark-defaults.conf
           spark.sql.hive.thriftServer.singleSession        true
           spark.hadoop.hive.server2.thrift.port            10000
+          spark.sql.warehouse.dir                          /spark/spark-warehouse
+          javax.jdo.option.ConnectionURL                   jdbc:derby:;databaseName=/spark/metastore_db;create=true
           EOF
 
       - name: Create docker-compose.yml
@@ -122,7 +124,9 @@ jobs:
               build: .
               command: |
                 bash -c "
-                /spark/bin/spark-sql --conf spark.sql.hive.metastore.jars=builtin --conf spark.sql.hive.metastore.version=2.3.9 --conf spark.sql.catalogImplementation=hive -e 'show databases;' &&
+                mkdir -p /spark/spark-warehouse &&
+                chown -R root:root /spark/spark-warehouse &&
+                chmod -R 777 /spark/spark-warehouse &&
                 /spark/sbin/start-master.sh &&
                 /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
                 tail -f /spark/logs/*"
@@ -160,10 +164,37 @@ jobs:
       - name: Debug Docker Compose file
         run: cat docker-compose.yml
 
+      - name: Set Spark user permissions
+        run: |
+          docker-compose exec -T spark-master bash -c "
+          mkdir -p /spark/spark-warehouse &&
+          chown -R root:root /spark/spark-warehouse &&
+          chmod -R 777 /spark/spark-warehouse
+          "
+
       - name: Build and start Spark cluster
         run: |
           docker-compose build --no-cache
           docker-compose up -d
+
+      - name: Initialize Hive Metastore
+        run: |
+          docker-compose exec -T spark-master bash -c "
+          schematool -dbType derby -initSchema
+          "
+
+      - name: Check Metastore Status
+        run: |
+          docker-compose exec -T spark-master bash -c "
+          schematool -dbType derby -info
+          "
+
+      - name: Debug Spark Warehouse
+        run: |
+          docker-compose exec -T spark-master bash -c "
+          ls -la /spark/spark-warehouse
+          ls -la /spark
+          "
 
       - name: Check running containers
         run: docker ps
@@ -233,8 +264,10 @@ jobs:
         run: |
           echo "Running Spark SQL query..."
           docker-compose exec -T spark-master bash -c '
-          spark-sql --conf spark.sql.hive.thriftServer.singleSession=true \
-                    --conf spark.sql.catalogImplementation=hive \
+          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
+                    --conf spark.sql.hive.metastore.jars=builtin \
+                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
+                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
                     -e "SELECT 1 as test;"
           '
           echo "Spark SQL query completed."
