@@ -181,17 +181,17 @@ jobs:
       - name: Check running containers
         run: docker ps
 
-      - name: Initialize Hive Metastore
+      - name: Initialize Metastore
         run: |
-          docker-compose exec -T spark-master bash -c "
-          schematool -dbType derby -initSchema
-          "
-
-      - name: Check Metastore Status
-        run: |
-          docker-compose exec -T spark-master bash -c "
-          schematool -dbType derby -info
-          "
+          echo "Initializing metastore..."
+          docker-compose exec -T spark-master bash -c '
+          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
+                    --conf spark.sql.hive.metastore.jars=builtin \
+                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
+                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
+                    -e "CREATE DATABASE IF NOT EXISTS default;"
+          '
+          echo "Metastore initialization completed."
 
       - name: Debug Spark Warehouse
         run: |
@@ -277,10 +277,11 @@ jobs:
         run: |
           echo "Verifying Hive metastore..."
           docker-compose exec -T spark-master bash -c '
-          spark-sql --conf spark.sql.hive.metastore.jars=builtin \
-                    --conf spark.sql.hive.metastore.version=2.3.9 \
-                    --conf spark.sql.catalogImplementation=hive \
-                    -e "show databases;"
+          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
+                    --conf spark.sql.hive.metastore.jars=builtin \
+                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
+                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
+                    -e "SHOW DATABASES;"
           '
 
       - name: Check ThriftServer UI
