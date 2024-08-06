@@ -1,16 +1,16 @@
 name: Spark S3 Integration Tests
 
 on:
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
   push:
     branches:
       - feature/**
       - dev
       - staging
       - template-spark-tests
-      - spark_prep
+      # - spark_prep
 
 concurrency: dbt_integration_tests
 
