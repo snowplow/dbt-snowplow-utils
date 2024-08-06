@@ -101,6 +101,13 @@ jobs:
           CMD ["bash"]
           EOF
 
+      - name: Create spark-defaults.conf
+        run: |
+          cat << EOF > spark-defaults.conf
+          spark.sql.hive.thriftServer.singleSession        true
+          spark.hadoop.hive.server2.thrift.port            10000
+          EOF
+
       - name: Create docker-compose.yml
         run: |
           cat << EOF > docker-compose.yml
@@ -111,8 +118,9 @@ jobs:
               build: .
               command: |
                 bash -c "
+                /spark/bin/spark-sql --conf spark.sql.hive.metastore.jars=builtin --conf spark.sql.hive.metastore.version=2.3.9 --conf spark.sql.catalogImplementation=hive -e 'show databases;' &&
                 /spark/sbin/start-master.sh &&
-                /spark/bin/spark-submit --class org.apache.spark.sql.hive.thriftserver.HiveThriftServer2 --name 'Thrift JDBC/ODBC Server' spark-internal &&
+                /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
                 tail -f /spark/logs/*"
               ports:
                 - "8080:8080"
@@ -123,6 +131,8 @@ jobs:
                 - SPARK_MASTER_HOST=0.0.0.0
                 - SPARK_MASTER_PORT=7077
                 - SPARK_MASTER_WEBUI_PORT=8080
+              volumes:
+                - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
 
             spark-worker:
               build: .
@@ -178,26 +188,26 @@ jobs:
           docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
           docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
 
-      - name: Debug Spark Master
-        run: |
-          docker-compose exec -T spark-master bash -c "cat /spark/logs/spark--org.apache.spark.deploy.master.Master-*.out"
+      - name: Debug Spark Master Configuration
+        run: docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
 
-      - name: Debug ThriftServer
-        run: |
-          docker-compose exec -T spark-master bash -c "cat /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"
+      - name: Debug Spark Master Logs
+        run: docker-compose exec -T spark-master bash -c "cat /spark/logs/spark--org.apache.spark.deploy.master.Master-*.out"
 
-      - name: Verify Spark configuration
-        run: |
-          docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
-
-      - name: Check if the Thrift Server is running in Spark Master
+      - name: Check ThriftServer Process
         run: docker-compose exec -T spark-master bash -c "ps aux | grep ThriftServer"
+
+      - name: List Spark Logs
+        run: docker-compose exec -T spark-master bash -c "ls -l /spark/logs/"
+
+      - name: Check Latest ThriftServer Log
+        run: docker-compose exec -T spark-master bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
 
       - name: Check if port 10000 is actually listening inside the spark-master container
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
 
       - name: Try to connect to the Thrift server from the spark-master container itself
-        run: docker-compose exec -T spark-master bash -c "curl -v localhost:10000"
+        run: docker-compose exec -T spark-master bash -c "curl -v telnet://localhost:10000"
 
       - name: Wait for Thrift Server
         run: |
