@@ -16,7 +16,7 @@ concurrency: dbt_integration_tests
 
 env:
   DBT_PROFILES_DIR: ./ci
-  SPARK_MASTER_HOST: spark-master
+  SPARK_MASTER_HOST: localhost
   SPARK_USER: spark
   SPARK_SCHEMA: default
   AWS_REGION: eu-west-1
