@@ -176,15 +176,15 @@ jobs:
           docker-compose build --no-cache
           docker-compose up -d
           echo "Waiting for Spark services to start..."
-          sleep 60
-
+          sleep 90  # Increased wait time to account for Thrift Server startup
+      
       - name: Check running containers
         run: docker ps
-
+      
       - name: Initialize Metastore
         run: |
           echo "Initializing metastore..."
-          docker-compose exec -T spark-master bash -c '
+          docker-compose exec -T thrift-server bash -c '
           spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
                     --conf spark.sql.hive.metastore.jars=builtin \
                     --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
@@ -231,13 +231,19 @@ jobs:
         run: docker-compose exec -T spark-master bash -c "cat /spark/logs/spark--org.apache.spark.deploy.master.Master-*.out"
 
       - name: Check ThriftServer Process
-        run: docker-compose exec -T spark-master bash -c "ps aux | grep ThriftServer"
+        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
+      
+      - name: Check Latest ThriftServer Log
+        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
+      
+      - name: Test ThriftServer connection with Beeline
+        run: |
+          docker-compose exec -T thrift-server bash -c '
+          beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"
+          '
 
       - name: List Spark Logs
         run: docker-compose exec -T spark-master bash -c "ls -l /spark/logs/"
-
-      - name: Check Latest ThriftServer Log
-        run: docker-compose exec -T spark-master bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
 
       - name: Check if port 10000 is actually listening inside the spark-master container
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
@@ -245,12 +251,6 @@ jobs:
       - name: Verify ThriftServer JDBC URL
         run: |
           docker-compose exec -T spark-master bash -c 'echo "jdbc:hive2://spark-master:10000"'
-
-      - name: Test ThriftServer connection with Beeline
-        run: |
-          docker-compose exec -T spark-master bash -c '
-          beeline -u "jdbc:hive2://spark-master:10000" -e "SHOW DATABASES;"
-          '
 
       - name: Create Spark events directory
         run: |
