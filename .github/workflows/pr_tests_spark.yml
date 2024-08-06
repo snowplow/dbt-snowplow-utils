@@ -198,12 +198,12 @@ jobs:
                 - spark-network
           EOF
 
-          - name: Build and start Spark cluster
-          run: |
-            docker-compose build --no-cache
-            docker-compose up -d
-            echo "Waiting for Spark services to start..."
-            sleep 90
+      - name: Build and start Spark cluster
+        run: |
+          docker-compose build --no-cache
+          docker-compose up -d
+          echo "Waiting for Spark services to start..."
+          sleep 90
   
       - name: Check running containers
         run: docker ps
