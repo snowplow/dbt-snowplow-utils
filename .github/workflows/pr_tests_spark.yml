@@ -113,6 +113,10 @@ jobs:
           cat << EOF > docker-compose.yml
           version: '3'
 
+          networks:
+            spark-network:
+              driver: bridge
+
           services:
             spark-master:
               build: .
@@ -129,11 +133,13 @@ jobs:
                 - "4040:4040"
               environment:
                 - SPARK_MODE=master
-                - SPARK_MASTER_HOST=0.0.0.0
+                - SPARK_MASTER_HOST=spark-master
                 - SPARK_MASTER_PORT=7077
                 - SPARK_MASTER_WEBUI_PORT=8080
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+              networks:
+                - spark-network
 
             spark-worker:
               build: .
@@ -147,6 +153,8 @@ jobs:
                 - SPARK_WORKER_PORT=8081
                 - SPARK_WORKER_WEBUI_PORT=8081
                 - SPARK_MASTER=spark://spark-master:7077
+              networks:
+                - spark-network
           EOF
 
       - name: Debug Docker Compose file
@@ -168,7 +176,7 @@ jobs:
       - name: Check Docker network
         run: |
           docker network ls
-          docker network inspect integration_tests_default
+          docker network inspect integration_tests_spark-network
 
       - name: Print Docker logs
         run: |
@@ -208,17 +216,26 @@ jobs:
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
 
       - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
-        run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://localhost:10000"
+        run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://spark-master:10000"
 
-      - name: Wait for ThriftServer to be ready
+      - name: Check network connectivity
         run: |
-          timeout 300 bash -c '
-          until docker-compose exec -T spark-master bash -c "beeline -u jdbc:hive2://localhost:10000 -e \"show databases;\"" > /dev/null 2>&1
-          do
-            echo "Waiting for ThriftServer to be ready..."
-            sleep 5
-          done
+          docker-compose exec -T spark-master bash -c "ping -c 4 spark-master"
+          docker-compose exec -T spark-master bash -c "nc -zv spark-master 10000"
+
+      - name: Verify ThriftServer JDBC URL
+        run: |
+          docker-compose exec -T spark-master bash -c 'echo "jdbc:hive2://spark-master:10000"'
+
+      - name: Test ThriftServer connection with Beeline
+        run: |
+          docker-compose exec -T spark-master bash -c '
+          beeline -u "jdbc:hive2://spark-master:10000" -n root -e "SHOW DATABASES;"
           '
+
+      - name: Check Spark event logs
+        run: |
+          docker-compose exec -T spark-master bash -c "cat /spark/spark-events/*"
 
       - name: Run simple Spark SQL query
         run: |
@@ -230,7 +247,7 @@ jobs:
 
       - name: Check Spark Master UI
         run: |
-          docker-compose exec -T spark-master bash -c "curl -s http://localhost:8080/json/ | jq '.workers'"
+          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
 
       - name: Verify Hive metastore
         run: |
@@ -241,19 +258,13 @@ jobs:
                     -e "show databases;"
           '
 
-      - name: Test ThriftServer connection with Beeline (using full hostname)
-        run: |
-          docker-compose exec -T spark-master bash -c '
-          beeline -u "jdbc:hive2://$(hostname -f):10000" -e "SHOW DATABASES;"
-          '
-
       - name: Check ThriftServer UI
         run: |
-          docker-compose exec -T spark-master bash -c "curl -s http://localhost:4040/api/v1/applications | jq '.[0].name'"
+          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:4040/api/v1/applications | jq '.[0].name'"
 
       - name: Check Spark Applications
         run: |
-          docker-compose exec -T spark-master bash -c "curl -s http://localhost:8080/json/ | jq '.activeapps[0].name'"
+          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.activeapps[0].name'"
 
       - name: Wait for Thrift Server
         run: |
