@@ -113,10 +113,10 @@ jobs:
       #     docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
       #     docker-compose exec -T thrift-server bash -c "jps && ps aux | grep spark && netstat -tuln"
 
-      - name: Check Spark Master UI
-        run: |
-          echo "Checking Spark Master UI..."
-          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
+      # - name: Check Spark Master UI
+      #   run: |
+      #     echo "Checking Spark Master UI..."
+      #     docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
 
       - name: Verify Spark configuration
         run: |
