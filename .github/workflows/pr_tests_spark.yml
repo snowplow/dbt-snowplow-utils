@@ -87,7 +87,7 @@ jobs:
           ENV HADOOP_VERSION=3.3.4
           ENV SPARK_HOME=/spark
 
-          RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools
+          RUN apt-get update && apt-get install -y curl wget procps rsync ssh iputils-ping net-tools jq
 
           RUN wget --tries=5 --retry-connrefused --waitretry=1 --timeout=20 https://downloads.apache.org/spark/spark-\${SPARK_VERSION}/spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
               tar -xvzf spark-\${SPARK_VERSION}-bin-hadoop3.tgz && \
@@ -126,6 +126,7 @@ jobs:
                 - "8080:8080"
                 - "7077:7077"
                 - "10000:10000"
+                - "4040:4040"
               environment:
                 - SPARK_MODE=master
                 - SPARK_MASTER_HOST=0.0.0.0
@@ -206,8 +207,20 @@ jobs:
       - name: Check if port 10000 is actually listening inside the spark-master container
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
 
-      - name: Try to connect to the Thrift server from the spark-master container itself
-        run: docker-compose exec -T spark-master bash -c "curl -v telnet://localhost:10000"
+      - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
+        run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://localhost:10000"
+
+      - name: Test ThriftServer connection with Beeline
+        run: |
+          docker-compose exec -T spark-master bash -c "beeline -u jdbc:hive2://localhost:10000 -e 'SHOW DATABASES;'"
+
+      - name: Check ThriftServer UI
+        run: |
+          docker-compose exec -T spark-master bash -c "curl -s http://localhost:4040/api/v1/applications | jq '.[0].name'"
+
+      - name: Check Spark Applications
+        run: |
+          docker-compose exec -T spark-master bash -c "curl -s http://localhost:8080/json/ | jq '.activeapps[0].name'"
 
       - name: Wait for Thrift Server
         run: |
