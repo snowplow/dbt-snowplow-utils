@@ -1,4 +1,5 @@
-name: pr_tests_spark
+name: Spark S3 Integration Tests
+
 on:
   pull_request:
     branches:
@@ -12,15 +13,18 @@ on:
       - spark_prep
 
 concurrency: dbt_integration_tests
+
 env:
   DBT_PROFILES_DIR: ./ci
   SPARK_MASTER_HOST: spark-master
   SPARK_USER: spark
   SPARK_SCHEMA: default
+  AWS_REGION: eu-west-1
+  AWS_DEFAULT_REGION: eu-west-1
 
 jobs:
-  pr_tests:
-    name: pr_tests
+  spark_s3_integration_tests:
+    name: Spark S3 Integration Tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,20 +54,19 @@ jobs:
         with:
           python-version: 3.8.x
 
-      - name: Pip cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: >-
-            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
-          restore-keys: >-
-            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
-
-      - name: Install spark dependencies
+      - name: Install dependencies
         run: |
           pip install --upgrade pip wheel setuptools
           pip install -Iv "dbt-spark[PyHive]==${{ matrix.dbt_version }}" --upgrade
+          pip install boto3 awscli
           dbt deps
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -72,11 +75,6 @@ jobs:
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
-
-      - name: Check Docker and Docker Compose versions
-        run: |
-          docker --version
-          docker-compose --version
 
       - name: Create Dockerfile
         run: |
@@ -100,6 +98,11 @@ jobs:
               chown -R root:root /spark/spark-warehouse && \
               chmod -R 777 /spark/spark-warehouse
 
+          # Install AWS Glue libraries
+          RUN curl -L -o /spark/jars/aws-java-sdk-bundle-1.11.1026.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar && \
+              curl -L -o /spark/jars/hadoop-aws-3.3.4.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar && \
+              curl -L -o /spark/jars/iceberg-spark-runtime-3.5_2.12-1.3.1.jar https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/1.3.1/iceberg-spark-runtime-3.5_2.12-1.3.1.jar
+
           WORKDIR \${SPARK_HOME}
 
           CMD ["bash"]
@@ -108,21 +111,33 @@ jobs:
       - name: Create spark-defaults.conf
         run: |
           cat << EOF > spark-defaults.conf
-          spark.sql.hive.thriftServer.singleSession        true
-          spark.hadoop.hive.server2.thrift.port            10000
-          spark.sql.warehouse.dir                          /spark/spark-warehouse
-          javax.jdo.option.ConnectionURL                   jdbc:derby:;databaseName=/spark/metastore_db;create=true
+          spark.master                                   spark://spark-master:7077
+          spark.sql.warehouse.dir                        s3a://dbt-spark-iceberg/github-integration-testing
+          spark.sql.catalog.glue                         org.apache.iceberg.spark.SparkCatalog
+          spark.sql.catalog.glue.catalog-impl            org.apache.iceberg.aws.glue.GlueCatalog
+          spark.sql.catalog.glue.warehouse               s3a://dbt-spark-iceberg/github-integration-testing
+          spark.sql.catalog.glue.io-impl                 org.apache.iceberg.aws.s3.S3FileIO
+          spark.sql.defaultCatalog                       glue
+          spark.sql.catalog.glue.database                dbt-spark-iceberg
+          spark.hadoop.fs.s3a.impl                       org.apache.hadoop.fs.s3a.S3AFileSystem
+          spark.hadoop.fs.s3a.access.key                 ${AWS_ACCESS_KEY_ID}
+          spark.hadoop.fs.s3a.secret.key                 ${AWS_SECRET_ACCESS_KEY}
+          spark.hadoop.fs.s3a.endpoint                   s3.eu-west-1.amazonaws.com
+          spark.hadoop.fs.s3a.path.style.access          true
+          spark.hadoop.fs.s3a.region                     eu-west-1
+          spark.hadoop.fs.s3a.aws.region                 eu-west-1
+          spark.hadoop.com.amazonaws.services.s3.enableV4 true
+          spark.hadoop.fs.s3a.aws.credentials.provider   org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+          spark.hadoop.hive.metastore.client.factory.class com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory
           EOF
 
       - name: Create docker-compose.yml
         run: |
           cat << EOF > docker-compose.yml
           version: '3'
-
           networks:
             spark-network:
               driver: bridge
-
           services:
             spark-master:
               build: .
@@ -136,11 +151,14 @@ jobs:
                 - SPARK_MASTER_HOST=spark-master
                 - SPARK_MASTER_PORT=7077
                 - SPARK_MASTER_OPTS="-Dspark.driver.memory=2g"
+                - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                - AWS_REGION=eu-west-1
+                - AWS_DEFAULT_REGION=eu-west-1
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
               networks:
                 - spark-network
-
             spark-worker:
               build: .
               command: ["/bin/bash", "-c", "sleep 10 && /spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
@@ -152,11 +170,14 @@ jobs:
                 - SPARK_EXECUTOR_MEMORY=3G
                 - SPARK_LOCAL_IP=spark-worker
                 - SPARK_MASTER=spark://spark-master:7077
+                - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                - AWS_REGION=eu-west-1
+                - AWS_DEFAULT_REGION=eu-west-1
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
               networks:
                 - spark-network
-
             thrift-server:
               build: .
               command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
@@ -167,137 +188,25 @@ jobs:
                 - spark-worker
               environment:
                 - SPARK_LOCAL_IP=thrift-server
+                - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                - AWS_REGION=eu-west-1
+                - AWS_DEFAULT_REGION=eu-west-1
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
               networks:
                 - spark-network
           EOF
 
-      - name: Debug Docker Compose file
-        run: cat docker-compose.yml
-
       - name: Build and start Spark cluster
         run: |
           docker-compose build --no-cache
           docker-compose up -d
           echo "Waiting for Spark services to start..."
-          sleep 90  # Increased wait time to account for Thrift Server startup
-      
+          sleep 90
+
       - name: Check running containers
         run: docker ps
-      
-      - name: Initialize Metastore
-        run: |
-          echo "Initializing metastore..."
-          docker-compose exec -T thrift-server bash -c '
-          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
-                    --conf spark.sql.hive.metastore.jars=builtin \
-                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
-                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
-                    -e "CREATE DATABASE IF NOT EXISTS default;"
-          '
-          echo "Metastore initialization completed."
-
-      - name: Debug Spark Warehouse
-        run: |
-          docker-compose exec -T spark-master bash -c "
-          ls -la /spark/spark-warehouse
-          ls -la /spark
-          "
-
-      - name: Check Docker network
-        run: |
-          docker network ls
-          docker network inspect integration_tests_spark-network
-
-      - name: Print Docker logs
-        run: |
-          echo "Docker logs for spark-master:"
-          docker-compose logs --tail=1000 spark-master
-          echo "Docker logs for spark-worker:"
-          docker-compose logs --tail=1000 spark-worker
-
-      - name: Inspect Docker containers
-        run: |
-          echo "Inspecting spark-master container:"
-          docker inspect integration_tests_spark-master_1
-          echo "Inspecting spark-worker container:"
-          docker inspect integration_tests_spark-worker_1
-
-      - name: Check Spark cluster status
-        run: |
-          docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
-          docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
-
-      - name: Debug Spark Master Configuration
-        run: docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
-
-      - name: Debug Spark Master Logs
-        run: docker-compose exec -T spark-master bash -c "cat /spark/logs/spark--org.apache.spark.deploy.master.Master-*.out"
-
-      - name: Check ThriftServer Process
-        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
-      
-      - name: Check Latest ThriftServer Log
-        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
-      
-      - name: Test ThriftServer connection with Beeline
-        run: |
-          docker-compose exec -T thrift-server bash -c '
-          beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"
-          '
-
-      - name: List Spark Logs
-        run: docker-compose exec -T spark-master bash -c "ls -l /spark/logs/"
-
-      - name: Check if port 10000 is actually listening inside the spark-master container
-        run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
-
-      - name: Verify ThriftServer JDBC URL
-        run: |
-          docker-compose exec -T spark-master bash -c 'echo "jdbc:hive2://spark-master:10000"'
-
-      - name: Create Spark events directory
-        run: |
-          docker-compose exec -T spark-master bash -c "mkdir -p /spark/spark-events && ls -l /spark/spark-events"
-
-      - name: Run simple Spark SQL query
-        run: |
-          echo "Running Spark SQL query..."
-          docker-compose exec -T spark-master bash -c '
-          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
-                    --conf spark.sql.hive.metastore.jars=builtin \
-                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
-                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
-                    -e "SELECT 1 as test;"
-          '
-          echo "Spark SQL query completed."
-
-      - name: Check Spark Master UI
-        run: |
-          echo "Checking Spark Master UI..."
-          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
-
-      - name: Verify Hive metastore
-        run: |
-          echo "Verifying Hive metastore..."
-          docker-compose exec -T spark-master bash -c '
-          spark-sql --conf spark.sql.hive.metastore.version=2.3.9 \
-                    --conf spark.sql.hive.metastore.jars=builtin \
-                    --conf spark.sql.warehouse.dir=/spark/spark-warehouse \
-                    --conf javax.jdo.option.ConnectionURL="jdbc:derby:;databaseName=/spark/metastore_db;create=true" \
-                    -e "SHOW DATABASES;"
-          '
-
-      - name: Check ThriftServer UI
-        run: |
-          echo "Checking ThriftServer UI..."
-          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:4040/api/v1/applications | jq '.[0].name'"
-
-      - name: Check Spark Applications
-        run: |
-          echo "Checking Spark Applications..."
-          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.activeapps[0].name'"
 
       - name: Wait for Thrift Server
         run: |
