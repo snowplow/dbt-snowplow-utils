@@ -96,6 +96,10 @@ jobs:
 
           ENV PATH=\$PATH:\${SPARK_HOME}/bin:\${SPARK_HOME}/sbin
 
+          RUN mkdir -p /spark/spark-warehouse && \
+              chown -R root:root /spark/spark-warehouse && \
+              chmod -R 777 /spark/spark-warehouse
+
           WORKDIR \${SPARK_HOME}
 
           CMD ["bash"]
@@ -124,9 +128,6 @@ jobs:
               build: .
               command: |
                 bash -c "
-                mkdir -p /spark/spark-warehouse &&
-                chown -R root:root /spark/spark-warehouse &&
-                chmod -R 777 /spark/spark-warehouse &&
                 /spark/sbin/start-master.sh &&
                 /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
                 tail -f /spark/logs/*"
@@ -142,6 +143,7 @@ jobs:
                 - SPARK_MASTER_WEBUI_PORT=8080
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+                - spark-warehouse:/spark/spark-warehouse
               networks:
                 - spark-network
 
@@ -157,25 +159,27 @@ jobs:
                 - SPARK_WORKER_PORT=8081
                 - SPARK_WORKER_WEBUI_PORT=8081
                 - SPARK_MASTER=spark://spark-master:7077
+              volumes:
+                - spark-warehouse:/spark/spark-warehouse
               networks:
                 - spark-network
+
+          volumes:
+            spark-warehouse:
           EOF
 
       - name: Debug Docker Compose file
         run: cat docker-compose.yml
 
-      - name: Set Spark user permissions
-        run: |
-          docker-compose exec -T spark-master bash -c "
-          mkdir -p /spark/spark-warehouse &&
-          chown -R root:root /spark/spark-warehouse &&
-          chmod -R 777 /spark/spark-warehouse
-          "
-
       - name: Build and start Spark cluster
         run: |
           docker-compose build --no-cache
           docker-compose up -d
+          echo "Waiting for Spark services to start..."
+          sleep 60
+
+      - name: Check running containers
+        run: docker ps
 
       - name: Initialize Hive Metastore
         run: |
@@ -195,14 +199,6 @@ jobs:
           ls -la /spark/spark-warehouse
           ls -la /spark
           "
-
-      - name: Check running containers
-        run: docker ps
-
-      - name: Wait for services to start
-        run: |
-          echo "Waiting for Spark services to start..."
-          sleep 120
 
       - name: Check Docker network
         run: |
