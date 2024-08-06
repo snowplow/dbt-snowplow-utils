@@ -68,13 +68,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Verify AWS Credentials
-        run: |
-          echo "Verifying AWS Credentials..."
-          aws sts get-caller-identity
-          aws s3 ls s3://dbt-spark-iceberg/
-          aws glue get-databases --region eu-west-1
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -107,17 +100,6 @@ jobs:
           echo "Docker logs for thrift-server:"
           docker-compose logs --tail=1000 thrift-server
 
-      # - name: Check Spark cluster status
-      #   run: |
-      #     docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
-      #     docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
-      #     docker-compose exec -T thrift-server bash -c "jps && ps aux | grep spark && netstat -tuln"
-
-      # - name: Check Spark Master UI
-      #   run: |
-      #     echo "Checking Spark Master UI..."
-      #     docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
-
       - name: Verify Spark configuration
         run: |
           echo "Verifying Spark configuration..."
@@ -138,26 +120,13 @@ jobs:
         run: |
           docker-compose exec -T thrift-server bash -c '/spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"'
 
-      # - name: Verify AWS Credentials in Spark
-      #   run: |
-      #     docker-compose exec -T spark-master bash -c '
-      #     spark-shell --master spark://spark-master:7077 << EOF
-      #     import org.apache.spark.sql.SparkSession
-      #     val spark = SparkSession.builder().getOrCreate()
-      #     try {
-      #       val df = spark.read.format("s3a").load("s3a://dbt-spark-iceberg/")
-      #       println("Successfully read from S3")
-      #       df.show()
-      #     } catch {
-      #       case e: Exception => 
-      #         println("Failed to read from S3")
-      #         e.printStackTrace()
-      #     }
-      #     spark.stop()
-      #     EOF
-      #     '
-      - name: Run dbt debug
-        run: dbt debug --target spark
-      # - name: 'Pre-test: Drop ci schemas'
-      #   run: |
-      #     dbt run-operation post_ci_cleanup --target spark
+      - name: "Pre-test: Drop ci schemas"
+        run: |
+          dbt run-operation post_ci_cleanup --target spark
+
+      - name: Run tests
+        run: ./.scripts/integration_tests.sh -d spark
+
+      - name: "Post-test: Drop ci schemas"
+        run: |
+          dbt run-operation post_ci_cleanup --target spark
