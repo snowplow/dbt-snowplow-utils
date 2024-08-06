@@ -215,8 +215,8 @@ jobs:
       - name: Check if port 10000 is actually listening inside the spark-master container
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
 
-      - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
-        run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://spark-master:10000"
+      # - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
+      #   run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://spark-master:10000"
 
       - name: Check network connectivity
         run: |
