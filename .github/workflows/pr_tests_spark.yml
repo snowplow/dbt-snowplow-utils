@@ -218,10 +218,10 @@ jobs:
       # - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
       #   run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://spark-master:10000"
 
-      - name: Check network connectivity
-        run: |
-          docker-compose exec -T spark-master bash -c "ping -c 4 spark-master"
-          docker-compose exec -T spark-master bash -c "nc -zv spark-master 10000"
+      # - name: Check network connectivity
+      #   run: |
+      #     docker-compose exec -T spark-master bash -c "ping -c 4 spark-master"
+      #     docker-compose exec -T spark-master bash -c "nc -zv spark-master 10000"
 
       - name: Verify ThriftServer JDBC URL
         run: |
