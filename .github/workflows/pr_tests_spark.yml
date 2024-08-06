@@ -215,14 +215,6 @@ jobs:
       - name: Check if port 10000 is actually listening inside the spark-master container
         run: docker-compose exec -T spark-master bash -c "netstat -tuln | grep 10000"
 
-      # - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
-      #   run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://spark-master:10000"
-
-      # - name: Check network connectivity
-      #   run: |
-      #     docker-compose exec -T spark-master bash -c "ping -c 4 spark-master"
-      #     docker-compose exec -T spark-master bash -c "nc -zv spark-master 10000"
-
       - name: Verify ThriftServer JDBC URL
         run: |
           docker-compose exec -T spark-master bash -c 'echo "jdbc:hive2://spark-master:10000"'
@@ -230,27 +222,31 @@ jobs:
       - name: Test ThriftServer connection with Beeline
         run: |
           docker-compose exec -T spark-master bash -c '
-          beeline -u "jdbc:hive2://spark-master:10000" -n root -e "SHOW DATABASES;"
+          beeline -u "jdbc:hive2://spark-master:10000" -e "SHOW DATABASES;"
           '
 
-      - name: Check Spark event logs
+      - name: Create Spark events directory
         run: |
-          docker-compose exec -T spark-master bash -c "cat /spark/spark-events/*"
+          docker-compose exec -T spark-master bash -c "mkdir -p /spark/spark-events && ls -l /spark/spark-events"
 
       - name: Run simple Spark SQL query
         run: |
+          echo "Running Spark SQL query..."
           docker-compose exec -T spark-master bash -c '
           spark-sql --conf spark.sql.hive.thriftServer.singleSession=true \
                     --conf spark.sql.catalogImplementation=hive \
                     -e "SELECT 1 as test;"
           '
+          echo "Spark SQL query completed."
 
       - name: Check Spark Master UI
         run: |
+          echo "Checking Spark Master UI..."
           docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
 
       - name: Verify Hive metastore
         run: |
+          echo "Verifying Hive metastore..."
           docker-compose exec -T spark-master bash -c '
           spark-sql --conf spark.sql.hive.metastore.jars=builtin \
                     --conf spark.sql.hive.metastore.version=2.3.9 \
@@ -260,10 +256,12 @@ jobs:
 
       - name: Check ThriftServer UI
         run: |
+          echo "Checking ThriftServer UI..."
           docker-compose exec -T spark-master bash -c "curl -s http://spark-master:4040/api/v1/applications | jq '.[0].name'"
 
       - name: Check Spark Applications
         run: |
+          echo "Checking Spark Applications..."
           docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.activeapps[0].name'"
 
       - name: Wait for Thrift Server
@@ -276,7 +274,10 @@ jobs:
           dbt run-operation post_ci_cleanup --target spark
 
       - name: Run tests
-        run: ./.scripts/integration_tests.sh -d spark
+        run: |
+          echo "Running DBT tests..."
+          ./.scripts/integration_tests.sh -d spark
+          echo "DBT tests completed."
 
       - name: 'Post-test: Drop ci schemas'
         run: |
