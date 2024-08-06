@@ -47,7 +47,6 @@ integration_tests:
         token_uri: "{{ env_var('BIGQUERY_SERVICE_TOKEN_URI') }}"
         auth_provider_x509_cert_url: "{{ env_var('BIGQUERY_SERVICE_AUTH_PROVIDER_X509_CERT_URL') }}"
         client_x509_cert_url: "{{ env_var('BIGQUERY_SERVICE_CLIENT_X509_CERT_URL') }}"
-
     snowflake:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_TEST_ACCOUNT') }}"
@@ -58,7 +57,6 @@ integration_tests:
       warehouse: "{{ env_var('SNOWFLAKE_TEST_WAREHOUSE') }}"
       schema: "gh_sp_utils_dbt_{{ env_var('SCHEMA_SUFFIX') }}"
       threads: 4
-
     databricks:
       type: databricks
       schema: "gh_sp_utils_dbt_{{ env_var('SCHEMA_SUFFIX') }}"
@@ -66,8 +64,6 @@ integration_tests:
       http_path: "{{ env_var('DATABRICKS_TEST_HTTP_PATH') }}"
       token: "{{ env_var('DATABRICKS_TEST_TOKEN') }}"
       threads: 4
-  target: spark
-  outputs:
     spark:
       type: spark
       method: thrift

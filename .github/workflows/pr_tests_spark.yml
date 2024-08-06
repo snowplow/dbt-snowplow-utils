@@ -198,20 +198,62 @@ jobs:
                 - spark-network
           EOF
 
-      - name: Build and start Spark cluster
-        run: |
-          docker-compose build --no-cache
-          docker-compose up -d
-          echo "Waiting for Spark services to start..."
-          sleep 90
-
+          - name: Build and start Spark cluster
+          run: |
+            docker-compose build --no-cache
+            docker-compose up -d
+            echo "Waiting for Spark services to start..."
+            sleep 90
+  
       - name: Check running containers
         run: docker ps
+
+      - name: Check Docker network
+        run: |
+          docker network ls
+          docker network inspect integration_tests_spark-network
+
+      - name: Print Docker logs
+        run: |
+          echo "Docker logs for spark-master:"
+          docker-compose logs --tail=1000 spark-master
+          echo "Docker logs for spark-worker:"
+          docker-compose logs --tail=1000 spark-worker
+          echo "Docker logs for thrift-server:"
+          docker-compose logs --tail=1000 thrift-server
+
+      - name: Check Spark cluster status
+        run: |
+          docker-compose exec -T spark-master bash -c "jps && ps aux | grep spark && netstat -tuln"
+          docker-compose exec -T spark-worker bash -c "jps && ps aux | grep spark && netstat -tuln"
+          docker-compose exec -T thrift-server bash -c "jps && ps aux | grep spark && netstat -tuln"
+
+      - name: Check Spark Master UI
+        run: |
+          echo "Checking Spark Master UI..."
+          docker-compose exec -T spark-master bash -c "curl -s http://spark-master:8080/json/ | jq '.workers'"
+
+      - name: Verify Spark configuration
+        run: |
+          echo "Verifying Spark configuration..."
+          docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
 
       - name: Wait for Thrift Server
         run: |
           echo "Waiting for Thrift Server to be fully operational..."
-          sleep 30
+          sleep 60  # Increased wait time
+
+      - name: Check ThriftServer Process
+        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
+      
+      - name: Check Latest ThriftServer Log
+        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
+      
+      - name: Test ThriftServer connection with Beeline
+        run: |
+          docker-compose exec -T thrift-server bash -c '
+          beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"
+          '
 
       - name: 'Pre-test: Drop ci schemas'
         run: |
