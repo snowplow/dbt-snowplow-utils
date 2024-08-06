@@ -85,7 +85,7 @@ jobs:
 
       - name: Build and start Spark cluster
         run: |
-          docker-compose build --no-cache
+          docker-compose build
           docker-compose up -d
           echo "Waiting for Spark services to start..."
           sleep 90
@@ -96,7 +96,7 @@ jobs:
       - name: Check Docker network
         run: |
           docker network ls
-          docker network inspect spark-network
+          # docker network inspect spark-network
 
       - name: Print Docker logs
         run: |
