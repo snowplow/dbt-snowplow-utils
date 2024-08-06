@@ -210,9 +210,42 @@ jobs:
       - name: Try to connect to the Thrift server from the spark-master container itself (with timeout)
         run: docker-compose exec -T spark-master bash -c "timeout 5 curl -v telnet://localhost:10000"
 
-      - name: Test ThriftServer connection with Beeline
+      - name: Wait for ThriftServer to be ready
         run: |
-          docker-compose exec -T spark-master bash -c "beeline -u jdbc:hive2://localhost:10000 -e 'SHOW DATABASES;'"
+          timeout 300 bash -c '
+          until docker-compose exec -T spark-master bash -c "beeline -u jdbc:hive2://localhost:10000 -e \"show databases;\"" > /dev/null 2>&1
+          do
+            echo "Waiting for ThriftServer to be ready..."
+            sleep 5
+          done
+          '
+
+      - name: Run simple Spark SQL query
+        run: |
+          docker-compose exec -T spark-master bash -c '
+          spark-sql --conf spark.sql.hive.thriftServer.singleSession=true \
+                    --conf spark.sql.catalogImplementation=hive \
+                    -e "SELECT 1 as test;"
+          '
+
+      - name: Check Spark Master UI
+        run: |
+          docker-compose exec -T spark-master bash -c "curl -s http://localhost:8080/json/ | jq '.workers'"
+
+      - name: Verify Hive metastore
+        run: |
+          docker-compose exec -T spark-master bash -c '
+          spark-sql --conf spark.sql.hive.metastore.jars=builtin \
+                    --conf spark.sql.hive.metastore.version=2.3.9 \
+                    --conf spark.sql.catalogImplementation=hive \
+                    -e "show databases;"
+          '
+
+      - name: Test ThriftServer connection with Beeline (using full hostname)
+        run: |
+          docker-compose exec -T spark-master bash -c '
+          beeline -u "jdbc:hive2://$(hostname -f):10000" -e "SHOW DATABASES;"
+          '
 
       - name: Check ThriftServer UI
         run: |
