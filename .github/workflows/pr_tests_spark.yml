@@ -109,7 +109,8 @@ jobs:
           # Install AWS Glue libraries and Iceberg
           RUN curl -L -o /spark/jars/aws-java-sdk-bundle-1.11.1026.jar https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1026/aws-java-sdk-bundle-1.11.1026.jar && \
               curl -L -o /spark/jars/hadoop-aws-3.3.4.jar https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar && \
-              curl -L -o /spark/jars/iceberg-spark-runtime-3.5_2.12-\${ICEBERG_VERSION}.jar https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/\${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-\${ICEBERG_VERSION}.jar
+              curl -L -o /spark/jars/iceberg-spark-runtime-3.5_2.12-\${ICEBERG_VERSION}.jar https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.5_2.12/\${ICEBERG_VERSION}/iceberg-spark-runtime-3.5_2.12-\${ICEBERG_VERSION}.jar && \
+              curl -L -o /spark/jars/iceberg-aws-bundle-\${ICEBERG_VERSION}.jar https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/\${ICEBERG_VERSION}/iceberg-aws-bundle-\${ICEBERG_VERSION}.jar
 
           WORKDIR \${SPARK_HOME}
 
@@ -122,6 +123,8 @@ jobs:
           spark.master                                   spark://spark-master:7077
           spark.sql.warehouse.dir                        s3a://dbt-spark-iceberg/github-integration-testing
           spark.sql.extensions                           org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+          spark.sql.catalog.spark_catalog                org.apache.iceberg.spark.SparkSessionCatalog
+          spark.sql.catalog.spark_catalog.type           hive
           spark.sql.catalog.glue                         org.apache.iceberg.spark.SparkCatalog
           spark.sql.catalog.glue.catalog-impl            org.apache.iceberg.aws.glue.GlueCatalog
           spark.sql.catalog.glue.warehouse               s3a://dbt-spark-iceberg/github-integration-testing
@@ -189,7 +192,7 @@ jobs:
                 - spark-network
             thrift-server:
               build: .
-              command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
+              command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 --jars /spark/jars/iceberg-spark-runtime-3.5_2.12-1.3.1.jar,/spark/jars/iceberg-aws-bundle-1.3.1.jar && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
               ports:
                 - '10000:10000'
               depends_on:
@@ -300,9 +303,4 @@ jobs:
 
       - name: 'Post-test: Drop ci schemas'
         run: |
-          dbt run-operation post_ci_cleanup --target spark
-
-      - name: Cleanup Spark cluster
-        if: always()
-        run: |
-          docker-compose down
+          dbt run-operation post_
