@@ -126,46 +126,51 @@ jobs:
           services:
             spark-master:
               build: .
-              command: |
-                bash -c "
-                /spark/sbin/start-master.sh &&
-                /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 &&
-                tail -f /spark/logs/*"
+              command: ["/bin/bash", "-c", "/spark/sbin/start-master.sh -h spark-master --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
+              hostname: spark-master
               ports:
-                - "8080:8080"
-                - "7077:7077"
-                - "10000:10000"
-                - "4040:4040"
+                - '8080:8080'
+                - '7077:7077'
               environment:
-                - SPARK_MODE=master
+                - SPARK_LOCAL_IP=spark-master
                 - SPARK_MASTER_HOST=spark-master
                 - SPARK_MASTER_PORT=7077
-                - SPARK_MASTER_WEBUI_PORT=8080
+                - SPARK_MASTER_OPTS="-Dspark.driver.memory=2g"
               volumes:
                 - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
-                - spark-warehouse:/spark/spark-warehouse
               networks:
                 - spark-network
 
             spark-worker:
               build: .
-              command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+              command: ["/bin/bash", "-c", "sleep 10 && /spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
               depends_on:
                 - spark-master
               environment:
-                - SPARK_MODE=worker
                 - SPARK_WORKER_CORES=2
-                - SPARK_WORKER_MEMORY=2g
-                - SPARK_WORKER_PORT=8081
-                - SPARK_WORKER_WEBUI_PORT=8081
+                - SPARK_WORKER_MEMORY=4G
+                - SPARK_EXECUTOR_MEMORY=3G
+                - SPARK_LOCAL_IP=spark-worker
                 - SPARK_MASTER=spark://spark-master:7077
               volumes:
-                - spark-warehouse:/spark/spark-warehouse
+                - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
               networks:
                 - spark-network
 
-          volumes:
-            spark-warehouse:
+            thrift-server:
+              build: .
+              command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
+              ports:
+                - '10000:10000'
+              depends_on:
+                - spark-master
+                - spark-worker
+              environment:
+                - SPARK_LOCAL_IP=thrift-server
+              volumes:
+                - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+              networks:
+                - spark-network
           EOF
 
       - name: Debug Docker Compose file
