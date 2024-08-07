@@ -2,8 +2,6 @@ name: pr_tests_spark
 
 on:
   pull_request:
-    branches:
-      - main
 
 concurrency: dbt_integration_tests
 
