@@ -6,8 +6,8 @@ networks:
 
 services:
   spark-master:
-    build: .
-    command: ["/bin/bash", "-c", "/spark/sbin/start-master.sh -h spark-master --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
+    image: snowplow/spark-s3-iceberg:latest
+    command: ["/bin/bash", "-c", "/opt/spark/sbin/start-master.sh -h spark-master --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
     hostname: spark-master
     ports:
       - '8080:8080'
@@ -22,13 +22,13 @@ services:
       - AWS_REGION=eu-west-1
       - AWS_DEFAULT_REGION=eu-west-1
     volumes:
-      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     networks:
       - spark-network
 
   spark-worker:
-    build: .
-    command: ["/bin/bash", "-c", "sleep 10 && /spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
+    image: snowplow/spark-s3-iceberg:latest
+    command: ["/bin/bash", "-c", "sleep 10 && /opt/spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
     depends_on:
       - spark-master
     environment:
@@ -42,13 +42,13 @@ services:
       - AWS_REGION=eu-west-1
       - AWS_DEFAULT_REGION=eu-west-1
     volumes:
-      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     networks:
       - spark-network
 
   thrift-server:
-    build: .
-    command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
+    image: snowplow/spark-s3-iceberg:latest
+    command: ["/bin/bash", "-c", "sleep 30 && /opt/spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /opt/spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
     ports:
       - '10000:10000'
     depends_on:
@@ -61,6 +61,6 @@ services:
       - AWS_REGION=eu-west-1
       - AWS_DEFAULT_REGION=eu-west-1
     volumes:
-      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
     networks:
       - spark-network

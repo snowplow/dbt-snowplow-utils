@@ -3,8 +3,6 @@ name: pr_tests_spark
 on:
   pull_request:
 
-concurrency: dbt_integration_tests
-
 env:
   DBT_PROFILES_DIR: ./ci
   SPARK_MASTER_HOST: localhost
@@ -29,6 +27,12 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set SCHEMA_SUFFIX env
         run: >-
@@ -70,7 +74,7 @@ jobs:
       - name: Build and start Spark cluster
         working-directory: .github/workflows/spark_deployment
         run: |
-          docker-compose build
+          # docker-compose build
           docker-compose up -d
           echo "Waiting for Spark services to start..."
           sleep 90
