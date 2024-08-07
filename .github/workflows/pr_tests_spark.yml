@@ -10,6 +10,7 @@ env:
   SPARK_SCHEMA: default
   AWS_REGION: eu-west-1
   AWS_DEFAULT_REGION: eu-west-1
+  DOCKER_PLATFORM: linux/amd64
 
 jobs:
   pr_tests_spark:
@@ -63,65 +64,32 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
       - name: Install Docker Compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Build and start Spark cluster
+      - name: Start Spark cluster
         working-directory: .github/workflows/spark_deployment
         run: |
-          # docker-compose build
           docker-compose up -d
           echo "Waiting for Spark services to start..."
-          sleep 90
+          sleep 120
 
       - name: Check running containers
         working-directory: .github/workflows/spark_deployment
         run: docker ps
 
-      - name: Check Docker network
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker network ls
-          # docker network inspect spark-network
-
       - name: Print Docker logs
+        if: failure()
         working-directory: .github/workflows/spark_deployment
         run: |
           echo "Docker logs for spark-master:"
-          docker-compose logs --tail=1000 spark-master
+          docker-compose logs spark-master
           echo "Docker logs for spark-worker:"
-          docker-compose logs --tail=1000 spark-worker
+          docker-compose logs spark-worker
           echo "Docker logs for thrift-server:"
-          docker-compose logs --tail=1000 thrift-server
-
-      - name: Verify Spark configuration
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          echo "Verifying Spark configuration..."
-          docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
-
-      - name: Wait for Thrift Server
-        run: |
-          echo "Waiting for Thrift Server to be fully operational..."
-          sleep 60
-
-      - name: Check ThriftServer Process
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
-      
-      - name: Check Latest ThriftServer Log
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
-      
-      - name: Test ThriftServer connection with Beeline
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker-compose exec -T thrift-server bash -c '/spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"'
+          docker-compose logs thrift-server
 
       - name: "Pre-test: Drop ci schemas"
         run: |
