@@ -4,13 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - feature/**
-      - dev
-      - staging
-      - template-spark-tests
-      - spark_prep
 
 concurrency: dbt_integration_tests
 
@@ -23,8 +16,8 @@ env:
   AWS_DEFAULT_REGION: eu-west-1
 
 jobs:
-  spark_s3_integration_tests:
-    name: Spark S3 Integration Tests
+  pr_tests_spark:
+    name: pr_tests_spark
     runs-on: ubuntu-latest
     defaults:
       run:
