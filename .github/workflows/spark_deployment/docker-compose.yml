@@ -6,7 +6,7 @@ networks:
 
 services:
   spark-master:
-    image: snowplow/spark-s3-iceberg:latest
+    image: snowplow/spark-s3-iceberg:v1
     command: ["/bin/bash", "-c", "/opt/spark/sbin/start-master.sh -h spark-master --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
     hostname: spark-master
     ports:
