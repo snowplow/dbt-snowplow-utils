@@ -1,133 +1,66 @@
-name: pr_tests_spark
+version: '3'
 
-on:
-  pull_request:
-    branches:
-      - main
+networks:
+  spark-network:
+    driver: bridge
 
-concurrency: dbt_integration_tests
+services:
+  spark-master:
+    build: .
+    command: ["/bin/bash", "-c", "/spark/sbin/start-master.sh -h spark-master --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
+    hostname: spark-master
+    ports:
+      - '8080:8080'
+      - '7077:7077'
+    environment:
+      - SPARK_LOCAL_IP=spark-master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_OPTS="-Dspark.driver.memory=2g"
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=eu-west-1
+      - AWS_DEFAULT_REGION=eu-west-1
+    volumes:
+      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+    networks:
+      - spark-network
 
-env:
-  DBT_PROFILES_DIR: ./ci
-  SPARK_MASTER_HOST: localhost
-  SPARK_USER: spark
-  SPARK_SCHEMA: default
-  AWS_REGION: eu-west-1
-  AWS_DEFAULT_REGION: eu-west-1
+  spark-worker:
+    build: .
+    command: ["/bin/bash", "-c", "sleep 10 && /spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /spark/conf/spark-defaults.conf && tail -f /spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=4G
+      - SPARK_EXECUTOR_MEMORY=3G
+      - SPARK_LOCAL_IP=spark-worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=eu-west-1
+      - AWS_DEFAULT_REGION=eu-west-1
+    volumes:
+      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+    networks:
+      - spark-network
 
-jobs:
-  spark_s3_integration_tests:
-    name: Spark S3 Integration Tests
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./integration_tests
-    strategy:
-      matrix:
-        dbt_version:
-          - 1.*
-        warehouse:
-          - spark
-    steps:
-      - name: Check out
-        uses: actions/checkout@v3
-
-      - name: Set SCHEMA_SUFFIX env
-        run: >-
-          echo "SCHEMA_SUFFIX=$(echo ${DBT_VERSION%.*} | tr . _)" >> $GITHUB_ENV
-        env:
-          DBT_VERSION: '${{ matrix.dbt_version }}'
-
-      - name: Set DEFAULT_TARGET env
-        run: |
-          echo "DEFAULT_TARGET=${{ matrix.warehouse }}" >> $GITHUB_ENV
-
-      - name: Python setup
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8.x
-
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-spark[PyHive]==${{ matrix.dbt_version }}" --upgrade
-          pip install boto3 awscli
-          dbt deps
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
-      - name: Build and start Spark cluster
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker-compose build
-          docker-compose up -d
-          echo "Waiting for Spark services to start..."
-          sleep 90
-
-      - name: Check running containers
-        working-directory: .github/workflows/spark_deployment
-        run: docker ps
-
-      - name: Check Docker network
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker network ls
-          # docker network inspect spark-network
-
-      - name: Print Docker logs
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          echo "Docker logs for spark-master:"
-          docker-compose logs --tail=1000 spark-master
-          echo "Docker logs for spark-worker:"
-          docker-compose logs --tail=1000 spark-worker
-          echo "Docker logs for thrift-server:"
-          docker-compose logs --tail=1000 thrift-server
-
-      - name: Verify Spark configuration
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          echo "Verifying Spark configuration..."
-          docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
-
-      - name: Wait for Thrift Server
-        run: |
-          echo "Waiting for Thrift Server to be fully operational..."
-          sleep 60
-
-      - name: Check ThriftServer Process
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
-      
-      - name: Check Latest ThriftServer Log
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
-      
-      - name: Test ThriftServer connection with Beeline
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker-compose exec -T thrift-server bash -c '/spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"'
-
-      - name: "Pre-test: Drop ci schemas"
-        run: |
-          dbt run-operation post_ci_cleanup --target spark
-
-      - name: Run tests
-        run: ./.scripts/integration_tests.sh -d spark
-
-      - name: "Post-test: Drop ci schemas"
-        run: |
-          dbt run-operation post_ci_cleanup --target spark
+  thrift-server:
+    build: .
+    command: ["/bin/bash", "-c", "sleep 30 && /spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
+    ports:
+      - '10000:10000'
+    depends_on:
+      - spark-master
+      - spark-worker
+    environment:
+      - SPARK_LOCAL_IP=thrift-server
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=eu-west-1
+      - AWS_DEFAULT_REGION=eu-west-1
+    volumes:
+      - ./spark-defaults.conf:/spark/conf/spark-defaults.conf
+    networks:
+      - spark-network
