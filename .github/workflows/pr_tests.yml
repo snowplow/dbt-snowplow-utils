@@ -61,7 +61,7 @@ jobs:
     strategy:
       matrix:
         dbt_version: ["1.*"]
-        warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift"] # TODO: Add RS self-hosted runner
+        warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift","spark"] # TODO: Add RS self-hosted runner
     services:
       postgres:
         image: postgres:latest
@@ -82,7 +82,18 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v3
-
+      - name: Configure Docker credentials
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+      
       # Remove '*' and replace '.' with '_' in DBT_VERSION & set as SCHEMA_SUFFIX.
       # SCHEMA_SUFFIX allows us to run multiple versions of dbt in parallel without overwriting the output tables
       - name: Set SCHEMA_SUFFIX env
@@ -118,10 +129,24 @@ jobs:
       - name: Install spark dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-${{ matrix.warehouse }}[ODBC]"==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv "dbt-${{ matrix.warehouse }}[PyHive]"==${{ matrix.dbt_version }} --upgrade
           dbt deps
         if: ${{matrix.warehouse == 'spark'}}
+      
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
 
+      
+      - name: Build and start Spark cluster
+        working-directory: .github/workflows/spark_deployment
+        run: |
+          docker-compose up -d
+          echo "Waiting for Spark services to start..."
+          sleep 90
+        if: ${{matrix.warehouse == 'spark'}}
+    
       - name: "Pre-test: Drop ci schemas"
         run: |
           dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}

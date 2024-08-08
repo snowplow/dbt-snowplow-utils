@@ -9,22 +9,20 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
    partition_by: BQ only. Key used to limit table scan
    TODO: Add tests that change the granularity of the partition #}
 
-{{
-  config(
+{{ config(
     materialized='incremental',
-    unique_key=['id', 'id2'],
+    file_format='iceberg' if target.type in ['spark'] else 'delta',
+    unique_key=['id','id2'],
     upsert_date_key='start_tstamp',
-    partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
-      "field": "start_tstamp",
-      "data_type": "timestamp"
-    }),
     tags=["requires_script"],
-    snowplow_optimize=true
-  )
-}}
+    snowplow_optimize=true,
+    incremental_strategy ='delete+insert' if target.type in ['postgres', 'redshift'] else 'merge'
+) }}
+
 
 with data as (
-  select * from {{ ref('data_incremental') }}
+  select *
+  from {{ ref('data_incremental') }}
   {% if target.type == 'snowflake' %}
     -- data set intentionally contains dupes.
     -- Snowflake merge will error if dupes occur. Removing for test

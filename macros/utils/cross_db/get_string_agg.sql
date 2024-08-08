@@ -95,6 +95,36 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro spark__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
   /* Explaining inside out:
   1. Create a group array which is made of sub-arrays of the base_column and the sort column
+  2. Sort these sub-arrays based on a lambda function that compares on the second element (the sort column, casted if needed)
+  3. Use transform to select just the first element of the array
+  4. Optionally use array_distinct
+  5. Join the array into a string
+  */
+  array_join(
+    {% if is_distinct %} array_distinct( {% endif %}
+    transform(
+      array_sort(
+        FILTER(collect_list(
+          ARRAY(cast({{column_prefix}}.{{base_column}} as string), cast({{order_by_column_prefix}}.{{order_by_column}} as string))), x -> x[0] is not null), (left, right) ->
+
+          {%- if sort_numeric -%}
+            CASE WHEN cast(left[1] as decimal(38, 9)) {% if order_desc %} > {% else %} < {% endif %} cast(right[1] as decimal(38, 9)) THEN -1
+                        WHEN cast(left[1] as decimal(38, 9)) {% if order_desc %} < {% else %} > {% endif %} cast(right[1] as decimal(38, 9)) THEN 1 ELSE 0 END
+
+          {% else %}
+            CASE WHEN left[1] {% if order_desc %} > {% else %} < {% endif %} right[1] THEN -1
+                        WHEN left[1] {% if order_desc %} < {% else %} > {% endif %} right[1] THEN 1 ELSE 0 END
+
+          {% endif %}
+                ), x -> x[0])
+    {% if is_distinct %} ) {% endif %},
+      '{{separator}}')
+{% endmacro %}
+
+
+{% macro databricks__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
+  /* Explaining inside out:
+  1. Create a group array which is made of sub-arrays of the base_column and the sort column
   2. Sort these sub-arrays based on a lamdba function that compares on the second element (the sort column, casted if needed)
   3. Use transform to select just the first element of the array
   4. Optionally use array_distinct

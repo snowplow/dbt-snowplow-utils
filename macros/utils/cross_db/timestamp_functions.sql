@@ -24,6 +24,18 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     timestamp_diff({{second_tstamp}}, {{first_tstamp}}, {{datepart}})
 {% endmacro %}
 
+{% macro spark__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
+    cast(
+        (unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) /
+        case
+            when lower({{datepart}}) = 'second' then 1
+            when lower({{datepart}}) = 'minute' then 60
+            when lower({{datepart}}) = 'hour' then 3600
+            when lower({{datepart}}) = 'day' then 86400
+            else null
+        end
+    as bigint)
+{% endmacro %}
 
 {% macro timestamp_add(datepart, interval, tstamp) %}
     {{ return(adapter.dispatch('timestamp_add', 'snowplow_utils')(datepart, interval, tstamp)) }}
@@ -44,6 +56,23 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     timestampadd({{datepart}}, {{interval}}, {{tstamp}})
 {% endmacro %}
 
+{% macro spark__timestamp_add(datepart, interval, tstamp) %}
+    {% if datepart|lower == 'week' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(24 as bigint) * cast(7 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'day' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(24 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'hour' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'minute' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(60 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'second' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + cast({{interval}} as bigint) * cast(1000 as bigint) as bigint))
+    {% elif datepart|lower == 'millisecond' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + cast({{interval}} as bigint) as bigint))
+    {% else %}
+        {{ exceptions.raise_compiler_error("Unsupported datepart for Spark: " ~ datepart) }}
+    {% endif %}
+{% endmacro %}
 
 {% macro cast_to_tstamp(tstamp_literal) -%}
     {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
