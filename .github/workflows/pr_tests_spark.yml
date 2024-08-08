@@ -2,6 +2,7 @@ name: pr_tests_spark
 
 on:
   pull_request:
+    - 'pause'
 
 concurrency: dbt_integration_tests
 
@@ -77,50 +78,6 @@ jobs:
           docker-compose up -d
           echo "Waiting for Spark services to start..."
           sleep 90
-
-      - name: Check running containers
-        working-directory: .github/workflows/spark_deployment
-        run: docker ps
-
-      - name: Check Docker network
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker network ls
-          # docker network inspect spark-network
-
-      - name: Print Docker logs
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          echo "Docker logs for spark-master:"
-          docker-compose logs --tail=1000 spark-master
-          echo "Docker logs for spark-worker:"
-          docker-compose logs --tail=1000 spark-worker
-          echo "Docker logs for thrift-server:"
-          docker-compose logs --tail=1000 thrift-server
-
-      - name: Verify Spark configuration
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          echo "Verifying Spark configuration..."
-          docker-compose exec -T spark-master bash -c "cat /spark/conf/spark-defaults.conf"
-
-      - name: Wait for Thrift Server
-        run: |
-          echo "Waiting for Thrift Server to be fully operational..."
-          sleep 60
-
-      - name: Check ThriftServer Process
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "ps aux | grep ThriftServer"
-      
-      - name: Check Latest ThriftServer Log
-        working-directory: .github/workflows/spark_deployment
-        run: docker-compose exec -T thrift-server bash -c "tail -n 50 /spark/logs/\$(ls -t /spark/logs/ | grep thriftserver | head -n1)"
-      
-      - name: Test ThriftServer connection with Beeline
-        working-directory: .github/workflows/spark_deployment
-        run: |
-          docker-compose exec -T thrift-server bash -c '/spark/bin/beeline -u "jdbc:hive2://localhost:10000" -e "SHOW DATABASES;"'
 
       - name: "Pre-test: Drop ci schemas"
         run: |
