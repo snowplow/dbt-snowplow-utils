@@ -69,18 +69,34 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
+      - name: Diagnostic Information
+        run: |
+          echo "Docker version:"
+          docker --version
+          echo "Docker info:"
+          docker info
+          echo "Available images:"
+          docker images
+          echo "System information:"
+          uname -a
+
       - name: Start Spark cluster
         working-directory: .github/workflows/spark_deployment
         run: |
+          docker-compose config
+          docker-compose pull
           docker-compose up -d
           echo "Waiting for Spark services to start..."
-          sleep 30  # Reduced sleep time
+          sleep 30
           docker-compose ps
           docker-compose logs
 
       - name: Check running containers
         working-directory: .github/workflows/spark_deployment
-        run: docker ps -a  # Show all containers, including stopped ones
+        run: |
+          docker ps -a
+          echo "Container details:"
+          docker inspect $(docker ps -aq)
 
       - name: Print Docker logs
         if: failure()
