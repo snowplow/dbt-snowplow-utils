@@ -74,11 +74,13 @@ jobs:
         run: |
           docker-compose up -d
           echo "Waiting for Spark services to start..."
-          sleep 120
+          sleep 30  # Reduced sleep time
+          docker-compose ps
+          docker-compose logs
 
       - name: Check running containers
         working-directory: .github/workflows/spark_deployment
-        run: docker ps
+        run: docker ps -a  # Show all containers, including stopped ones
 
       - name: Print Docker logs
         if: failure()

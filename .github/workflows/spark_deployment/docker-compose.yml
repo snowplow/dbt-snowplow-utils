@@ -1,3 +1,5 @@
+version: '3'
+
 networks:
   spark-network:
     driver: bridge
@@ -6,7 +8,7 @@ services:
   spark-master:
     image: snowplow/spark-s3-iceberg:v2
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    command: ["/bin/bash", "-c", "/opt/spark/sbin/start-master.sh -h spark-master --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.master.Master-1-*.out"]
+    command: ["/bin/bash", "-c", "/opt/spark/sbin/start-master.sh -h spark-master --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /dev/null"]
     hostname: spark-master
     ports:
       - '8080:8080'
@@ -28,7 +30,7 @@ services:
   spark-worker:
     image: snowplow/spark-s3-iceberg:v2
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    command: ["/bin/bash", "-c", "sleep 10 && /opt/spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /opt/spark/logs/spark--org.apache.spark.deploy.worker.Worker-*.out"]
+    command: ["/bin/bash", "-c", "sleep 10 && /opt/spark/sbin/start-worker.sh spark://spark-master:7077 --properties-file /opt/spark/conf/spark-defaults.conf && tail -f /dev/null"]
     depends_on:
       - spark-master
     environment:
@@ -49,7 +51,7 @@ services:
   thrift-server:
     image: snowplow/spark-s3-iceberg:v2
     platform: ${DOCKER_PLATFORM:-linux/amd64}
-    command: ["/bin/bash", "-c", "sleep 30 && /opt/spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /opt/spark/logs/spark--org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-*.out"]
+    command: ["/bin/bash", "-c", "sleep 30 && /opt/spark/sbin/start-thriftserver.sh --master spark://spark-master:7077 --driver-memory 2g --executor-memory 3g --hiveconf hive.server2.thrift.port=10000 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.sql.hive.thriftServer.async=true --conf spark.sql.hive.thriftServer.workerQueue.size=2000 --conf spark.sql.hive.thriftServer.maxWorkerThreads=100 --conf spark.sql.hive.thriftServer.minWorkerThreads=50 && tail -f /dev/null"]
     ports:
       - '10000:10000'
     depends_on:
