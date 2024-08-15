@@ -74,3 +74,5 @@ integration_tests:
       connect_retries: 5
       connect_timeout: 60
       threads: 1
+      vars:
+        snowplow__datalake_file_format: iceberg
