@@ -62,9 +62,6 @@ jobs:
       matrix:
         dbt_version: ["1.*"]
         warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift", "spark_iceberg"] # TODO: Add RS self-hosted runner
-    env:
-      WAREHOUSE_PLATFORM: ${{ env.WAREHOUSE_PLATFORM }}
-      WAREHOUSE_SPECIFIC: ${{ contains(matrix.warehouse, '_') && split(matrix.warehouse, '_')[1] || '' }}
     services:
       postgres:
         image: postgres:latest
