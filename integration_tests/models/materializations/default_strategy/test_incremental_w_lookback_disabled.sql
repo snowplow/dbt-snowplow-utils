@@ -20,8 +20,7 @@ incremental materialization with lookback disabled.
       "data_type": "timestamp"
     }),
     tags=["requires_script"],
-    snowplow_optimize=true,
-    file_format='iceberg' if target.type in ['spark'] else 'delta'
+    snowplow_optimize=true
   )
 }}
 

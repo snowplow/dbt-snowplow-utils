@@ -11,7 +11,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {{ config(
     materialized='incremental',
-    file_format='iceberg' if target.type in ['spark'] else 'delta',
     unique_key=['id','id2'],
     upsert_date_key='start_tstamp',
     tags=["requires_script"],
