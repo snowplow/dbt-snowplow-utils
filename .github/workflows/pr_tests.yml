@@ -61,7 +61,8 @@ jobs:
     strategy:
       matrix:
         dbt_version: ["1.*"]
-        warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift","spark_iceberg"] # TODO: Add RS self-hosted runner
+        warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift", "spark_iceberg"] # TODO: Add RS self-hosted runner
+
     services:
       postgres:
         image: postgres:latest
@@ -103,7 +104,7 @@ jobs:
 
       - name: Set DEFAULT_TARGET env
         run: |
-         echo "DEFAULT_TARGET=${{ matrix.warehouse }}" >> $GITHUB_ENV
+         echo "DEFAULT_TARGET=${{matrix.warehouse}}" >> $GITHUB_ENV
 
       - name: Python setup
         uses: actions/setup-python@v4
@@ -114,24 +115,24 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
+          key: ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{split(matrix.warehouse, '_')[0]}}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{ matrix.warehouse }}
+            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{split(matrix.warehouse, '_')[0]}}
 
       # Install latest patch version. Upgrade if cache contains old patch version.
       - name: Install dependencies
         run: |
           pip install wheel setuptools
-          pip install -Iv dbt-${{ matrix.warehouse }}==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv dbt-${{ split(matrix.warehouse, '_')[0] }}==${{ matrix.dbt_version }} --upgrade
           dbt deps
-        if: ${{matrix.warehouse != 'spark'}}
+        if: ${{split(matrix.warehouse, '_')[0] != 'spark'}}
 
       - name: Install spark dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-${{ matrix.warehouse }}[PyHive]"==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv "dbt-${{ split(matrix.warehouse, '_')[0] }}[PyHive]"==${{ matrix.dbt_version }} --upgrade
           dbt deps
-        if: ${{matrix.warehouse == 'spark'}}
+        if: ${{split(matrix.warehouse, '_')[0] == 'spark'}}
       
       - name: Install Docker Compose
         run: |
@@ -145,15 +146,15 @@ jobs:
           docker-compose up -d
           echo "Waiting for Spark services to start..."
           sleep 90
-        if: ${{matrix.warehouse == 'spark'}}
+        if: ${{split(matrix.warehouse, '_')[0] == 'spark'}}
     
       - name: "Pre-test: Drop ci schemas"
         run: |
-          dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
+          dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
 
       - name: Run tests
-        run: ./.scripts/integration_tests.sh -d ${{ matrix.warehouse }}
+        run: ./.scripts/integration_tests.sh -d ${{matrix.warehouse}}
 
       - name: "Post-test: Drop ci schemas"
         run: |
-          dbt run-operation post_ci_cleanup --target ${{ matrix.warehouse }}
+          dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
