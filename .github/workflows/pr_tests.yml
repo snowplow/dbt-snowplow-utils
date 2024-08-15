@@ -62,7 +62,9 @@ jobs:
       matrix:
         dbt_version: ["1.*"]
         warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift", "spark_iceberg"] # TODO: Add RS self-hosted runner
-
+    env:
+      WAREHOUSE_PLATFORM: ${{ env.WAREHOUSE_PLATFORM }}
+      WAREHOUSE_SPECIFIC: ${{ contains(matrix.warehouse, '_') && split(matrix.warehouse, '_')[1] || '' }}
     services:
       postgres:
         image: postgres:latest
@@ -115,24 +117,24 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{split(matrix.warehouse, '_')[0]}}
+          key: ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{env.WAREHOUSE_PLATFORM}}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{split(matrix.warehouse, '_')[0]}}
+            ${{ runner.os }}-pip-${{ matrix.dbt_version }}-${{env.WAREHOUSE_PLATFORM}}
 
       # Install latest patch version. Upgrade if cache contains old patch version.
       - name: Install dependencies
         run: |
           pip install wheel setuptools
-          pip install -Iv dbt-${{ split(matrix.warehouse, '_')[0] }}==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv dbt-${{env.WAREHOUSE_PLATFORM}}==${{ matrix.dbt_version }} --upgrade
           dbt deps
-        if: ${{split(matrix.warehouse, '_')[0] != 'spark'}}
+        if: ${{env.WAREHOUSE_PLATFORM != 'spark'}}
 
       - name: Install spark dependencies
         run: |
           pip install --upgrade pip wheel setuptools
-          pip install -Iv "dbt-${{ split(matrix.warehouse, '_')[0] }}[PyHive]"==${{ matrix.dbt_version }} --upgrade
+          pip install -Iv "dbt-${{ env.WAREHOUSE_PLATFORM }}[PyHive]"==${{ matrix.dbt_version }} --upgrade
           dbt deps
-        if: ${{split(matrix.warehouse, '_')[0] == 'spark'}}
+        if: ${{env.WAREHOUSE_PLATFORM == 'spark'}}
       
       - name: Install Docker Compose
         run: |
@@ -146,7 +148,7 @@ jobs:
           docker-compose up -d
           echo "Waiting for Spark services to start..."
           sleep 90
-        if: ${{split(matrix.warehouse, '_')[0] == 'spark'}}
+        if: ${{env.WAREHOUSE_PLATFORM == 'spark'}}
     
       - name: "Pre-test: Drop ci schemas"
         run: |
