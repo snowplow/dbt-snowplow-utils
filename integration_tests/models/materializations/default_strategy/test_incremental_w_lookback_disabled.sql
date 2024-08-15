@@ -19,7 +19,6 @@ incremental materialization with lookback disabled.
       "field": "start_tstamp",
       "data_type": "timestamp"
     }),
-    incremental_strategy = 'delete+insert' if target.type in ['postgres', 'redshift'] else 'merge',
     tags=["requires_script"],
     snowplow_optimize=true,
     file_format='iceberg' if target.type in ['spark'] else 'delta'

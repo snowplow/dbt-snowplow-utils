@@ -16,7 +16,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     upsert_date_key='start_tstamp',
     tags=["requires_script"],
     snowplow_optimize=true,
-    incremental_strategy ='delete+insert' if target.type in ['postgres', 'redshift'] else 'merge'
 ) }}
 
 
