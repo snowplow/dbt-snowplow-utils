@@ -22,6 +22,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     timestamp_diff({{second_tstamp}}, {{first_tstamp}}, {{datepart}})
 {% endmacro %}
 
+{% macro databricks__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
+    {{ return(datediff(first_tstamp, second_tstamp, datepart)) }}
+{% endmacro %}
+
 {% macro spark__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     cast(
         (unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) /
