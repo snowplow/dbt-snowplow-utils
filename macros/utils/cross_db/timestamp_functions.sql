@@ -37,6 +37,17 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     as bigint)
 {% endmacro %}
 
+{% macro postgres__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
+    extract(epoch from ({{second_tstamp}} - {{first_tstamp}}))::bigint /
+    case
+        when {{datepart}} = 'second' then 1
+        when {{datepart}} = 'minute' then 60
+        when {{datepart}} = 'hour' then 3600
+        when {{datepart}} = 'day' then 86400
+        else null
+    end
+{% endmacro %}
+
 {% macro timestamp_add(datepart, interval, tstamp) %}
     {{ return(adapter.dispatch('timestamp_add', 'snowplow_utils')(datepart, interval, tstamp)) }}
 {% endmacro %}
