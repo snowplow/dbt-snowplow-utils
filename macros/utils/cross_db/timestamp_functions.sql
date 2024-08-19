@@ -27,16 +27,21 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% endmacro %}
 
 {% macro spark__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
-    cast(
-        (unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) /
-        case
-            when datepart|lower == 'second' then 1
-            when datepart|lower == 'minute' then 60
-            when datepart|lower == 'hour' then 3600
-            when datepart|lower == 'day' then 86400
-            else null
-        end
-    as bigint)
+    {% if datepart|lower == 'week' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / (3600 * 24 * 7) as bigint)
+    {% elif datepart|lower == 'day' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / (3600 * 24) as bigint)
+    {% elif datepart|lower == 'hour' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / 3600 as bigint)
+    {% elif datepart|lower == 'minute' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / 60 as bigint)
+    {% elif datepart|lower == 'second' %}
+        cast(unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp)) as bigint)
+    {% elif datepart|lower == 'millisecond' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) * 1000 as bigint)
+    {% else %}
+        {{ exceptions.raise_compiler_error("Unsupported datepart for Spark: " ~ datepart) }}
+    {% endif %}
 {% endmacro %}
 
 
