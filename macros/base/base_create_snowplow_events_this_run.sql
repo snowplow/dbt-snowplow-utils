@@ -14,7 +14,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                                                                             'start_tstamp',
                                                                             'end_tstamp') %}
     {% set sessions_this_run = ref(sessions_this_run_table) %}
-    {% set snowplow_events = api.Relation.create(database=none, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
+    {% set snowplow_events = api.Relation.create(database=snowplow_events_database, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
 
     {% set events_this_run_query %}
         with identified_events AS (
@@ -116,7 +116,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% endif %}
 
     {% set sessions_this_run = ref(sessions_this_run_table) %}
-    {% set snowplow_events = api.Relation.create(database=none, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
+    {% set snowplow_events = api.Relation.create(database=snowplow_events_database, schema=snowplow_events_schema, identifier=snowplow_events_table) %}
 
     {% set events_this_run_query %}
         with
