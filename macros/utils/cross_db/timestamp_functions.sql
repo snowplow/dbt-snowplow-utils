@@ -14,11 +14,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {{ return(adapter.dispatch('timestamp_diff', 'snowplow_utils')(first_tstamp, second_tstamp, datepart)) }}
 {% endmacro %}
 
-
 {% macro default__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     {{ return(datediff(first_tstamp, second_tstamp, datepart)) }}
 {% endmacro %}
-
 
 {% macro bigquery__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     timestamp_diff({{second_tstamp}}, {{first_tstamp}}, {{datepart}})
@@ -28,25 +26,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     cast(
         (unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) /
         case
-            when lower({{datepart}}) = 'second' then 1
-            when lower({{datepart}}) = 'minute' then 60
-            when lower({{datepart}}) = 'hour' then 3600
-            when lower({{datepart}}) = 'day' then 86400
+            when datepart|lower == = 'second' then 1
+            when datepart|lower == = 'minute' then 60
+            when datepart|lower == = 'hour' then 3600
+            when datepart|lower == = 'day' then 86400
             else null
         end
     as bigint)
 {% endmacro %}
 
-{% macro postgres__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
-    extract(epoch from ({{second_tstamp}} - {{first_tstamp}}))::bigint /
-    case
-        when {{datepart}} = 'second' then 1
-        when {{datepart}} = 'minute' then 60
-        when {{datepart}} = 'hour' then 3600
-        when {{datepart}} = 'day' then 86400
-        else null
-    end
-{% endmacro %}
 
 {% macro timestamp_add(datepart, interval, tstamp) %}
     {{ return(adapter.dispatch('timestamp_add', 'snowplow_utils')(datepart, interval, tstamp)) }}
