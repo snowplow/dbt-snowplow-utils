@@ -26,10 +26,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     cast(
         (unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) /
         case
-            when datepart|lower == = 'second' then 1
-            when datepart|lower == = 'minute' then 60
-            when datepart|lower == = 'hour' then 3600
-            when datepart|lower == = 'day' then 86400
+            when datepart|lower == 'second' then 1
+            when datepart|lower == 'minute' then 60
+            when datepart|lower == 'hour' then 3600
+            when datepart|lower == 'day' then 86400
             else null
         end
     as bigint)
