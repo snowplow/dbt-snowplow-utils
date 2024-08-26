@@ -117,13 +117,13 @@ models:
         bigquery:
           +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
         databricks:
-          +enabled: "{{ target.type in ['databricks'] | as_bool() }}"
+          +enabled: "{{ target.type == 'databricks' | as_bool() }}"
         default:
           +enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
         snowflake:
           +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
         spark:
-          +enabled: "{{ target.type in ['spark'] | as_bool() }}"
+          +enabled: "{{ target.type == 'spark' | as_bool() }}"
 
 
 tests:

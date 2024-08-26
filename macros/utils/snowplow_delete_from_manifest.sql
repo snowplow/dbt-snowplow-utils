@@ -60,8 +60,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {%- endif -%}
 
   {% endset %}
-  {% do log("delete_statement") %}
-  {% do log(delete_statement) %}
   {%- do adapter.execute(delete_statement) -%}
 
   {%- if matched_models|length -%}
