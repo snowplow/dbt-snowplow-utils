@@ -76,7 +76,7 @@ vars:
 models:
   snowplow_utils_integration_tests:
     +schema: "snplw_utils_int_tests"
-    +incremental_strategy: "{{ 'delete+insert' if target.type in ['postgres', 'redshift'] else 'merge' }}"
+    +incremental_strategy: "{{ None if target.type not in ['spark'] else 'merge' }}"
     +file_format: >
       {{ 
         var(
