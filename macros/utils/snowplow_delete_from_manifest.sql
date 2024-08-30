@@ -45,17 +45,22 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {%- endif -%}
 
   {% set delete_statement %}
-    {%- if target.type in ['databricks', 'spark'] -%}
-      delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
+    {%- if target.type in ['databricks'] -%}
+      DELETE FROM {{ incremental_manifest_table }}
+      WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
+    {%- elif target.type in ['spark'] -%}
+      DELETE FROM {{ incremental_manifest_table }}
+      WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
     {%- else -%}
       -- We don't need transaction but Redshift needs commit statement while BQ does not. By using transaction we cover both.
-      begin;
-      delete from {{ incremental_manifest_table }} where model in ({{ snowplow_utils.print_list(matched_models) }});
-      commit;
+      BEGIN;
+      DELETE FROM {{ incremental_manifest_table }} 
+      WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
+      COMMIT;
     {%- endif -%}
-  {% endset %}
 
-  {%- do run_query(delete_statement) -%}
+  {% endset %}
+  {%- do adapter.execute(delete_statement) -%}
 
   {%- if matched_models|length -%}
     {% do snowplow_utils.log_message("Snowplow: Deleted models "+snowplow_utils.print_list(matched_models)+" from the manifest") %}
