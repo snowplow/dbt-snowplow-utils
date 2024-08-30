@@ -14,14 +14,34 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {{ return(adapter.dispatch('timestamp_diff', 'snowplow_utils')(first_tstamp, second_tstamp, datepart)) }}
 {% endmacro %}
 
-
 {% macro default__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     {{ return(datediff(first_tstamp, second_tstamp, datepart)) }}
 {% endmacro %}
 
-
 {% macro bigquery__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
     timestamp_diff({{second_tstamp}}, {{first_tstamp}}, {{datepart}})
+{% endmacro %}
+
+{% macro databricks__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
+    {{ return(datediff(first_tstamp, second_tstamp, datepart)) }}
+{% endmacro %}
+
+{% macro spark__timestamp_diff(first_tstamp, second_tstamp, datepart) %}
+    {% if datepart|lower == 'week' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / (3600 * 24 * 7) as bigint)
+    {% elif datepart|lower == 'day' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / (3600 * 24) as bigint)
+    {% elif datepart|lower == 'hour' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / 3600 as bigint)
+    {% elif datepart|lower == 'minute' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) / 60 as bigint)
+    {% elif datepart|lower == 'second' %}
+        cast(unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp)) as bigint)
+    {% elif datepart|lower == 'millisecond' %}
+        cast((unix_timestamp(cast({{second_tstamp}} as timestamp)) - unix_timestamp(cast({{first_tstamp}} as timestamp))) * 1000 as bigint)
+    {% else %}
+        {{ exceptions.raise_compiler_error("Unsupported datepart for Spark: " ~ datepart) }}
+    {% endif %}
 {% endmacro %}
 
 
@@ -44,6 +64,23 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     timestampadd({{datepart}}, {{interval}}, {{tstamp}})
 {% endmacro %}
 
+{% macro spark__timestamp_add(datepart, interval, tstamp) %}
+    {% if datepart|lower == 'week' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(24 as bigint) * cast(7 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'day' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(24 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'hour' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(3600 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'minute' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + (cast({{interval}} as bigint) * cast(60 as bigint) * cast(1000 as bigint)) as bigint))
+    {% elif datepart|lower == 'second' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + cast({{interval}} as bigint) * cast(1000 as bigint) as bigint))
+    {% elif datepart|lower == 'millisecond' %}
+        timestamp_millis(cast(cast(unix_millis({{tstamp}}) as bigint) + cast({{interval}} as bigint) as bigint))
+    {% else %}
+        {{ exceptions.raise_compiler_error("Unsupported datepart for Spark: " ~ datepart) }}
+    {% endif %}
+{% endmacro %}
 
 {% macro cast_to_tstamp(tstamp_literal) -%}
     {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
