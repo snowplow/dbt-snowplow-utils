@@ -29,7 +29,13 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% if '*' in column_name %}
     {% do exceptions.raise_compiler_error('Wildcard schema versions are only supported for Bigquery, they are not supported for ' ~ target.type) %}
 {% else %}
-    {%- if table_alias -%}{{table_alias}}.{%- endif -%}{{column_name}}{%- if array_index is not none -%}[{{array_index}}]{%- endif -%}.{{field_name}}{%- if type -%}::{{type}}{%- endif -%}
+    {%- if type is none -%}
+        {%- if table_alias -%}{{table_alias}}.{%- endif -%}{{column_name}}{%- if array_index is not none -%}[{{array_index}}]{%- endif -%}.{{field_name}}
+    {%- else -%}
+        CAST(
+            {%- if table_alias -%}{{table_alias}}.{%- endif -%}{{column_name}}{%- if array_index is not none -%}[{{array_index}}]{%- endif -%}.{{field_name}} AS {{type}}
+        )
+    {%- endif -%}
 {% endif %}
 {% endmacro %}
 

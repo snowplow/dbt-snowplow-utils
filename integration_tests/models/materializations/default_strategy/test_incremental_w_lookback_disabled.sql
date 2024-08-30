@@ -24,9 +24,10 @@ incremental materialization with lookback disabled.
   )
 }}
 
-with data as (
+
+WITH data as (
   select * from {{ ref('data_incremental') }}
-  {% if target.type == 'snowflake' %}
+  {% if target.type in ['snowflake'] %}
     -- data set intentionally contains dupes.
     -- Snowflake merge will error if dupes occur. Removing for test
     where not (run = 1 and id = 2 and start_tstamp = '2021-03-03 00:00:00')
