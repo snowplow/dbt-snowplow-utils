@@ -77,7 +77,7 @@ models:
   snowplow_utils_integration_tests:
     +schema: "snplw_utils_int_tests"
     +incremental_strategy: "{{ none if target.type not in ['spark'] else 'merge' }}"
-    +file_format: 'delta' if target.type != 'spark' else 'iceberg'
+    +file_format: "{{ 'delta' if target.type not in ['spark'] else 'iceberg'}}"
     materializations:
       snowflake_delete_insert:
         enabled: "{{ target.type == 'snowflake' | as_bool() }}"
