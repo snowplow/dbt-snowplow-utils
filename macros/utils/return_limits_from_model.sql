@@ -37,7 +37,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {{ snowplow_utils.log_message("Snowplow Warning: *************") }}
         {# This allows for bigquery to still run the same way the other warehouses do, but also ensures no data is processed #}
         {# add comment here #}
-        {% if boolean_test %}
+        {% if lower_output %}
             {% set lower_limit = snowplow_utils.cast_to_tstamp('0000-01-01 00:00:00') %}
             {% set upper_limit = snowplow_utils.cast_to_tstamp('0000-01-02 00:00:00') %}
           {%- else -%}
