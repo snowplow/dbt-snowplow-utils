@@ -40,7 +40,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% if lower_output %}
             {% set lower_limit = snowplow_utils.cast_to_tstamp('0000-01-01 00:00:00') %}
             {% set upper_limit = snowplow_utils.cast_to_tstamp('0000-01-02 00:00:00') %}
-          {%- else -%}
+        {%- else -%}
             {% set lower_limit = snowplow_utils.cast_to_tstamp('9999-01-01 00:00:00') %}
             {% set upper_limit = snowplow_utils.cast_to_tstamp('9999-01-02 00:00:00') %}
         {% endif %}
