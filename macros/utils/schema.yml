@@ -92,6 +92,9 @@ macros:
       - name: upper_limit_col
         type: string
         description: The column to take the `max` of to get the upper limit
+      - name: lower_output
+        type: boolean
+        description: This changes the output to a low set date if true and high set date if false, in the event the function cannot find value but needs to set a value
   - name: set_query_tag
     description: '{{ doc("macro_set_query_tag") }}'
     arguments:
