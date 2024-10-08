@@ -39,7 +39,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             {% set lower_limit = snowplow_utils.cast_to_tstamp('0000-01-01 00:00:00') %}
             {% set upper_limit = snowplow_utils.cast_to_tstamp('0000-01-02 00:00:00') %}
         {%- else -%}
-            {# Default behaviour for incrementalisation. This allows for bigquery to still run the same way the other warehouses do, but also ensures no data is processed #}
+            {# Default behaviour for incrementalization. This allows for bigquery to still run the same way the other warehouses do, but also ensures no data is processed #}
             {% set lower_limit = snowplow_utils.cast_to_tstamp('9999-01-01 00:00:00') %}
             {% set upper_limit = snowplow_utils.cast_to_tstamp('9999-01-02 00:00:00') %}
         {% endif %}
