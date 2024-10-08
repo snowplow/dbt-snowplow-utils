@@ -17,8 +17,6 @@ models:
     tests:
       - dbt_utils.equality:
           compare_model: ref('expected_get_field_bq')
-          config:
-            +enabled: "{{  target.type in ['bigquery'] | as_bool() }}"
   - name: test_indexed_unnest
     tests:
       - dbt_utils.equality:

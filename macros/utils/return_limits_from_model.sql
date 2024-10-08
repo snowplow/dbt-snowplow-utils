@@ -4,7 +4,7 @@ This program is licensed to you under the Snowplow Personal and Academic License
 and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
-{% macro return_limits_from_model(model, lower_limit_col, upper_limit_col) -%}
+{% macro return_limits_from_model(model, lower_limit_col, upper_limit_col, lower_output=False) -%} 
 
   {# In case of not execute just return empty strings to avoid hitting database #}
   {% if not execute %}
@@ -35,9 +35,14 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {{ snowplow_utils.log_message("Snowplow Warning: *************") }}
         {% do exceptions.warn("Snowplow Warning: No data in "~this~" for date range from variables, please modify your run variables to include data if this is not expected.") %}
         {{ snowplow_utils.log_message("Snowplow Warning: *************") }}
-        {# This allows for bigquery to still run the same way the other warehouses do, but also ensures no data is processed #}
-        {% set lower_limit = snowplow_utils.cast_to_tstamp('9999-01-01 00:00:00') %}
-        {% set upper_limit = snowplow_utils.cast_to_tstamp('9999-01-02 00:00:00') %}
+        {% if lower_output %}
+            {% set lower_limit = snowplow_utils.cast_to_tstamp('0000-01-01 00:00:00') %}
+            {% set upper_limit = snowplow_utils.cast_to_tstamp('0000-01-02 00:00:00') %}
+        {%- else -%}
+            {# Default behaviour for incrementalization. This allows for bigquery to still run the same way the other warehouses do, but also ensures no data is processed #}
+            {% set lower_limit = snowplow_utils.cast_to_tstamp('9999-01-01 00:00:00') %}
+            {% set upper_limit = snowplow_utils.cast_to_tstamp('9999-01-02 00:00:00') %}
+        {% endif %}
       {%- else -%}
         {% set lower_limit = snowplow_utils.cast_to_tstamp(results.columns[0].values()[0]) %}
         {% set upper_limit = snowplow_utils.cast_to_tstamp(results.columns[1].values()[0]) %}
