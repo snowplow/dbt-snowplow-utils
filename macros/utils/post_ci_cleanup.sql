@@ -119,9 +119,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
       {% else %}
       {% endif %}
       
-      {# Step 3: Drop the schema #}
-      {% set drop_schema_sql = "DROP SCHEMA IF EXISTS " ~ schema ~ ";" %}
-      {% do adapter.execute(drop_schema_sql) %}
+      {# For spark we shouldn't delete the schema as this has the role of the database #}
     {% endfor %}
   {% else %}
     {{ log("No schemas found matching pattern: " ~ schema_pattern, info=True) }}
