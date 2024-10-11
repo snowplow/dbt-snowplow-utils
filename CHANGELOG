@@ -1,3 +1,19 @@
+snowplow-utils 0.17.0 (2024-10-14)
+---------------------------------------
+## Summary
+This release focuses on expanding support for Apache Spark with the Iceberg file format and enhancing integration tests.
+
+## Features
+- Add support for Apache Spark with Iceberg file format
+
+## Under the hood
+- Modify integration tests to support Spark
+- Changed return_limits_from_model macro default limits
+
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file.
+
 snowplow-utils 0.16.8 (2024-07-29)
 ---------------------------------------
 ## Summary
