@@ -282,19 +282,18 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                         NULL
                     ) as session_identifier,
                 {%- endif %}
-                e.*,
-                row_number() over (partition by event_id order by {{ session_timestamp }}, dvce_created_tstamp) as event_id_dedupe_index
-
+                e.*
             from {{ snowplow_events }} e
 
         )
-
+        main_logic as (
         select
             a.*
             ,b.user_identifier -- take user_identifier from manifest. This ensures only 1 domain_userid per session.
             {% if custom_sql %}
                 , {{ custom_sql }}
             {% endif %}
+            ,row_number() over (partition by event_id order by {{ session_timestamp }}, dvce_created_tstamp) as event_id_dedupe_index
 
         from identified_events as a
         inner join {{ sessions_this_run }} as b
@@ -316,8 +315,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% endif %}
 
         and {{ snowplow_utils.app_id_filter(app_ids) }}
-
-        and a.event_id_dedupe_index = 1
+    )
+    SELECT * 
+    FROM main_logic
+    WHERE event_id_dedupe_index = 1
     {% endset %}
 
     {{ return(events_this_run_query) }}
