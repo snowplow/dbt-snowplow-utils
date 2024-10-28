@@ -285,7 +285,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 e.*
             from {{ snowplow_events }} e
 
-        )
+        ),
         main_logic as (
         select
             a.*
