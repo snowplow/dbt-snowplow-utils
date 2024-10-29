@@ -103,12 +103,19 @@ jobs:
 
       - name: Store AWS credentials
         run: |
-          mkdir -p ~/.aws
-          aws configure get aws_access_key_id > /dev/null 2>&1 && \
-          aws configure set aws_access_key_id "$(aws configure get aws_access_key_id)" && \
-          aws configure set aws_secret_access_key "$(aws configure get aws_secret_access_key)" && \
-          aws configure set aws_session_token "$(aws configure get aws_session_token)" && \
-          aws configure set region "${{ env.AWS_REGION }}"
+            mkdir -p ~/.aws
+            cat > ~/.aws/credentials << EOF
+            [default]
+            aws_access_key_id=${{ env.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ env.AWS_SECRET_ACCESS_KEY }}
+            aws_session_token=${{ env.AWS_SESSION_TOKEN }}
+            EOF
+            
+            cat > ~/.aws/config << EOF
+            [default]
+            region=${{ env.AWS_REGION }}
+            output=json
+            EOF
     
     
       - name: Configure Docker credentials
