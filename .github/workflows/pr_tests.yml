@@ -104,10 +104,12 @@ jobs:
       - name: Store AWS credentials
         run: |
           mkdir -p ~/.aws
-          aws configure set aws_access_key_id $(aws configure get aws_access_key_id)
-          aws configure set aws_secret_access_key $(aws configure get aws_secret_access_key)
-          aws configure set aws_session_token $(aws configure get aws_session_token)
-          aws configure set region ${{ env.AWS_REGION }}
+          aws configure get aws_access_key_id > /dev/null 2>&1 && \
+          aws configure set aws_access_key_id "$(aws configure get aws_access_key_id)" && \
+          aws configure set aws_secret_access_key "$(aws configure get aws_secret_access_key)" && \
+          aws configure set aws_session_token "$(aws configure get aws_session_token)" && \
+          aws configure set region "${{ env.AWS_REGION }}"
+    
     
       - name: Configure Docker credentials
         uses: docker/login-action@v2
