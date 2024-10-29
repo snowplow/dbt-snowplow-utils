@@ -1,3 +1,15 @@
+snowplow-utils 0.17.1 (2024-10-29)
+---------------------------------------
+## Summary
+This release is aiming to optimize base_create_snowplow_events_this_run macro for spark.
+
+## Fix
+- Optimize base_create_snowplow_events_this_run for spark
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file.
+
+
 snowplow-utils 0.17.0 (2024-10-14)
 ---------------------------------------
 ## Summary
