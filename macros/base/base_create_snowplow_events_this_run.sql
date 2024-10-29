@@ -284,6 +284,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 {%- endif %}
                 e.*
             from {{ snowplow_events }} e
+            WHERE e.{{ session_timestamp }} >= {{ lower_limit }}
+            and e.{{ session_timestamp }} <= {{ upper_limit }}
 
         ),
         main_logic as (
