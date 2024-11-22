@@ -18,14 +18,14 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {% do test_data.update({key.lower(): value}) %}
 {% endfor %}
 
-{% for i in range(test_data.min_last_processed_load_tstamp|length) %}
+{% for i in range(test_data.min_last_success|length) %}
 
   {# iteratively pass each row of test data into get_run_limits_t() and execute returned query
-  min_first_processed_load_tstamp and max_first_processed_load_tstamp are not yet used, placeholder in place #}
+  min_first_success and max_first_success are not yet used, placeholder in place #}
   {%- set results = run_query(snowplow_utils.get_run_limits_t('9999-01-01 00:00:00',
                                                               '9999-01-01 00:00:00',
-                                                           test_data.min_last_processed_load_tstamp[i],
-                                                           test_data.max_last_processed_load_tstamp[i],
+                                                           test_data.min_last_success[i],
+                                                           test_data.max_last_success[i],
                                                            test_data.models_matched_from_manifest[i],
                                                            test_data.sync_count[i],
                                                            test_data.has_matched_all_models[i],
