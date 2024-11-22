@@ -141,14 +141,14 @@ seeds:
           max_last_success: timestamp
       data_get_incremental_manifest_status_t:
         +column_types:
-          first_processed_load_tstamp: timestamp
-          last_processed_load_tstamp: timestamp
+          first_success: timestamp
+          last_success: timestamp
       data_get_incremental_manifest_status_t_expected:
         +column_types:
-          min_first_processed_load_tstamp: timestamp
-          max_first_processed_load_tstamp: timestamp
-          min_last_processed_load_tstamp: timestamp
-          max_last_processed_load_tstamp: timestamp
+          min_first_success: timestamp
+          max_first_success: timestamp
+          min_last_success: timestamp
+          max_last_success: timestamp
       data_get_run_limits:
         +column_types:
           min_last_success: timestamp
