@@ -23,11 +23,11 @@ fi
 
 for db in ${DATABASES[@]}; do
 
-  echo "Snowplow-utils integration tests: Seeding data"
+  echo "Snowplow-utils tests: Seeding data"
 
   eval "dbt seed --target $db --full-refresh" || exit 1;
 
-  echo "Snowplow-utils integration tests: Run native dbt based tests"
+  echo "Snowplow-utils integration tests part 1: Run native dbt based tests"
 
   echo "Snowplow-utils native dbt tests: Execute models"
 
@@ -53,7 +53,7 @@ for db in ${DATABASES[@]}; do
 
   eval "dbt test --select tag:base_macro --exclude snowplow_base_quarantined_sessions_actual --target $db --vars 'snowplow__session_test: true' --store-failures" || exit 1;
 
-  echo "Snowplow utils integration tests: Run script based tests"
+  echo "Snowplow utils integration tests part 2: Run script based tests"
 
   echo "Snowplow-utils integration tests: Testing get_successful_models"
 
