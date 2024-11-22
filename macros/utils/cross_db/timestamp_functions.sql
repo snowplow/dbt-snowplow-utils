@@ -135,3 +135,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro redshift__current_timestamp_in_utc() %}
     {{ return(snowplow_utils.default__current_timestamp_in_utc()) }}
 {% endmacro %}
+
+
+{% macro deduct_days_from_current_tstamp_utc(interval) %} 
+    {{ return(adapter.dispatch('deduct_days_from_current_tstamp_utc', 'snowplow_utils')(interval)) }}
+{% endmacro %}
+    
+{% macro default__deduct_days_from_current_tstamp_utc(interval) %}
+    date_trunc('day', convert_timezone('UTC', current_timestamp) - interval '{{ interval }} day')
+{% endmacro %}

@@ -9,6 +9,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 #}
 {% macro get_enabled_snowplow_models(package_name, graph_object=none, models_to_run=var("models_to_run", ""), base_events_table_name='snowplow_base_events_this_run') -%}
 
+  {# Returns an array of enabled models tagged with <package_name>_incremental using dbt graph object.}
+  
   {# Override dbt graph object if graph_object is passed. Testing purposes #}
   {% if graph_object is not none %}
     {% set graph = graph_object %}
