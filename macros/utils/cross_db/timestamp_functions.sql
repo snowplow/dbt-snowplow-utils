@@ -135,3 +135,26 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro redshift__current_timestamp_in_utc() %}
     {{ return(snowplow_utils.default__current_timestamp_in_utc()) }}
 {% endmacro %}
+
+
+{% macro deduct_days_from_current_tstamp_utc(interval) %} 
+    {{ return(adapter.dispatch('deduct_days_from_current_tstamp_utc', 'snowplow_utils')(interval)) }}
+{% endmacro %}
+    
+{% macro default__deduct_days_from_current_tstamp_utc(interval) %}
+    date_trunc('day', convert_timezone('UTC', current_timestamp) - interval '{{ interval }} day')
+{% endmacro %}
+
+{% macro add_days_to_date(interval, base_date) %}
+    {{ return(adapter.dispatch('add_days_to_date', 'snowplow_utils')(interval, base_date)) }}
+{% endmacro %}
+
+
+{% macro default__add_days_to_date(interval, base_date) %}
+    DATEADD('DAY', {{interval}}, {{base_date}})
+{% endmacro %}
+
+
+{% macro bigquery__add_days_to_date(interval, base_date) %}
+    DATE_ADD({{base_date}}, interval {{interval}} day)
+{% endmacro %}

@@ -75,7 +75,7 @@ for db in ${DATABASES[@]}; do
     eval "dbt test --select test_get_incremental_manifest_status_macro --store-failures --target $db" || exit 1;
   fi
   
-    # This macro returns returns the array: [min_first_processed_load_tstamp, max_first_processed_load_tstamp, min_last_processed_load_tstamp, max_last_processed_load_tstamp, models_matched_from_manifest, sync_count, has_matched_all_models]
+    # This macro returns returns the array: [min_first_success, max_first_success, min_last_success, max_last_success, models_matched_from_manifest, sync_count, has_matched_all_models]
     # Not too important to test, it is effectively returns a min/max/count from values in the manifest based on the models in the run
     # Inputs are read from a seed file, we can selectively test the different inputs depending on the models in run array so no need for it to contain exact scenarios upfront
   
