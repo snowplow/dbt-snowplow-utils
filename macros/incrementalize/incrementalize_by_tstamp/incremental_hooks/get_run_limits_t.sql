@@ -82,7 +82,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             least({{ snowplow_utils.deduct_days_from_current_tstamp_utc(var("snowplow__reprocess_days", 1)) }}, {{ min_last_processed_load_tstamp }}) as lower_limit,
           {% else %}
             {{ exceptions.raise_compiler_error("Snowplow Error: Input for variable snowplow__run_type not recognised. Input must be 'incremental', 'current_day_incremental' or 'last_n_days_incremental''. Input given: " ~ var("snowplow__run_type")) }}
-          {% endif %},
+          {% endif %}
           
           least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_processed_load_tstamp) }},
           {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
