@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: test_get_run_limits_macro
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "expected_lower_limit = actual_lower_limit"
+      - dbt_utils.expression_is_true:
+          expression: "expected_upper_limit = actual_upper_limit"

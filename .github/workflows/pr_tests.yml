@@ -3,7 +3,7 @@ name: pr_tests
 on:
   pull_request:
 
-concurrency: dbt_integration_tests
+concurrency: dbt_integration_and_unit_tests
 
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        # Run tests from integration_tests sub dir
+        # Run tests from pr_tests sub dir which is a dbt repository that references the latest snowplow-utils package
         working-directory: ./integration_tests
     strategy:
       fail-fast: false
@@ -92,6 +92,15 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v3
+      - name: Get branch name
+        id: vars
+        # This needs surfaced for below 'run unit tests' step which may run on specific branch only
+        run: |
+          if [ "${{ github.base_ref }}" = "main" ]; then
+            echo "BRANCH='release'" >> $GITHUB_ENV
+          else
+            echo "BRANCH='${{ github.head_ref }}'" >> $GITHUB_ENV
+          fi
       - name: Configure Docker credentials
         uses: docker/login-action@v2
         with:
@@ -107,10 +116,8 @@ jobs:
       - name: Set warehouse variables
         id: set_warehouse
         run: |
-          WAREHOUSE_PLATFORM=$(echo ${{ matrix.warehouse }} | cut -d'_' -f1)
-          WAREHOUSE_SPECIFIC=$(echo ${{ matrix.warehouse }} | cut -s -d'_' -f2)
-          echo "WAREHOUSE_PLATFORM=${WAREHOUSE_PLATFORM}" >> $GITHUB_ENV
-          echo "WAREHOUSE_SPECIFIC=${WAREHOUSE_SPECIFIC}" >> $GITHUB_ENV
+          echo "WAREHOUSE_PLATFORM=$(echo ${{ matrix.warehouse }} | cut -d'_' -f1)" >> $GITHUB_ENV
+          echo "WAREHOUSE_SPECIFIC=$(echo ${{ matrix.warehouse }} | cut -s -d'_' -f2)" >> $GITHUB_ENV
           echo "warehouse_platform=${WAREHOUSE_PLATFORM}" >> $GITHUB_OUTPUT
           echo "warehouse_specific=${WAREHOUSE_SPECIFIC}" >> $GITHUB_OUTPUT
       # Remove '*' and replace '.' with '_' in DBT_VERSION & set as SCHEMA_SUFFIX.
@@ -157,7 +164,6 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
-      
       - name: Build and start Spark cluster
         working-directory: .github/workflows/spark_deployment
         run: |
@@ -169,10 +175,13 @@ jobs:
       - name: "Pre-test: Drop ci schemas"
         run: |
           dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
+          
+      - name: Run Unit tests
+        run: ./.scripts/unit_tests.sh -d ${{matrix.warehouse}} -b ${{ env.BRANCH }}
 
-      - name: Run tests
+      - name: Run integration tests
         run: ./.scripts/integration_tests.sh -d ${{matrix.warehouse}}
-
+        
       - name: "Post-test: Drop ci schemas"
         run: |
           dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
