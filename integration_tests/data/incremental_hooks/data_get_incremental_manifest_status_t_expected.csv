@@ -1,0 +1,3 @@
+test_case,min_first_processed_load_tstamp,max_first_processed_load_tstamp,min_last_processed_load_tstamp,max_last_processed_load_tstamp,models_matched_from_manifest,sync_count,has_matched_all_models
+all model_in_run exist in manifest,2020-01-01 00:00:00,2020-01-03 00:00:00,2020-01-02 00:00:00,2020-01-04 00:00:00,3,3,true
+some model_in_run exist in manifest,2020-01-01 00:00:00,2020-01-03 00:00:00,2020-01-02 00:00:00,2020-01-03 00:00:00,2,2,false
