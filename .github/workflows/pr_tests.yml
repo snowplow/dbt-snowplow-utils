@@ -86,11 +86,11 @@ jobs:
       - name: Get branch name
         id: vars
         # This needs surfaced for below 'run unit tests' step which may run on specific branch only
-        run:
+        run: |
           if [ "${{ github.base_ref }}" = "main" ]; then
-            echo "BRANCH=release" >> $GITHUB_ENV
+            echo "BRANCH='release'" >> $GITHUB_ENV
           else
-            echo "BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+            echo "BRANCH='${{ github.head_ref }}'" >> $GITHUB_ENV
           fi
       - name: Configure Docker credentials
         uses: docker/login-action@v2
@@ -166,12 +166,15 @@ jobs:
         run: |
           dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}
           
+      - name: Make unit_tests.sh executable
+        run: chmod +x ./.scripts/unit_tests.sh
+          
       - name: Run Unit tests
         run: ./.scripts/unit_tests.sh -d ${{matrix.warehouse}} -b ${{ env.BRANCH }}
 
       - name: Run integration tests
         run: ./.scripts/integration_tests.sh -d ${{matrix.warehouse}}
-
+        
       - name: "Post-test: Drop ci schemas"
         run: |
           dbt run-operation post_ci_cleanup --target ${{matrix.warehouse}}

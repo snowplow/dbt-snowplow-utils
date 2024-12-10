@@ -113,6 +113,8 @@ models:
           +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
         spark:
           +enabled: "{{ target.type == 'spark' | as_bool() }}"
+    unit_tests:
+      +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
 
 tests:
   snowplow_utils_integration_tests:

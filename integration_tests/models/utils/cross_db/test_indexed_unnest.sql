@@ -16,4 +16,4 @@ with data as (
 
 )
 
-select test_type, element from expected
+select test_type, element from expected 

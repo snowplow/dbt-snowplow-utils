@@ -112,3 +112,4 @@ with prep as (
 )
 
 select test_type, element
+from prep
