@@ -10,5 +10,10 @@ with data as (
   select * from {{ ref('data_indexed_unnest')}}
 )
 
+, expected as (
+
 {{ snowplow_utils.unnest('test_type', 'test_array', 'element', 'data', with_index=true) }}
 
+)
+
+select test_type, element from expected 

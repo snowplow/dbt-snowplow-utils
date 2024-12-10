@@ -4,6 +4,8 @@ This program is licensed to you under the Snowplow Personal and Academic License
 and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
+
+with prep as (
   select
   'string_def_colon_false_false' as test_type,
   'a' as element,
@@ -106,3 +108,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   'int_def_colon_false_true' as test_type,
   '1' as element,
   4 as source_index
+  
+)
+
+select test_type, element
+from prep
