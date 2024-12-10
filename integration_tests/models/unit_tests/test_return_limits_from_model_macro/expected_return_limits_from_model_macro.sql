@@ -11,11 +11,11 @@ SELECT 'dummy_model_only_nulls', cast('9999-01-01 00:00:00.000' as {{ dbt.type_t
 UNION ALL
 SELECT 'dummy_model_standard', cast('2024-12-01 00:00:00.000' as {{ dbt.type_timestamp() }}) , cast('2024-12-02 00:00:00.000' as {{ dbt.type_timestamp() }})
 UNION ALL
-SELECT 'dummy_model_empty_with_lower_output_true', cast('1970-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('1970-01-02 00:00:00.000'  as {{ dbt.type_timestamp() }})
+SELECT 'dummy_model_empty_with_lower_output_true', cast('1999-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('1999-01-02 00:00:00.000'  as {{ dbt.type_timestamp() }})
 UNION ALL
 SELECT 'dummy_model_empty_with_lower_output_false', cast('9999-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('9999-01-02 00:00:00.000' as {{ dbt.type_timestamp() }})
 UNION ALL
-SELECT 'dummy_model_only_nulls_with_lower_output_true', cast('1970-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('1970-01-02 00:00:00.000'  as {{ dbt.type_timestamp() }})
+SELECT 'dummy_model_only_nulls_with_lower_output_true', cast('1999-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('1999-01-02 00:00:00.000'  as {{ dbt.type_timestamp() }})
 UNION ALL
 SELECT 'dummy_model_only_nulls_with_lower_output_false', cast('9999-01-01 00:00:00.000' as {{ dbt.type_timestamp() }}), cast('9999-01-02 00:00:00.000' as {{ dbt.type_timestamp() }})
 UNION ALL
