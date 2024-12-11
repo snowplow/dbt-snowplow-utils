@@ -71,6 +71,7 @@ vars:
     snowplow__dev_target_name: dev
     snowplow__databricks_catalog: 'hive_metastore'
     snowplow__query_tag: 'snowplow_dbt'
+    snowplow__testing: true
 
 models:
   snowplow_utils_integration_tests:
@@ -138,7 +139,24 @@ seeds:
         +column_types:
           min_last_success: timestamp
           max_last_success: timestamp
+      data_get_incremental_manifest_status_t:
+        +column_types:
+          first_processed_load_tstamp: timestamp
+          last_processed_load_tstamp: timestamp
+      data_get_incremental_manifest_status_t_expected:
+        +column_types:
+          min_first_processed_load_tstamp: timestamp
+          max_first_processed_load_tstamp: timestamp
+          min_last_processed_load_tstamp: timestamp
+          max_last_processed_load_tstamp: timestamp
       data_get_run_limits:
+        +column_types:
+          min_last_success: timestamp
+          max_last_success: timestamp
+          start_date: date
+          lower_limit: timestamp
+          upper_limit: timestamp
+      data_get_run_limits_t:
         +column_types:
           min_last_success: timestamp
           max_last_success: timestamp
