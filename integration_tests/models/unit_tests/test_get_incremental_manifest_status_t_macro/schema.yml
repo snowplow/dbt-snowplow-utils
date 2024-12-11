@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: test_get_incremental_manifest_status_t_macro
+    tests:
+      - dbt_utils.equality:
+          compare_model: ref('data_get_incremental_manifest_status_t_expected')

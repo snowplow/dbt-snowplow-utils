@@ -1,16 +1,6 @@
 version: 2
 
 models:
-  - name: test_get_incremental_manifest_status
-    tests:
-      - dbt_utils.equality:
-          compare_model: ref('data_get_incremental_manifest_status_expected')
-  - name: test_get_run_limits
-    tests:
-      - dbt_utils.expression_is_true:
-          expression: "expected_lower_limit = actual_lower_limit"
-      - dbt_utils.expression_is_true:
-          expression: "expected_upper_limit = actual_upper_limit"
   - name: test_update_incremental_manifest_table
     tests:
       - dbt_utils.equality:
