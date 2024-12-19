@@ -24,8 +24,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             
             where load_tstamp >= {{ lower_limit }} and load_tstamp <= {{ upper_limit }}
             
-            and derived_tstamp >= {{ lower_limit }} and derived_tstamp <= {{ upper_limit }}
-            
             and {{ snowplow_utils.app_id_filter(app_ids) }}
             
             and {{ snowplow_utils.event_name_filter(event_names) }}
