@@ -1,4 +1,4 @@
-min_last_processed_load_tstamp,max_last_processed_load_tstamp,models_matched_from_manifest,has_matched_all_models,sync_count,start_date,lower_limit,upper_limit
+min_last_success,max_last_success,models_matched_from_manifest,has_matched_all_models,sync_count,start_date,lower_limit,upper_limit
 ,,0,FALSE,0,2021-01-01,2021-01-01 00:00:00+00:00,2021-01-31 00:00:00+00:00
 2021-03-01 00:00:00+00:00,2021-03-01 00:00:00+00:00,10,FALSE,1,2021-01-01,2021-01-01 00:00:00+00:00,2021-01-31 00:00:00+00:00
 2021-03-01 18:00:00+00:00,2021-03-01 18:00:00+00:00,10,TRUE,1,2021-01-01,2021-03-01 18:00:00+00:00,2021-03-31 18:00:00+00:00

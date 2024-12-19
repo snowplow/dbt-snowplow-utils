@@ -11,10 +11,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 with prep as (
 select
   'all model_in_run exist in manifest' as test_case,
-  {{ snowplow_utils.cast_to_tstamp(all_models[0]) }} as min_first_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(all_models[1]) }} as max_first_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(all_models[2]) }} as min_last_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(all_models[3]) }} as max_last_processed_load_tstamp,
+  {{ snowplow_utils.cast_to_tstamp(all_models[0]) }} as min_first_success,
+  {{ snowplow_utils.cast_to_tstamp(all_models[1]) }} as max_first_success,
+  {{ snowplow_utils.cast_to_tstamp(all_models[2]) }} as min_last_success,
+  {{ snowplow_utils.cast_to_tstamp(all_models[3]) }} as max_last_success,
   {{all_models[4]}} as models_matched_from_manifest,
   {{all_models[5]}} as sync_count,
   {{all_models[6]}} as has_matched_all_models
@@ -23,10 +23,10 @@ union all
 
 select
   'some model_in_run exist in manifest' as test_case,
-  {{ snowplow_utils.cast_to_tstamp(all_models[0]) }} as min_first_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(all_models[1]) }} as max_first_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(partial_models[2]) }} as min_last_processed_load_tstamp,
-  {{ snowplow_utils.cast_to_tstamp(partial_models[3]) }} as max_last_processed_load_tstamp,
+  {{ snowplow_utils.cast_to_tstamp(all_models[0]) }} as min_first_success,
+  {{ snowplow_utils.cast_to_tstamp(all_models[1]) }} as max_first_success,
+  {{ snowplow_utils.cast_to_tstamp(partial_models[2]) }} as min_last_success,
+  {{ snowplow_utils.cast_to_tstamp(partial_models[3]) }} as max_last_success,
   {{partial_models[4]}} as models_matched_from_manifest,
   {{partial_models[5]}} as sync_count,
   {{partial_models[6]}} as has_matched_all_models
@@ -35,10 +35,10 @@ select
 
 select
   test_case,
-  min_first_processed_load_tstamp,
-  max_first_processed_load_tstamp,
-  min_last_processed_load_tstamp,
-  max_last_processed_load_tstamp,
+  min_first_success,
+  max_first_success,
+  min_last_success,
+  max_last_success,
   models_matched_from_manifest,
   sync_count,
   cast(has_matched_all_models as {{ dbt.type_boolean() }}) as has_matched_all_models

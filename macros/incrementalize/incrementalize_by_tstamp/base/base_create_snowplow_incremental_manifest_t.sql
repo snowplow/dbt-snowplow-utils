@@ -11,8 +11,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         with prep as (
         select
             cast(null as {{ snowplow_utils.type_max_string() }}) model,
-            cast('1970-01-01' as {{ type_timestamp() }}) as first_processed_load_tstamp,
-            cast('1970-01-01' as {{ type_timestamp() }}) as last_processed_load_tstamp
+            cast('1970-01-01' as {{ type_timestamp() }}) as first_success,
+            cast('1970-01-01' as {{ type_timestamp() }}) as last_success
         )
 
         select *

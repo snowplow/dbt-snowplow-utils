@@ -18,27 +18,27 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% set last_success_query %}
       select
         b.model,
-        a.last_processed_load_tstamp,
-        a.first_processed_load_tstamp
+        a.last_success,
+        a.first_success
 
       from
-        (select max(load_tstamp) as last_processed_load_tstamp,
-                min(load_tstamp) as first_processed_load_tstamp from {{ base_events_table }}) a,
+        (select max(load_tstamp) as last_success,
+                min(load_tstamp) as first_success from {{ base_events_table }}) a,
         ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
-      where a.last_processed_load_tstamp is not null -- if run contains no data don't add to manifest
+      where a.last_success is not null -- if run contains no data don't add to manifest
     {% endset %}
 
     merge into {{ manifest_table }} m
     using ( {{ last_success_query }} ) s
     on m.model = s.model
     when matched then
-        update set last_processed_load_tstamp = greatest(m.last_processed_load_tstamp, s.last_processed_load_tstamp),
-                    first_processed_load_tstamp = coalesce(m.first_processed_load_tstamp, s.first_processed_load_tstamp)
+        update set last_success = greatest(m.last_success, s.last_success),
+                    first_success = coalesce(m.first_success, s.first_success)
         
     when not matched then
-          insert (model, last_processed_load_tstamp, first_processed_load_tstamp)
-          values (s.model, s.last_processed_load_tstamp, s.first_processed_load_tstamp);
+          insert (model, last_success, first_success)
+          values (s.model, s.last_success, s.first_success);
 
     {% if target.type == 'snowflake' %}
       commit;

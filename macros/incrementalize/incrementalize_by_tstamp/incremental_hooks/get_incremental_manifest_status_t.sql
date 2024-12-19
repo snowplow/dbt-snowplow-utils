@@ -26,12 +26,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
     {% set status_query %}
       select
-        min(first_processed_load_tstamp) as min_first_processed_load_tstamp,
-        max(first_processed_load_tstamp) as max_first_processed_load_tstamp,
-        min(last_processed_load_tstamp) as min_last_processed_load_tstamp,
-        max(last_processed_load_tstamp) as max_last_processed_load_tstamp,
+        min(first_success) as min_first_success,
+        max(first_success) as max_first_success,
+        min(last_success) as min_last_success,
+        max(last_success) as max_last_success,
         coalesce(count(*), 0) as models,
-        count(distinct last_processed_load_tstamp) as sync_count
+        count(distinct last_success) as sync_count
       from {{ incremental_manifest_table }}
       where model in ({{ snowplow_utils.print_list(models_in_run) }})
     {% endset %}
@@ -40,18 +40,18 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
     {% if execute %}
 
-      {% set min_first_processed_load_tstamp = results.columns[0].values()[0] %}
-      {% set max_first_processed_load_tstamp = results.columns[1].values()[0] %}
-      {% set min_last_processed_load_tstamp = results.columns[2].values()[0] %}
-      {% set max_last_processed_load_tstamp = results.columns[3].values()[0] %}
+      {% set min_first_success = results.columns[0].values()[0] %}
+      {% set max_first_success = results.columns[1].values()[0] %}
+      {% set min_last_success = results.columns[2].values()[0] %}
+      {% set max_last_success = results.columns[3].values()[0] %}
       {% set models_matched_from_manifest = results.columns[4].values()[0] %}
       {% set sync_count = results.columns[5].values()[0] %}
       {% set has_matched_all_models = true if models_matched_from_manifest == models_in_run|length else false %}
 
-      {{ return([min_first_processed_load_tstamp, 
-                max_first_processed_load_tstamp, 
-                min_last_processed_load_tstamp, 
-                max_last_processed_load_tstamp, 
+      {{ return([min_first_success, 
+                max_first_success, 
+                min_last_success, 
+                max_last_success, 
                 models_matched_from_manifest, 
                 sync_count,
                 has_matched_all_models]) }}
