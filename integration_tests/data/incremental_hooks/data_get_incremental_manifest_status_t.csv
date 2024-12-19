@@ -1,4 +1,4 @@
-model,first_processed_load_tstamp,last_processed_load_tstamp
+model,first_success,last_success
 a,2020-01-01 00:00:00,2020-01-02 00:00:00
 b,2020-01-02 00:00:00,2020-01-03 00:00:00
 c,2020-01-03 00:00:00,2020-01-04 00:00:00

@@ -7,18 +7,18 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {# Returns the sql to calculate the lower/upper limits of the run #}
 
-{% macro get_run_limits_t(min_first_processed_load_tstamp,
-                        max_first_processed_load_tstamp,
-                        min_last_processed_load_tstamp,
-                        max_last_processed_load_tstamp,
+{% macro get_run_limits_t(min_first_success,
+                        max_first_success,
+                        min_last_success,
+                        max_last_success,
                         models_matched_from_manifest,
                         sync_count,
                         has_matched_all_models,  
                         start_date) -%}
 
   {% set start_tstamp = snowplow_utils.cast_to_tstamp(start_date) %}
-  {% set min_last_processed_load_tstamp = snowplow_utils.cast_to_tstamp(min_last_processed_load_tstamp) %}
-  {% set max_last_processed_load_tstamp = snowplow_utils.cast_to_tstamp(max_last_processed_load_tstamp) %}
+  {% set min_last_success = snowplow_utils.cast_to_tstamp(min_last_success) %}
+  {% set max_last_success = snowplow_utils.cast_to_tstamp(max_last_success) %}
 
   {% if not execute %}
     {{ return('') }}
@@ -53,7 +53,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% do snowplow_utils.log_message("Snowplow: New Snowplow incremental model. Backfilling") %}
         {% set run_limits_query %}
           select {{ start_tstamp }} as lower_limit,
-                  least({{ max_last_processed_load_tstamp }},
+                  least({{ max_last_success }},
                   {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), start_tstamp) }}) as upper_limit
         {% endset %}
       {% endif %}
@@ -77,9 +77,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% do snowplow_utils.log_message("Snowplow: Snowplow incremental models out of sync. Syncing") %}
 
     {% set run_limits_query %}
-      select {{ min_last_processed_load_tstamp }} as lower_limit,
-              least({{ max_last_processed_load_tstamp }},
-              {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_processed_load_tstamp) }}) as upper_limit
+      select {{ min_last_success }} as lower_limit,
+              least({{ max_last_success }},
+              {{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }}) as upper_limit
     {% endset %}
     
   {# State 5: If all models in the run exists in the manifest, none are out of sync, it is a standard incremental run #}
@@ -92,16 +92,16 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         select
         
           {% if var("snowplow__run_type", "incremental") == 'incremental' %}
-            {{ min_last_processed_load_tstamp }} as lower_limit,
+            {{ min_last_success }} as lower_limit,
           {% elif var("snowplow__run_type", "incremental") == 'current_day_incremental'%}
-            least({{ snowplow_utils.deduct_days_from_current_tstamp_utc(0) }}, {{ min_last_processed_load_tstamp }}) as lower_limit,
+            least({{ snowplow_utils.deduct_days_from_current_tstamp_utc(0) }}, {{ min_last_success }}) as lower_limit,
           {% elif var("snowplow__run_type", "incremental") == 'last_n_days_incremental'%}
-            least({{ snowplow_utils.deduct_days_from_current_tstamp_utc(var("snowplow__reprocess_days", 1)) }}, {{ min_last_processed_load_tstamp }}) as lower_limit,
+            least({{ snowplow_utils.deduct_days_from_current_tstamp_utc(var("snowplow__reprocess_days", 1)) }}, {{ min_last_success }}) as lower_limit,
           {% else %}
             {{ exceptions.raise_compiler_error("Snowplow Error: Input for variable snowplow__run_type not recognised. Input must be 'incremental', 'current_day_incremental' or 'last_n_days_incremental''. Input given: " ~ var("snowplow__run_type")) }}
           {% endif %}
           
-          least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_processed_load_tstamp) }},
+          least({{ snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30), min_last_success) }},
           {{ snowplow_utils.current_timestamp_in_utc() }}) as upper_limit
       {% endset %}
     {% endif %}
