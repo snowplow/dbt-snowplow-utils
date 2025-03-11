@@ -16,7 +16,7 @@
         
         {% set query %}
             SELECT date(derived_tstamp) AS event_date, count(*) as count_rows,
-                MIN(CASE WHEN date(derived_tstamp) != date(load_tstamp) THEN 1 ELSE 0 END) AS is_delayed
+                MAX(CASE WHEN date(derived_tstamp) != date(load_tstamp) THEN 1 ELSE 0 END) AS is_delayed
             FROM {{ ref(this_run_model) }}
             WHERE date(derived_tstamp) >= '{{ snowplow__start_date }}'
             GROUP BY date(derived_tstamp)
