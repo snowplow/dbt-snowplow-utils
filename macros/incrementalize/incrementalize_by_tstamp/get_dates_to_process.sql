@@ -1,13 +1,11 @@
 {% macro get_dates_to_process(source_model, date_column) %}
     {% set run_type = var('snowplow__run_type', 'incremental') %}
-    {% set reprocess_days = var('snowplow__reprocess_days', 0) %}
-    {% set min_rows_to_process = var('snowplow__min_rows_to_process', 1000) %}
+    {% set late_event_lookback_days = var('snowplow__late_event_lookback_days', 0) %}
+    {% set min_late_events_to_process = var('snowplow__min_late_events_to_process', 1000) %}
     {% set snowplow__start_date = var('snowplow__start_date', '2025-01-01') %}
     -- Log if run_type is incremental
 
     {% if date_column == 'derived_tstamp' %}
-        {% do log("Source model: " ~ source_model, info=True) %}
-        {% set this_run_model = source_model %}
         {% set node_name = 'model.snowplow_autogen.' ~ this_run_model %}
         {% if (not execute) or (graph.nodes.get(node_name) is none) %}
             {% do log("Model not found, returning NULL for dates to process", info=True) %}
@@ -17,12 +15,12 @@
         {% set query %}
             SELECT date(derived_tstamp) AS event_date, count(*) as count_rows,
                 MAX(CASE WHEN date(derived_tstamp) != date(load_tstamp) THEN 1 ELSE 0 END) AS is_delayed
-            FROM {{ ref(this_run_model) }}
+            FROM {{ ref(source_model) }}
             WHERE date(derived_tstamp) >= '{{ snowplow__start_date }}'
             GROUP BY date(derived_tstamp)
-            HAVING count_rows > {{ min_rows_to_process }}
+            HAVING count_rows >= {{ min_late_events_to_process }}
             ORDER BY event_date DESC
-            LIMIT {{ reprocess_days }}
+            LIMIT {{ late_event_lookback_days }}
         {% endset %}
         
         {% set results = run_query(query) %}
