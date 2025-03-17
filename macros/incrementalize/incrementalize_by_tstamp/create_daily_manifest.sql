@@ -1,4 +1,4 @@
-{% macro create_daily_manifest(source_model) %}
+{% macro create_daily_manifest(source_model, daily_aggregates_this_run) %}
 
     {% set start_date = var('snowplow__start_date', '2025-01-01') %}
 
@@ -6,7 +6,7 @@
     WITH dates_to_process AS (
         SELECT DISTINCT 
             event_date
-        FROM {{ ref("snowplow_autogen_daily_aggregates_this_run") }}
+        FROM {{ daily_aggregates_this_run }}
     ),
 
     -- Calculate event metrics per day

@@ -1,10 +1,10 @@
-{% macro create_daily_aggregation_manifest() %}
+{% macro create_daily_aggregation_manifest(daily_aggregates_this_run) %}
     {% set daily_agg_models = snowplow_utils.get_daily_agg_models() %}
 
     {% if execute and daily_agg_models|length > 0 %}
         {% for model in daily_agg_models %}
             {{ log("Processing model: " ~ model, info=True) }}
-            ({{ snowplow_utils.create_daily_manifest(model) }})
+            ({{ snowplow_utils.create_daily_manifest(model, daily_aggregates_this_run) }})
             {% if not loop.last %}union all{% endif %}
         {% endfor %}
     {% else %}
