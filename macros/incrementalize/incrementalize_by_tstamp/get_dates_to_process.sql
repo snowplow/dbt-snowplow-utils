@@ -1,4 +1,4 @@
-{% macro get_dates_to_process(source_model, date_column) %}
+{% macro get_dates_to_process(source_model, date_column, this_run_model) %}
     {% set run_type = var('snowplow__run_type', 'incremental') %}
     {% set late_event_lookback_days = var('snowplow__late_event_lookback_days', 0) %}
     {% set min_late_events_to_process = var('snowplow__min_late_events_to_process', 1000) %}
@@ -6,7 +6,7 @@
     -- Log if run_type is incremental
 
     {% if date_column == 'derived_tstamp' %}
-        {% set node_name = 'model.snowplow_autogen.' ~ this_run_model %}
+        {% set node_name = 'model.' ~ this_run_model %}
         {% if (not execute) or (graph.nodes.get(node_name) is none) %}
             {% do log("Model not found, returning NULL for dates to process", info=True) %}
             {{ return("NULL") }}
