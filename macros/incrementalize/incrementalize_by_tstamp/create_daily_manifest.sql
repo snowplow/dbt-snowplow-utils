@@ -1,4 +1,4 @@
-{% macro create_daily_manifest(source_model, package_name) %}
+{% macro create_daily_manifest(source_model, prefix) %}
 
     {% set start_date = var('snowplow__start_date', '2025-01-01') %}
 
@@ -6,7 +6,7 @@
     WITH dates_to_process AS (
         SELECT DISTINCT 
             event_date
-        FROM {{ref(package_name ~ "_daily_aggregates_this_run")}}
+        FROM {{ref(prefix ~ "_daily_aggregates_this_run")}}
     ),
 
     -- Calculate event metrics per day
@@ -23,7 +23,7 @@
             )::FLOAT AS p95_delay_hours,
             MAX(DATEDIFF('second', derived_tstamp, load_tstamp) / 3600.0)::FLOAT AS max_delay_hours,
             COUNT(*) AS event_count
-        FROM {{ ref(package_name ~ "filtered_events") }}
+        FROM {{ ref(prefix ~ "filtered_events") }}
         WHERE DATE(derived_tstamp) IN (SELECT event_date FROM dates_to_process)
         GROUP BY 1
     ),
@@ -33,7 +33,7 @@
         SELECT 
             events.event_date,
             SUM(CASE WHEN d.event_date IS NULL THEN 1 ELSE 0 END) AS skipped_events
-        FROM {{ ref(package_name ~ "filtered_events_this_run") }} events
+        FROM {{ ref(prefix ~ "filtered_events_this_run") }} events
         LEFT JOIN dates_to_process d 
             ON events.event_date = d.event_date
         GROUP BY 1
