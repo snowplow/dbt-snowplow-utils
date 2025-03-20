@@ -5,12 +5,9 @@
 {% set min_late_events_to_process = var('snowplow__min_late_events_to_process', 1000) %}
 {% set snowplow__start_date = var('snowplow__start_date', '2025-01-01') %}
 
-{%- set manifest_relation = adapter.get_relation(
-    database=target.database,
-    schema=target.schema,
-    identifier=manifest_table) -%}
-
-{% set manifest_exists = manifest_relation is not none %}
+{% set manifest_exists = flags.FULL_REFRESH == false %}
+-- can we find the schema for the manifest table based on the compiled data? ideally from dbt node metadata
+{% set manifest_schema = target.schema~'_snowplow_manifest' %}
 
 WITH source_data AS (
     SELECT 
@@ -36,21 +33,20 @@ WITH source_data AS (
 manifest_data AS (
     SELECT 
         event_date,
-        skipped_events
+        skipped_events as manifest_skipped_events
     -- create the scheme ref not native dbt way but {}.{}.{} way
-    FROM {{target.database}}.{{target.schema}}.{{manifest_table}}
+    FROM {{manifest_schema}}.{{manifest_table}}
 ),
 combined_data AS (
     SELECT 
         s.event_date,
         s.event_count,
         s.is_delayed,
-        COALESCE(m.skipped_events, 0) as skipped_events,
-        s.event_count + COALESCE(m.skipped_events, 0) as total_events,
-        case when COALESCE(m.skipped_events, 0) >= {{ min_late_events_to_process }} then 1 else 0 end as is_delayed
+        COALESCE(m.manifest_skipped_events, 0) + CASE WHEN s.is_delayed = 1 THEN s.event_count ELSE 0 END as skipped_events,
+        s.event_count + COALESCE(m.manifest_skipped_events, 0) as total_events
     FROM source_data s
     LEFT JOIN manifest_data m ON s.event_date = m.event_date
-    HAVING skipped_events >= {{ min_late_events_to_process }}
+    WHERE (skipped_events >= {{ min_late_events_to_process }} OR NOT is_delayed)
     ORDER BY event_date DESC
     LIMIT {{ late_event_lookback_days }}
 )
@@ -61,7 +57,7 @@ combined_data AS (
         event_count,
         is_delayed,
         0 as skipped_events,
-        event_count as total_events,
+        event_count as total_events
     FROM source_data
     ORDER BY event_date DESC
     LIMIT {{ late_event_lookback_days }}
