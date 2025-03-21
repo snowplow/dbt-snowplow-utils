@@ -33,7 +33,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         *
         from new_events a
 
-        qualify row_number() over (partition by a.event_id order by a.collector_tstamp, a.dvce_created_tstamp) = 1
+        qualify row_number() over (partition by a.event_id order by a.load_tstamp, a.dvce_created_tstamp) = 1
     {% endset %}
     
     {{ return(events_this_run_query) }}
