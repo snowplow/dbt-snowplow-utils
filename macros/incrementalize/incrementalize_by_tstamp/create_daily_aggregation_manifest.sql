@@ -11,14 +11,14 @@
         select
             null::date as event_date,
             null::varchar as source_model,
-            null::timestamp_ntz as last_updated_at,
-            0::number as number_of_rows,
+            0::number as processed_events,
+            0::number as skipped_events,
             null::timestamp_ntz as max_load_tstamp,
-            0.0::float as avg_delay_hours,
+            null::timestamp_ntz as last_updated_at
+            {# 0.0::float as avg_delay_hours,
             0.0::float as median_delay_hours,
             0.0::float as p95_delay_hours,
-            0.0::float as max_delay_hours,
-            0::number as skipped_events
+            0.0::float as max_delay_hours #}
         where false
     {% endif %}
 {% endmacro %} 
