@@ -35,7 +35,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% set run_limits_query %}
       select {{ start_tstamp }} as lower_limit,
               least(
-                {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, 'DATE_TRUNC(\'day\', ' ~ start_tstamp ~ ')')) }},
+                {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, dbt.date_trunc('day', start_tstamp))) }},
                 {{ snowplow_utils.current_timestamp_in_utc() }}
               ) as upper_limit
     {% endset %}
@@ -50,7 +50,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
       select {{ min_last_success }} as lower_limit,
               least(
                 {{ max_last_success }},
-                {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, 'DATE_TRUNC(\'day\', ' ~ min_last_success ~ ')')) }}
+                {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, dbt.date_trunc('day', min_last_success))) }}
               ) as upper_limit
     {% endset %}
     
@@ -63,7 +63,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         select
           {{ min_last_success }} as lower_limit,
           least(
-            {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, 'DATE_TRUNC(\'day\', ' ~ min_last_success ~ ')')) }},
+            {{ snowplow_utils.timestamp_add('second', -1, snowplow_utils.timestamp_add('day', var("snowplow__backfill_limit_days", 30) + 1, dbt.date_trunc('day', min_last_success))) }},
             {{ snowplow_utils.current_timestamp_in_utc() }}
           ) as upper_limit
       {% endset %}
