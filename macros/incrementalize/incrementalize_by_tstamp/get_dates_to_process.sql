@@ -5,6 +5,8 @@
 {% set snowplow__backfill_limit_days = var('snowplow__backfill_limit_days', 0) %}
 {% set min_late_events_to_process = var('snowplow__min_late_events_to_process', 1000) %}
 {% set snowplow__start_date = var('snowplow__start_date', '2025-01-01') %}
+{% set limit_days = max(late_event_lookback_days, snowplow__backfill_limit_days) %}
+
 
 {% set is_not_full_refresh = flags.FULL_REFRESH == false %}
 -- can we find the schema for the manifest table based on the compiled data? ideally from dbt node metadata
@@ -49,7 +51,8 @@ combined_data AS (
     LEFT JOIN manifest_data m ON s.event_date = m.event_date
     WHERE (skipped_events >= {{ min_late_events_to_process }} OR NOT is_delayed)
     ORDER BY event_date DESC
-    LIMIT GREATEST(late_event_lookback_days, snowplow__backfill_limit_days)
+    LIMIT {{ limit_days }}
+
 )
 {% else %}
 combined_data AS (
