@@ -5,7 +5,11 @@
 {% set snowplow__backfill_limit_days = var('snowplow__backfill_limit_days', 0) %}
 {% set min_late_events_to_process = var('snowplow__min_late_events_to_process', 1000) %}
 {% set snowplow__start_date = var('snowplow__start_date', '2025-01-01') %}
-{% set limit_days = max(late_event_lookback_days, snowplow__backfill_limit_days) %}
+{% if late_event_lookback_days > snowplow__backfill_limit_days %}
+    {% set limit_days = late_event_lookback_days %}
+{% else %}
+    {% set limit_days = snowplow__backfill_limit_days %}
+{% endif %}
 
 
 {% set is_not_full_refresh = flags.FULL_REFRESH == false %}
