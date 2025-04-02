@@ -49,7 +49,7 @@ combined_data AS (
     LEFT JOIN manifest_data m ON s.event_date = m.event_date
     WHERE (skipped_events >= {{ min_late_events_to_process }} OR NOT is_delayed)
     ORDER BY event_date DESC
-    LIMIT {{ late_event_lookback_days }}
+    LIMIT GREATEST(late_event_lookback_days, snowplow__backfill_limit_days)
 )
 {% else %}
 combined_data AS (
