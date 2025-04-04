@@ -4,7 +4,7 @@
     {% if execute and daily_agg_models|length > 0 %}
         {% for model in daily_agg_models %}
             {{ log("Processing model: " ~ model, info=True) }}
-            ({{ snowplow_utils.create_daily_manifest(model, package_name) }})
+            ({{ snowplow_utils.create_daily_manifest_entry(model, package_name) }})
             {% if not loop.last %}union all{% endif %}
         {% endfor %}
     {% else %}
