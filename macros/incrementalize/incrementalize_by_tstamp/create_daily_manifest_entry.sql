@@ -1,4 +1,4 @@
-{% macro create_daily_manifest(source_model, prefix) %}
+{% macro create_daily_manifest_entry(source_model, prefix) %}
 
     {% set start_date = var('snowplow__start_date', '2025-01-01') %}
 
