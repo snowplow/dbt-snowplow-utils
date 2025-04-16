@@ -7,7 +7,7 @@
         {% for node in graph.nodes.values() %}
             {% if node.resource_type == 'model' 
                 and 'daily_aggregates' in node.path 
-                and '_this_run_' in node.name
+                and '_this_run' in node.name
                 and node.depends_on.nodes
             %}
                 {% set source_model_ref = node.depends_on.nodes[0] %}
