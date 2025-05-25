@@ -152,3 +152,16 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 
 {% endmacro %}
+
+{% macro duckdb__get_string_agg(base_column, column_prefix, separator=',', order_by_column=base_column, sort_numeric=false, order_by_column_prefix=column_prefix, is_distinct=false, order_desc = false) %}
+
+    string_agg({% if is_distinct %} distinct {% endif %} {{column_prefix}}.{{base_column}}::varchar, '{{separator}}' 
+    order by
+    {% if sort_numeric -%}
+      {{order_by_column_prefix}}.{{order_by_column}}::decimal {% if order_desc %} desc {% endif %}
+    {% else %}
+      {{order_by_column_prefix}}.{{order_by_column}}::varchar {% if order_desc %} desc {% endif %}
+    {%- endif -%}
+    )
+
+{% endmacro %}

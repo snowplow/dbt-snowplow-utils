@@ -18,6 +18,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% endmacro %}
 
+{% macro duckdb__get_schemas_by_pattern(schema_pattern) %}
+
+    {% set get_tables_sql = dbt_utils.get_tables_by_pattern_sql(schema_pattern, table_pattern='%') %}
+    {% set results = [] if get_tables_sql.isspace() else run_query(get_tables_sql) %}
+    {% set schemas = results|map(attribute='table_schema')|unique|list %}
+    {{ return(schemas) }}
+
+{% endmacro %}
+
 {% macro spark__get_schemas_by_pattern(schema_pattern) %}
     {# 
       Databricks/Spark uses a regex on SHOW SCHEMAS and doesn't have an information schema in hive_metastore.

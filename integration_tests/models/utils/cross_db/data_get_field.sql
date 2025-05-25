@@ -20,4 +20,7 @@ select
 {% elif target.type in ['spark', 'databricks'] %}
         struct('alice' as col1, 'bob' as col2, 5 as col3) as non_array_structure,
         array(struct('alice' as col1, 'bob' as col2, 5 as col3), struct('charlie' as col1, 'doris' as col2, 9 as col3)) as array_structure
+{% elif target.type in ['duckdb'] %}
+        {'col1': 'alice', 'col2': 'bob', 'col3': 5} AS non_array_structure,
+        [{'col1': 'alice', 'col2': 'bob', 'col3': 5}, {'col1': 'charlie', 'col2': 'doris', 'col3': 9}] AS array_structure
 {% endif %}
