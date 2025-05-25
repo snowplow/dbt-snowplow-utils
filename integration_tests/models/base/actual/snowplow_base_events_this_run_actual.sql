@@ -25,12 +25,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                                                                                   databricks_val=var("snowplow__databricks_session_identifiers"),
                                                                                   spark_val=var("snowplow__spark_session_identifiers"),
                                                                                   postgres_val=var("snowplow__postgres_session_identifiers"),
-                                                                                  redshift_val=var("snowplow__postgres_session_identifiers"))%}
+                                                                                  redshift_val=var("snowplow__postgres_session_identifiers"),
+                                                                                  duckdb_val=var("snowplow__duckdb_session_identifiers")
+                                                                                  )%}
     {% set snowplow_entities_or_sdes = var("snowplow__custom_entities_or_sdes") %}
     {% set snowplow_custom_sql = snowplow_utils.get_value_by_target_type(bigquery_val=var("snowplow__bigquery_custom_sql"),
                                                                         snowflake_val=var("snowplow__snowflake_custom_sql"), 
                                                                         databricks_val=var("snowplow__databricks_custom_sql"),
-                                                                        spark_val=var("snowplow__spark_custom_sql")
+                                                                        spark_val=var("snowplow__spark_custom_sql"),
+                                                                        duckdb_val=var("snowplow__duckdb_custom_sql")
                                                                         )%}
 {% elif var('snowplow__session_test', false) %}
     {% set snowplow_session_sql = var("snowplow__custom_session_sql") %}
