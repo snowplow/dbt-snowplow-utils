@@ -86,3 +86,44 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {% endif %}
 
 {%- endmacro %}
+
+{% macro duckdb__update_incremental_manifest_table(manifest_table, base_events_table, models, session_timestamp) -%}
+
+  {% if models %}
+
+      --temp table to find the greatest last_success per model.
+      --this protects against partial backfills causing the last_success to move back in time.
+      create temporary table snowplow_models_last_success (
+        model varchar,
+        last_success {{type_timestamp()}}
+      );
+      insert into snowplow_models_last_success (
+        select
+          a.model,
+          greatest(a.last_success, b.last_success) as last_success
+
+        from (
+
+          select
+            model,
+            last_success
+
+          from
+            (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
+            ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) as mod
+
+          where last_success is not null -- if run contains no data don't add to manifest
+
+        ) a
+        left join {{ manifest_table }} b
+        on a.model = b.model
+        );
+
+      delete from {{ manifest_table }} where model in (select model from snowplow_models_last_success);
+      insert into {{ manifest_table }} (select * from snowplow_models_last_success);
+
+    drop table snowplow_models_last_success;
+
+  {% endif %}
+
+{%- endmacro %}

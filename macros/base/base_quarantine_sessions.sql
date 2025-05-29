@@ -51,6 +51,25 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% endmacro %}
 
+{% macro duckdb__base_quarantine_sessions(max_session_length, quarantined_sessions_str, src_relation) %}
+
+  {% set quarantined_sessions = ref(quarantined_sessions_str) %}
+  {% set sessions_to_quarantine_tmp = 'sessions_to_quarantine_tmp' %}
+
+    create temporary table {{ sessions_to_quarantine_tmp }} as (
+      {{ snowplow_utils.base_get_quarantine_sql(src_relation, max_session_length) }}
+    );
+
+    delete from {{ quarantined_sessions }}
+    where session_identifier in (select session_identifier from {{ sessions_to_quarantine_tmp }});
+
+    insert into {{ quarantined_sessions }} (
+      select session_identifier from {{ sessions_to_quarantine_tmp }});
+
+    drop table {{ sessions_to_quarantine_tmp }};
+
+{% endmacro %}
+
 {% macro base_get_quarantine_sql(relation, max_session_length) %}
 
   {# Find sessions exceeding max_session_days #}
