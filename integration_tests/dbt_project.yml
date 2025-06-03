@@ -63,7 +63,7 @@ vars:
     snowplow__databricks_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents as custom_contents'
     snowplow__spark_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents as custom_contents'
     snowplow__snowflake_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents::TEXT as custom_contents'
-    snowplow__duckdb_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents::TEXT as custom_contents'
+    snowplow__duckdb_custom_sql: "contexts_com_snowplowanalytics_custom_entity_1->0->>'contents'::TEXT as custom_contents"
     snowplow__derived_tstamp_partitioned: true
     snowplow__days_late_allowed: 3
     snowplow__max_session_days: 3
