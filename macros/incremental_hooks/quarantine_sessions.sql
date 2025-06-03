@@ -67,3 +67,22 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {{ return(quarantine_sql) }}
 
 {% endmacro %}
+
+{% macro duckdb__quarantine_sessions(package_name, max_session_length, src_relation=this) %}
+
+  {% set quarantined_sessions = ref(package_name~'_base_quarantined_sessions') %}
+  {% set sessions_to_quarantine_tmp = 'sessions_to_quarantine_tmp' %}
+
+    create temporary table {{ sessions_to_quarantine_tmp }} as (
+      {{ snowplow_utils.get_quarantine_sql(src_relation, max_session_length) }}
+    );
+
+    delete from {{ quarantined_sessions }}
+    where session_id in (select session_id from {{ sessions_to_quarantine_tmp }});
+
+    insert into {{ quarantined_sessions }} (
+      select session_id from {{ sessions_to_quarantine_tmp }});
+
+    drop table {{ sessions_to_quarantine_tmp }};
+
+{% endmacro %}

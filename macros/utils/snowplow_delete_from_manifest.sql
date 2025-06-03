@@ -51,6 +51,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {%- elif target.type in ['spark'] -%}
       DELETE FROM {{ incremental_manifest_table }}
       WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
+    {%- elif target.type in ['duckdb'] -%}
+      DELETE FROM {{ incremental_manifest_table }} 
+      WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
     {%- else -%}
       -- We don't need transaction but Redshift needs commit statement while BQ does not. By using transaction we cover both.
       BEGIN;
