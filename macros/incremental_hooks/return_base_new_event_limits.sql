@@ -1,10 +1,8 @@
-{#
-Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
-This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
-and you may not use this file except in compliance with the Snowplow Personal and Academic License Version 1.0.
-You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
-#}
 {% macro return_base_new_event_limits(base_events_this_run) -%}
+  {{ return(adapter.dispatch('return_base_new_event_limits', 'snowplow_utils')(base_events_this_run)) }}
+{%- endmacro %}
+
+{% macro default__return_base_new_event_limits(base_events_this_run) -%}
 
   {# In case of not execute just return empty strings to avoid hitting database #}
   {% if not execute %}
@@ -16,7 +14,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         schema=base_events_this_run.schema,
         identifier=base_events_this_run.name) %}
 
-  {% if target_relation is not none %}
+  {% if var('snowplow__enable_keyhole_backfill',false) %}
+
+    {% set lower_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_start_date')) %}
+    {% set upper_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_end_date')) %}
+    {% set session_start_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_start_date')) %}
+
+    {{ return([lower_limit, upper_limit, session_start_limit]) }}
+
+  {% elif target_relation is not none %}
 
     {% set limit_query %}
       select
@@ -25,7 +31,6 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {{ snowplow_utils.timestamp_add('day',
                                       -var("snowplow__max_session_days", 3),
                                       'lower_limit') }} as session_start_limit
-
       from {{ base_events_this_run }}
     {% endset %}
 
