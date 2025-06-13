@@ -1,8 +1,6 @@
-{% macro snowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) %}
+{% macro nowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) %}
 
-{% macro default__snowplow_incremental_post_hook(package_name='snowplow', incremental_manifest_table_name=none, base_events_this_run_table_name=none, session_timestamp=var('snowplow__session_timestamp', 'load_tstamp')) %}
-
-  {% if var('snowplow__enable_keyhole_backfill',false) %}
+  {% if not var('snowplow__enable_keyhole_backfill',false) %}
     {% set enabled_snowplow_models = snowplow_utils.get_enabled_snowplow_models(package_name) -%}
 
     {% set successful_snowplow_models = snowplow_utils.get_successful_models(models=enabled_snowplow_models) -%}
