@@ -18,7 +18,7 @@
 
     {% set lower_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_start_date')) %}
     {% set upper_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_end_date')) %}
-    {% set session_start_limit = snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_start_date')) %}
+    {% set session_start_limit = snowplow_utils.timestamp_add('day',-var("snowplow__max_session_days", 3),snowplow_utils.cast_to_tstamp(var('snowplow__keyhole_backfill_start_date'))) %}
 
     {{ return([lower_limit, upper_limit, session_start_limit]) }}
 
