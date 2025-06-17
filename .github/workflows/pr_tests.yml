@@ -83,6 +83,7 @@ jobs:
           POSTGRES_DB: ${{ secrets.POSTGRES_TEST_DBNAME }}
           POSTGRES_USER: ${{ secrets.POSTGRES_TEST_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_TEST_PASS }}
+          POSTGRES_HOST_AUTH_METHOD: trust
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready

@@ -8,3 +8,4 @@ dbt-service-account.json
 .vscode/settings.json
 package-lock.yml
 *.duckdb*
+dbt_internal_packages/
