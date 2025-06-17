@@ -298,7 +298,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             from {{ snowplow_events }} e
             WHERE 
             {% if var('snowplow__enable_keyhole_backfill',false) %}
-                e.{{ session_timestamp }} >= {{ snowplow_utils.timestamp_add('day', -max_session_days, lower_limit) }}
+                e.{{ session_timestamp }} >= {{ lower_limit }}
                 and e.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, upper_limit) }}
             {% else %}
                 e.{{ session_timestamp }} >= {{ lower_limit }}
