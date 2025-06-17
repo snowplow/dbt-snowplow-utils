@@ -80,7 +80,7 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_TEST_DBNAME }}
+          POSTGRES_DB: POSTGRES_TEST_DBNAME
           POSTGRES_USER: ${{ secrets.POSTGRES_TEST_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_TEST_PASS }}
           POSTGRES_HOST_AUTH_METHOD: trust
