@@ -54,15 +54,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         on a.session_identifier = b.session_identifier
 
         where 
+        {% if allow_null_dvce_tstamps %}
+            and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
+        {% else %}
+            and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
+        {% endif %}
+
         {% if not var('snowplow__enable_keyhole_backfill',false) %}
             
             a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
-            
-            {% if allow_null_dvce_tstamps %}
-                and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
-            {% else %}
-                and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
-            {% endif %}
             
             and a.{{ session_timestamp }} >= {{ lower_limit }}
             and a.{{ session_timestamp }} <= {{ upper_limit }}
@@ -320,23 +320,24 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         on a.session_identifier = b.session_identifier
 
         where 
-        {% if not var('snowplow__enable_keyhole_backfill',false) %}
-        a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
         {% if allow_null_dvce_tstamps %}
             and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
         {% else %}
             and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
         {% endif %}
-        and a.{{ session_timestamp }} >= {{ lower_limit }}
-        and a.{{ session_timestamp }} <= {{ upper_limit }}
-        and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
-        {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
-            and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
-            and a.derived_tstamp <= {{ upper_limit }}
-        {% endif %}
+        {% if not var('snowplow__enable_keyhole_backfill',false) %}
+            a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+            and a.{{ session_timestamp }} >= {{ lower_limit }}
+            and a.{{ session_timestamp }} <= {{ upper_limit }}
+            and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
-        and 
+            {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
+                and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
+                and a.derived_tstamp <= {{ upper_limit }}
+            {% endif %}
+
+            and 
         {% endif %}
         {{ snowplow_utils.app_id_filter(app_ids) }}
     )
