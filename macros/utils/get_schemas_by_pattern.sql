@@ -20,9 +20,15 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% macro duckdb__get_schemas_by_pattern(schema_pattern) %}
 
-    {% set get_tables_sql = dbt_utils.get_tables_by_pattern_sql(schema_pattern, table_pattern='%') %}
-    {% set results = [] if get_tables_sql.isspace() else run_query(get_tables_sql) %}
-    {% set schemas = results|map(attribute='table_schema')|unique|list %}
+    {% set get_tables_sql %}
+        select distinct
+            table_schema
+        from information_schema.tables
+        where table_schema ilike '{{ schema_pattern }}'
+    {% endset %}
+    
+    {% set results = run_query(get_tables_sql) %}
+    {% set schemas = results.columns[0].values() %}
     {{ return(schemas) }}
 
 {% endmacro %}
