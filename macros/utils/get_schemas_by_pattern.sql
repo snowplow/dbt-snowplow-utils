@@ -21,10 +21,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro duckdb__get_schemas_by_pattern(schema_pattern) %}
 
     {% set get_tables_sql %}
-        select distinct
+        SELECT DISTINCT
             table_schema
-        from information_schema.tables
-        where table_schema ilike '{{ schema_pattern }}'
+        FROM information_schema.tables
+        WHERE table_schema ilike '{{ schema_pattern }}'
     {% endset %}
     
     {% set results = run_query(get_tables_sql) %}
