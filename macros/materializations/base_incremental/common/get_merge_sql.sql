@@ -108,7 +108,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% if target.type in ['databricks', 'spark'] -%}
         {% set merge_sql = spark__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
     {% else %}
-        {% set merge_sql = dbt.default__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
+        {% set merge_sql = dbt.get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
     {% endif %}
 
     {{ return(merge_sql) }}
