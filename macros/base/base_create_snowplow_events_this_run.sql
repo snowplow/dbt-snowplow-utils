@@ -327,7 +327,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         inner join {{ sessions_this_run }} as b
         on a.session_identifier = b.session_identifier
 
-        where 
+        where 1=1
         {% if allow_null_dvce_tstamps %}
             and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
         {% else %}
@@ -335,7 +335,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% endif %}
 
         {% if not var('snowplow__enable_keyhole_backfill',false) %}
-            a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+            and a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
             and a.{{ session_timestamp }} >= {{ lower_limit }}
             and a.{{ session_timestamp }} <= {{ upper_limit }}
             and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
