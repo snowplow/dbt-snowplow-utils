@@ -82,6 +82,24 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {% endif %}
 {% endmacro %}
 
+{% macro duckdb__timestamp_add(datepart, interval, tstamp) %}
+    {% set ms_per_unit = {
+        'week': 7 * 24 * 3600 * 1000,
+        'day': 24 * 3600 * 1000,
+        'hour': 3600 * 1000,
+        'minute': 60 * 1000,
+        'second': 1000,
+        'millisecond': 1
+    } %}
+    
+    {% if datepart.lower() not in ms_per_unit %}
+        {{ exceptions.raise_compiler_error("Unsupported datepart for DuckDB: " ~ datepart) }}
+    {% endif %}
+    {% set interval_ms = ms_per_unit[datepart.lower()] * interval %}
+    
+    to_timestamp((epoch_ms(cast({{ tstamp }} AS timestamp)) + {{ interval_ms }}) / 1000.0)
+{% endmacro %}
+
 {% macro cast_to_tstamp(tstamp_literal) -%}
     {% if tstamp_literal is none or tstamp_literal|lower in ['null',''] %}
         cast(null as {{type_timestamp()}})
