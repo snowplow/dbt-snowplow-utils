@@ -21,8 +21,3 @@ clean-targets:
 
 vars:
     surrogate_key_treat_nulls_as_empty_strings: true #turn on legacy behavior
-    snowplow__license_accepted: false
-
-on-run-start:
-  - "{{ snowplow_utils.licence_check() }}"
-  
