@@ -5,11 +5,11 @@ and you may not use this file except in compliance with the Snowplow Personal an
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
 
-{% macro base_create_snowplow_events_this_run_t(run_limits_table, app_ids, snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', event_names=none) %}
-    {{ return(adapter.dispatch('base_create_snowplow_events_this_run_t', 'snowplow_utils')(run_limits_table, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, event_names)) }}
+{% macro base_create_snowplow_events_this_run_t(run_limits_table, app_ids, snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', event_names=none, custom_filter=none) %}
+    {{ return(adapter.dispatch('base_create_snowplow_events_this_run_t', 'snowplow_utils')(run_limits_table, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, event_names, custom_filter)) }}
 {% endmacro %}
 
-{% macro default__base_create_snowplow_events_this_run_t(run_limits_table, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, event_names) %}
+{% macro default__base_create_snowplow_events_this_run_t(run_limits_table, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, event_names, custom_filter) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(run_limits_table),
                                                                             'lower_limit',
                                                                             'upper_limit') %}
@@ -27,6 +27,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             and {{ snowplow_utils.app_id_filter(app_ids) }}
             
             and {{ snowplow_utils.event_name_filter(event_names) }}
+            
+            {% if custom_filter is not none %}
+            and {{ custom_filter }}
+            {% endif %}
         )
 
         select
