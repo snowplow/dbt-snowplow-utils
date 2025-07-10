@@ -45,10 +45,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {%- endif -%}
 
   {% set delete_statement %}
-    {%- if target.type in ['databricks'] -%}
-      DELETE FROM {{ incremental_manifest_table }}
-      WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
-    {%- elif target.type in ['spark'] -%}
+    {%- if target.type in ['databricks', 'spark', 'duckdb'] -%}
       DELETE FROM {{ incremental_manifest_table }}
       WHERE model IN ({{ snowplow_utils.print_list(matched_models) }});
     {%- else -%}

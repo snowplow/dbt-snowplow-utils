@@ -41,3 +41,13 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     select {{ id_column }}, {{ field_alias }} {% if with_index %} , index as source_index {% endif %} 
     from {{ source_table }} p, p.{{ unnest_column }} as {{ field_alias }}{% if with_index %}  at index {% endif %}
 {% endmacro %}
+
+{% macro duckdb__unnest(id_column, unnest_column, field_alias, source_table, with_index=false) %}
+    {% if with_index %}
+        select {{ id_column }}, row_number() over (partition by {{ id_column }} order by 1) - 1 as source_index, unnested_value as {{ field_alias }}
+        from {{ source_table }}, unnest({{ unnest_column }}) as t(unnested_value)
+    {% else %}
+        select {{ id_column }}, unnested_value as {{ field_alias }}
+        from {{ source_table }}, unnest({{ unnest_column }}) as t(unnested_value)
+    {% endif %}
+{% endmacro %}

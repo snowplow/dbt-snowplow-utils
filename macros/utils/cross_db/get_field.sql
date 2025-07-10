@@ -58,3 +58,19 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% endif %}
 
 {% endmacro %}
+
+{% macro duckdb__get_field(column_name, field_name, table_alias = none, type = none, array_index = none, relation = none) %}
+{% if '*' in column_name %}
+    {% do exceptions.raise_compiler_error('Wildcard schema versions are only supported for Bigquery, they are not supported for ' ~ target.type) %}
+{% else %}
+    {%- if type is none -%}
+        {%- if table_alias -%}{{table_alias}}.{%- endif -%}{{column_name}}{%- if array_index is not none -%}->{{array_index}}{%- endif -%}->>'{{field_name}}'
+    {%- else -%}
+        CAST(
+            
+            {%- if table_alias -%}{{table_alias}}.{%- endif -%}{{column_name}}{%- if array_index is not none -%}->{{array_index}}{%- endif -%}->>'{{field_name}}' AS {{type}}
+            
+        )
+    {%- endif -%}
+{% endif %}
+{% endmacro %}

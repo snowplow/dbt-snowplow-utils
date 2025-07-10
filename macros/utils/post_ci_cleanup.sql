@@ -7,7 +7,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {# Destructive macro. Use with care! #}
 
 {% macro post_ci_cleanup(schema_pattern=target.schema) %}
-  {{ return(adapter.dispatch('post_ci_cleanup', 'snowplow_utils')(schema_pattern)) }}
+    {{ return(adapter.dispatch('post_ci_cleanup', 'snowplow_utils')(schema_pattern)) }}
 {% endmacro %}
 
 
