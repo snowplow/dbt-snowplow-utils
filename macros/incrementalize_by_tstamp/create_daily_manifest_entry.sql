@@ -13,7 +13,7 @@
     daily_event_metrics AS (
         SELECT 
             DATE(derived_tstamp) AS event_date,
-            MAX(load_tstamp)::TIMESTAMP_NTZ AS max_load_tstamp,
+            MAX(load_tstamp) AS max_load_tstamp,
             COUNT(*) AS event_count
         FROM {{ ref(prefix ~ "_filtered_events") }}
         WHERE DATE(derived_tstamp) IN (SELECT event_date FROM dates_to_process)
@@ -48,10 +48,10 @@
     {% else %}
         previous_manifest_data AS (
             SELECT
-                NULL AS event_date,
-                NULL AS previous_skipped_events,
-                NULL AS previous_processed_events,
-                NULL AS previous_max_load_tstamp
+                date(null) AS event_date,
+                cast(null as {{ dbt.type_int() }}) AS previous_skipped_events,
+                cast(null as {{ dbt.type_int() }}) AS previous_processed_events,
+                cast(null as {{ dbt.type_timestamp() }}) AS previous_max_load_tstamp
                 {# NULL AS previous_avg_delay_hours,
                 NULL AS previous_median_delay_hours,
                 NULL AS previous_p95_delay_hours,
@@ -62,15 +62,15 @@
     -- Combine all metrics and calculate final manifest
     SELECT 
         COALESCE(skipped.event_date, metrics.event_date) AS event_date,
-        '{{ source_model }}'::VARCHAR AS source_model,
+        cast('{{ source_model }}' as {{ dbt.type_string() }}) AS source_model,
         COALESCE(metrics.event_count, prev.previous_processed_events) AS processed_events,
         {# COALESCE(metrics.avg_delay_hours, prev.previous_avg_delay_hours) AS avg_delay_hours,
         COALESCE(metrics.median_delay_hours, prev.previous_median_delay_hours) AS median_delay_hours,
         COALESCE(metrics.p95_delay_hours, prev.previous_p95_delay_hours) AS p95_delay_hours,
         COALESCE(metrics.max_delay_hours, prev.previous_max_delay_hours) AS max_delay_hours, #}
-        COALESCE(prev.previous_skipped_events, 0) + COALESCE(skipped.skipped_events, 0)::NUMBER AS skipped_events,
+        cast(COALESCE(prev.previous_skipped_events, 0) + COALESCE(skipped.skipped_events, 0) as {{ dbt.type_int() }}) AS skipped_events,
         COALESCE(metrics.max_load_tstamp, prev.previous_max_load_tstamp) AS max_load_tstamp,
-        CURRENT_TIMESTAMP()::TIMESTAMP_NTZ AS last_updated_at
+        {{ snowplow_utils.current_timestamp_in_utc() }} AS last_updated_at
     FROM daily_event_metrics metrics
     FULL OUTER JOIN daily_skipped_events skipped
         ON skipped.event_date = metrics.event_date

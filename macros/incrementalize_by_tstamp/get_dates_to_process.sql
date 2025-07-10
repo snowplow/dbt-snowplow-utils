@@ -16,68 +16,84 @@
 -- can we find the schema for the manifest table based on the compiled data? ideally from dbt node metadata
 {% set manifest_schema = target.schema~'_snowplow_manifest' %}
 
-WITH source_data AS (
-    SELECT 
-        date(derived_tstamp) AS event_date,
-        count(*) as event_count,
-        CASE 
-            WHEN date(derived_tstamp) IN (
-                SELECT DISTINCT date(derived_tstamp)
-                FROM {{ ref(this_run_table) }}
-                WHERE date(derived_tstamp) >= '{{ snowplow__start_date }}'
-                EXCEPT
-                SELECT DISTINCT date(load_tstamp)
-                FROM {{ ref(this_run_table) }}
-                WHERE date(derived_tstamp) >= '{{ snowplow__start_date }}'
-            ) THEN 1
-            ELSE 0
-        END AS is_delayed
-    FROM {{ ref(this_run_table) }}
-    WHERE date(derived_tstamp) >= '{{ snowplow__start_date }}'
-    GROUP BY date(derived_tstamp)
+WITH base AS (
+  SELECT
+    DATE(derived_tstamp) AS event_date,
+    load_tstamp
+  FROM {{ ref(this_run_table) }}
+  WHERE DATE(derived_tstamp) >= '{{ snowplow__start_date }}'
 ),
-{% if is_not_full_refresh %}
-manifest_data AS (
-    SELECT 
-        event_date,
-        skipped_events as manifest_skipped_events
-    -- create the scheme ref not native dbt way but {}.{}.{} way
-    FROM {{manifest_schema}}.{{manifest_table}}
-),
-combined_data AS (
-    SELECT 
-        s.event_date,
-        s.event_count,
-        s.is_delayed,
-        COALESCE(m.manifest_skipped_events, 0) + CASE WHEN s.is_delayed = 1 THEN s.event_count ELSE 0 END as skipped_events,
-        s.event_count + COALESCE(m.manifest_skipped_events, 0) as total_events
-    FROM source_data s
-    LEFT JOIN manifest_data m ON s.event_date = m.event_date
-    WHERE (skipped_events >= {{ min_late_events_to_process }} OR NOT is_delayed)
-    ORDER BY event_date DESC
-    LIMIT {{ limit_days }}
 
+source_data AS (
+  SELECT 
+    event_date,
+    COUNT(*) AS event_count,
+
+    {% if target.type == 'snowflake' %}
+      CASE 
+        WHEN event_date IN (
+          SELECT DISTINCT DATE(derived_tstamp)
+          FROM {{ ref(this_run_table) }}
+          WHERE DATE(derived_tstamp) >= '{{ snowplow__start_date }}'
+          EXCEPT
+          SELECT DISTINCT DATE(load_tstamp)
+          FROM {{ ref(this_run_table) }}
+          WHERE DATE(derived_tstamp) >= '{{ snowplow__start_date }}'
+        ) THEN 1
+        ELSE 0
+      END AS is_delayed
+    {% elif target.type == 'bigquery' %}
+      IF(
+        NOT EXISTS (
+          SELECT 1
+          FROM {{ ref(this_run_table) }} d
+          WHERE DATE(d.derived_tstamp) = base.event_date
+            AND DATE(d.load_tstamp) = base.event_date
+        ), 1, 0
+      ) AS is_delayed
+    {% endif %}
+
+  FROM base
+  GROUP BY event_date
 )
+
+{% if is_not_full_refresh %}
+  ,  manifest_data as (
+        select 
+            event_date,
+            skipped_events as manifest_skipped_events
+        -- create the scheme ref not native dbt way but {}.{}.{} way
+        from {{manifest_schema}}.{{manifest_table}}
+    ),
+    combined_data as (
+        select 
+            s.event_date,
+            s.event_count,
+            coalesce(m.manifest_skipped_events, cast(0 as {{ dbt.type_int() }})) + case when s.is_delayed = 1 then s.event_count else 0 end as skipped_events,
+            s.event_count + coalesce(m.manifest_skipped_events, cast(0 as {{ dbt.type_int() }})) as total_events,
+            cast(s.is_delayed as {{ dbt.type_boolean() }}) as is_delayed,
+            {{ snowplow_utils.current_timestamp_in_utc() }} as processed_at
+        from source_data s
+        left join manifest_data m on s.event_date = m.event_date
+    )
+
+    select * 
+    from combined_data
+    where (skipped_events >= {{ min_late_events_to_process }} or not is_delayed)
+    order by event_date desc
+    limit {{ limit_days }}
+    
 {% else %}
-combined_data AS (
-    SELECT 
+
+    select 
         event_date,
         event_count,
+        cast(0 as {{ dbt.type_int() }}) as skipped_events,
+        event_count as total_events,
         is_delayed,
-        0 as skipped_events,
-        event_count as total_events
-    FROM source_data
-    ORDER BY event_date DESC
-)
+        {{ snowplow_utils.current_timestamp_in_utc() }} as processed_at
+      from source_data
+      order by event_date desc
+  
 {% endif %}
-
-SELECT 
-    event_date,
-    event_count,
-    skipped_events,
-    total_events,
-    is_delayed,
-    current_timestamp() as processed_at
-FROM combined_data
-
 {% endmacro %}
