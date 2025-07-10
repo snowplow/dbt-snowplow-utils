@@ -1,3 +1,10 @@
+snoplow-utils X.X.X (20XX-XX-XX)
+---------------------------------------
+## Summary
+
+## Fix
+- Fix broken delete insert for redshift
+
 snowplow-utils 0.17.2 (2025-05-08)
 ---------------------------------------
 ## Summary
