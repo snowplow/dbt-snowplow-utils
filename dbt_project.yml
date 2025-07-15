@@ -12,12 +12,10 @@ dispatch:
 
 macro-paths: ["macros"]
 docs-paths: ["docs"]
-
-target-path: "target"
 clean-targets:
-    - "target"
-    - "dbt_modules"
-    - "dbt_packages"
+  - "target"
+  - "dbt_modules"
+  - "dbt_packages"
 
 vars:
-    surrogate_key_treat_nulls_as_empty_strings: true #turn on legacy behavior
+  surrogate_key_treat_nulls_as_empty_strings: true   #turn on legacy behavior
