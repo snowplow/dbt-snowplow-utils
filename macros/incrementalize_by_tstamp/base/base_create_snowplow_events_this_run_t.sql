@@ -29,7 +29,13 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             and {{ snowplow_utils.event_name_filter(event_names) }}
             
             {% if custom_filter is not none %}
-            and {{ custom_filter }}
+                {% set disallowed = [';', '--', '/*', '*/', 'drop', 'delete', 'alter', 'insert', 'truncate'] %}
+                {% for item in disallowed %}
+                    {% if item in custom_filter | lower %}
+                        {{ exceptions.raise_compiler_error("Unsafe SQL detected in custom_filter: contains '" ~ item ~ "'") }}
+                    {% endif %}
+                {% endfor %}
+                and {{ custom_filter }}
             {% endif %}
         )
 
