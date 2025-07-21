@@ -1,3 +1,14 @@
+snowplow-utils 0.17.3 (2025-07-21)
+---------------------------------------
+## Summary
+This release introduces a macro to enable snowplow dbt repos to validate user license acceptance.
+
+## Features
+- This release introduces the macro `license_check` for use by snowplow dbt repos to validate user license acceptance.
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file.
+
 snowplow-utils 0.17.2 (2025-05-08)
 ---------------------------------------
 ## Summary
