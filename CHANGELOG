@@ -1,3 +1,20 @@
+snowplow-utils 0.17.4 (2025-08-07)
+---------------------------------------
+## Summary
+This release fixes a rare bug that may occur in the dbt-snowplow-attribution package when source data is missing during the first run, due to the behavior of the `return_limits_from_model()` macro.
+
+It also adds a new set of macros for time-based incremental processing (not intended for use in public snowplow-dbt packages at this time), and includes a code refactor to separate integration and unit tests.
+
+## Fixes
+- Fix return_limits_from_model
+
+## Under the hood
+- Refactor unit tests
+- Add time based incrementalization
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file.
+
 snowplow-utils 0.17.3 (2025-07-21)
 ---------------------------------------
 ## Summary
