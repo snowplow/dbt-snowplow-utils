@@ -13,14 +13,12 @@ incremental materialization with lookback disabled.
   config(
     materialized='incremental',
     unique_key='id',
-    upsert_date_key='start_tstamp',
-    disable_upsert_lookback=true,
     partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
       "field": "start_tstamp",
       "data_type": "timestamp"
     }),
     tags=["requires_script"],
-    snowplow_optimize=true
+    meta = {"upsert_date_key": "start_tstamp", "disable_upsert_lookback": true, "snowplow_optimize": true}
   )
 }}
 

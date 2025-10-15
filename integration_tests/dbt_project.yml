@@ -172,7 +172,7 @@ seeds:
           id: integer
           start_tstamp: timestamp
       default:
-        enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
+        +enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -182,7 +182,7 @@ seeds:
             id: integer
             start_tstamp: timestamp
       bigquery:
-        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+        +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -192,9 +192,9 @@ seeds:
             id: integer
             start_tstamp: timestamp
       snowflake:
-        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+        +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
       databricks:
-        enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
+        +enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -207,11 +207,13 @@ seeds:
             start_tstamp: timestamp
     utils:
       data_return_limits_from_models:
-        start_tstamp: timestamp
-        end_tstamp: timestamp
+        +meta:
+          start_tstamp: timestamp
+          end_tstamp: timestamp
       data_return_limits_from_models_nulls:
-        start_tstamp: timestamp
-        end_tstamp: timestamp
+        +meta:
+          start_tstamp: timestamp
+          end_tstamp: timestamp
       data_get_sde_or_context:
         +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
     base:
