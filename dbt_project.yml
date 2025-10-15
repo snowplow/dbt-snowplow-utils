@@ -13,7 +13,6 @@ dispatch:
 macro-paths: ["macros"]
 docs-paths: ["docs"]
 
-target-path: "target"
 clean-targets:
     - "target"
     - "dbt_modules"
