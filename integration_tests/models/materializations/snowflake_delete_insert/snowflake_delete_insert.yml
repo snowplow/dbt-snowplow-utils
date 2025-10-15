@@ -5,12 +5,16 @@ models:
     tests:
       # equality uses distinct operator therefore dedupes so also add row count check.
       - dbt_utils.equal_rowcount:
-          compare_model: ref('data_incremental_delete_insert_expected')
+          arguments:
+            compare_model: ref('data_incremental_delete_insert_expected')
       - dbt_utils.equality:
-          compare_model: ref('data_incremental_delete_insert_expected')
+          arguments:
+            compare_model: ref('data_incremental_delete_insert_expected')
   - name: test_incremental_delete_insert_w_lookback_disabled
     tests:
       - dbt_utils.equal_rowcount:
-          compare_model: ref('data_incremental_delete_insert_w_lookback_disabled_expected')
+          arguments:
+            compare_model: ref('data_incremental_delete_insert_w_lookback_disabled_expected')
       - dbt_utils.equality:
-          compare_model: ref('data_incremental_delete_insert_w_lookback_disabled_expected')
+          arguments:
+            compare_model: ref('data_incremental_delete_insert_w_lookback_disabled_expected')

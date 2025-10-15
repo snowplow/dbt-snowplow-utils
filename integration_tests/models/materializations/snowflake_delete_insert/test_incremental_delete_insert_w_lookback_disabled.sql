@@ -8,17 +8,13 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
    upsert_date_key: RS, PG only. Key used to limit the table scan
    partition_by: BQ only. Key used to limit table scan #}
 
-{{
-  config(
-    materialized='incremental',
-    incremental_strategy='delete+insert',
-    unique_key='id',
-    upsert_date_key='start_tstamp',
-    disable_upsert_lookback=true,
-    tags=["requires_script"],
-    snowplow_optimize=true
-  )
-}}
+{{ config(
+    materialized="incremental", 
+    incremental_strategy="delete+insert", 
+    unique_key="id", 
+    tags=['requires_script'], 
+    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': True, 'snowplow_optimize': True}
+) }}
 
 with data as (
   select * from {{ ref('data_incremental') }}

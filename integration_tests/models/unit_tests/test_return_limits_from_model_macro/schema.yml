@@ -4,4 +4,5 @@ models:
   - name: test_return_limits_from_model_macro
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_return_limits_from_model_macro')
+          arguments:
+            compare_model: ref('expected_return_limits_from_model_macro')

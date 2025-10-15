@@ -4,4 +4,5 @@ models:
   - name: test_get_incremental_manifest_status_macro
     tests:
       - dbt_utils.equality:
-          compare_model: ref('data_get_incremental_manifest_status_expected')
+          arguments:
+            compare_model: ref('data_get_incremental_manifest_status_expected')
