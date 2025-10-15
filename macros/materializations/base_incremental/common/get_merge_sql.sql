@@ -9,12 +9,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {%- set predicate_override = "" -%}
     {%- set orig_predicates = [] if incremental_predicates is none else [] + incremental_predicates -%}
 
-    {%- set optimize = config.get('snowplow_optimize') -%}
+    {%- set optimize = snowplow_utils.config_meta_get('snowplow_optimize') -%}
     {% if optimize %}
 
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
-        {%- set date_column = config.require('upsert_date_key') -%}
-        {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%} {# We do this for late arriving data possibly e.g. shifting a session start earlier #}
+        {%- set date_column = snowplow_utils.config_meta_require('upsert_date_key') -%}
+        {%- set disable_upsert_lookback = snowplow_utils.config_meta_get('disable_upsert_lookback') -%} {# We do this for late arriving data possibly e.g. shifting a session start earlier #}
 
         {# We need the type of the column to get the correct cast of the default value #}
         {%- set columns = adapter.get_columns_in_relation(this) -%}
@@ -66,11 +66,11 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {# Set default predicates to pass on #}
     {%- set predicate_override = "" -%}
     {%- set orig_predicates = [] if incremental_predicates is none else [] + incremental_predicates -%}
-    {%- set optimize = config.get('snowplow_optimize') -%}
+    {%- set optimize = snowplow_utils.config_meta_get('snowplow_optimize') -%}
     {% if optimize %}
         -- run some queries to dynamically determine the min + max of this 'upsert_date_key' in the new data
-        {%- set date_column = config.require('upsert_date_key') -%}
-        {%- set disable_upsert_lookback = config.get('disable_upsert_lookback') -%}
+        {%- set date_column = snowplow_utils.config_meta_require('upsert_date_key') -%}
+        {%- set disable_upsert_lookback = snowplow_utils.config_meta_get('disable_upsert_lookback') -%}
 
         {# We need the type of the column to get the correct cast of the default value is needed #}
         {%- set columns = adapter.get_columns_in_relation(this) -%}
