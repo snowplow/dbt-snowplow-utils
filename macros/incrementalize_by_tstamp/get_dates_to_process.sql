@@ -42,7 +42,7 @@ source_data AS (
         ) THEN 1
         ELSE 0
       END AS is_delayed
-    {% elif target.type == 'bigquery' %}
+    {% elif target.type in ('bigquery', 'databricks') %}
       IF(
         NOT EXISTS (
           SELECT 1

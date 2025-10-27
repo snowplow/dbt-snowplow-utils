@@ -158,3 +158,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro bigquery__add_days_to_date(interval, base_date) %}
     DATE_ADD({{base_date}}, interval {{interval}} day)
 {% endmacro %}
+
+{% macro databricks__add_days_to_date(interval, base_date) %}
+    DATEADD(DAY, {{ interval }}, {{ base_date }})
+{% endmacro %}
