@@ -1,3 +1,14 @@
+snowplow-utils 0.17.5 (2025-10-30)
+---------------------------------------
+## Summary
+Small release adding Databricks support for timestamp macros. It does not impact the Snowplow dbt packages (e.g. unified / ecommerce / attribution / media-player etc.)
+
+## Under the hood
+- Add Databricks support for timestamp macros
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file.
+
 snowplow-utils 0.17.4 (2025-08-07)
 ---------------------------------------
 ## Summary
