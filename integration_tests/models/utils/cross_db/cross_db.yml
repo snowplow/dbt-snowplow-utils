@@ -4,20 +4,25 @@ models:
   - name: test_get_string_agg
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg')
+          arguments:
+            compare_model: ref('expected_get_string_agg')
   - name: test_get_string_agg_grp
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_get_string_agg_grp')
+          arguments:
+            compare_model: ref('expected_get_string_agg_grp')
   - name: test_get_field
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_get_field')
+          arguments:
+            compare_model: ref('expected_get_field')
   - name: test_get_field_bq
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_get_field_bq')
+          arguments:
+            compare_model: ref('expected_get_field_bq')
   - name: test_indexed_unnest
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_indexed_unnest')
+          arguments:
+            compare_model: ref('expected_indexed_unnest')

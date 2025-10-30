@@ -12,12 +12,10 @@ model-paths: ["models"]
 test-paths: ["tests"]
 seed-paths: ["data"]
 macro-paths: ["macros"]
-
-target-path: "target"
 clean-targets:
-    - "target"
-    - "dbt_modules"
-    - "dbt_packages"
+  - "target"
+  - "dbt_modules"
+  - "dbt_packages"
 
 # Completely or partially remove models from the manifest during run start.
 on-run-start:
@@ -29,7 +27,6 @@ on-run-end:
   - "{{ test_get_successful_models(enabled=var('enabled_test_get_successful_models', false)) }}"
   - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual', var('snowplow__session_timestamp')) }}"
   - "{{ snowplow_utils.snowplow_incremental_post_hook('snowplow', var('snowplow__incremental_manifest'), 'snowplow_base_events_this_run_actual', var('snowplow__session_timestamp')) }}"
-  
 vars:
   snowplow_utils_integration_tests:
     # Disables compiler errors during testing. Returns error message string instead, which we can test against.
@@ -37,25 +34,25 @@ vars:
     snowplow__custom_test: false
     snowplow__session_test: false
     snowplow__start_date: "2021-02-20"
-    snowplow__session_identifiers: [{"schema": "atomic", "field" : "domain_sessionid"}]
-    snowplow__bigquery_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2_0_0", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1_0_0", "field" : "session_id"}]
-    snowplow__databricks_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field" : "session_id"}]
-    snowplow__spark_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field" : "session_id"}]
-    snowplow__postgres_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2_0_0", "field": "session_identifier", "prefix": "si_t", "alias": "sito"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1_0_0", "field" : "session_id", "prefix" : "si_o", "alias": "sido"}]
-    snowplow__snowflake_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "sessionIdentifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field" : "sessionId"}]
+    snowplow__session_identifiers: [{"schema": "atomic", "field": "domain_sessionid"}]
+    snowplow__bigquery_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2_0_0", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1_0_0", "field": "session_id"}]
+    snowplow__databricks_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field": "session_id"}]
+    snowplow__spark_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field": "session_id"}]
+    snowplow__postgres_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2_0_0", "field": "session_identifier", "prefix": "si_t", "alias": "sito"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1_0_0", "field": "session_id", "prefix": "si_o", "alias": "sido"}]
+    snowplow__snowflake_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2", "field": "sessionIdentifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1", "field": "sessionId"}]
     snowplow__custom_session_sql: 'CAST(DATE(collector_tstamp) as {{ dbt.type_string() }})'
     snowplow__session_timestamp: 'collector_tstamp'
-    snowplow__user_identifiers: [{"schema": "atomic", "field" : "domain_userid"}]
-    snowplow__bigquery_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2_0_0", "field" : "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1_0_0", "field" : "user_id"}]
-    snowplow__databricks_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field" : "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field" : "user_id"}]
-    snowplow__spark_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field" : "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field" : "user_id"}]
-    snowplow__postgres_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2_0_0", "field" : "user_id", "prefix" : "ui_t", "alias": "uidt"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1_0_0", "field" : "user_id", "prefix": "ui_o", "alias": "uido"}]
-    snowplow__snowflake_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field" : "userId"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field" : "userId"}]
+    snowplow__user_identifiers: [{"schema": "atomic", "field": "domain_userid"}]
+    snowplow__bigquery_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2_0_0", "field": "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1_0_0", "field": "user_id"}]
+    snowplow__databricks_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field": "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field": "user_id"}]
+    snowplow__spark_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field": "user_id"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field": "user_id"}]
+    snowplow__postgres_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2_0_0", "field": "user_id", "prefix": "ui_t", "alias": "uidt"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1_0_0", "field": "user_id", "prefix": "ui_o", "alias": "uido"}]
+    snowplow__snowflake_user_identifiers: [{"schema": "contexts_com_snowplowanalytics_user_identifier_2", "field": "userId"}, {"schema": "contexts_com_snowplowanalytics_user_identifier_1", "field": "userId"}]
     snowplow__quarantined_sessions: 'snowplow_base_quarantined_sessions_actual'
     snowplow__event_limits: 'snowplow_base_new_event_limits_actual'
     snowplow__incremental_manifest: 'snowplow_incremental_manifest_actual'
-    snowplow__entities_or_sdes: null
-    snowplow__custom_entities_or_sdes: [{"schema" : "contexts_com_snowplowanalytics_custom_entity_1_0_0", "prefix": "custom", "single_entity": true}]
+    snowplow__entities_or_sdes:
+    snowplow__custom_entities_or_sdes: [{"schema": "contexts_com_snowplowanalytics_custom_entity_1_0_0", "prefix": "custom", "single_entity": true}]
     snowplow__bigquery_custom_sql: 'cast(contexts_com_snowplowanalytics_custom_entity_1_0_0[safe_offset(0)].contents as STRING) as custom_contents'
     snowplow__databricks_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents as custom_contents'
     snowplow__spark_custom_sql: 'contexts_com_snowplowanalytics_custom_entity_1[0].contents as custom_contents'
@@ -80,11 +77,11 @@ models:
     +file_format: "{{ 'delta' if target.type not in ['spark'] else 'iceberg'}}"
     materializations:
       snowflake_delete_insert:
-        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+        +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
     utils:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
       bigquery:
-        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+        +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
       cross_db:
         data_get_field:
           +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
@@ -119,14 +116,13 @@ models:
 
 tests:
   snowplow_utils_integration_tests:
-    materializations:
-      snowflake_delete_insert:
-        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
     utils:
       bigquery:
-        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
-
-
+        +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+    +meta:
+      materializations:
+        snowflake_delete_insert:
+          enabled: "{{ target.type == 'snowflake' | as_bool() }}"
 seeds:
   +quote_columns: false
   snowplow_utils_integration_tests:
@@ -176,7 +172,7 @@ seeds:
           id: integer
           start_tstamp: timestamp
       default:
-        enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
+        +enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -186,7 +182,7 @@ seeds:
             id: integer
             start_tstamp: timestamp
       bigquery:
-        enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+        +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -196,9 +192,9 @@ seeds:
             id: integer
             start_tstamp: timestamp
       snowflake:
-        enabled: "{{ target.type == 'snowflake' | as_bool() }}"
+        +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
       databricks:
-        enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
+        +enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
         data_incremental_expected:
           +column_types:
             id: integer
@@ -211,45 +207,47 @@ seeds:
             start_tstamp: timestamp
     utils:
       data_return_limits_from_models:
-        start_tstamp: timestamp
-        end_tstamp: timestamp
+        +meta:
+          start_tstamp: timestamp
+          end_tstamp: timestamp
       data_return_limits_from_models_nulls:
-        start_tstamp: timestamp
-        end_tstamp: timestamp
+        +meta:
+          start_tstamp: timestamp
+          end_tstamp: timestamp
       data_get_sde_or_context:
         +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
     base:
       source:
         contexts_com_snowplowanalytics_session_identifier_1_0_0:
-          +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             session_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_session_identifier_2_0_0:
-          +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             session_identifier: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_1_0_0:
-          +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             user_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_2_0_0:
-          +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             user_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_custom_entity_1_0_0:
-          +enabled:  "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
@@ -841,3 +839,5 @@ seeds:
             user_identifier: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             start_tstamp: timestamp
             end_tstamp: timestamp
+flags:
+  require_generic_test_arguments_property: true
