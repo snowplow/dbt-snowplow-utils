@@ -107,6 +107,34 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     -- standard merge from here
     {% if target.type in ['databricks', 'spark'] -%}
         {% set merge_sql = spark__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
+    {% elif target.type == 'redshift' %}
+        {# hardcoding the previous dbt adapter logic before the bug was introduced https://github.com/dbt-labs/dbt-adapters/pull/910 #}
+        {% set merge_sql %}
+            {%- set dest_cols_csv = get_quoted_csv(dest_columns | map(attribute="name")) -%}
+            {% if unique_key %}
+                {% if unique_key is string %}
+                {% set unique_key = [unique_key] %}
+                {% endif %}
+
+                {%- set unique_key_str = unique_key|join(', ') -%}
+
+                delete from {{ target_tb }}
+                where ({{ unique_key_str }}) in (
+                    select distinct {{ unique_key_str }}
+                    from {{ source }}
+                )
+                {%- if predicates %}
+                    {% for predicate in predicates %}
+                        and {{ predicate }}
+                    {% endfor %}
+                {%- endif -%};
+            {% endif %}
+            insert into {{ target_tb }} ({{ dest_cols_csv }})
+            (
+                select {{ dest_cols_csv }}
+                from {{ source }}
+            )
+        {% endset %}
     {% else %}
         {% set merge_sql = dbt.default__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
     {% endif %}
