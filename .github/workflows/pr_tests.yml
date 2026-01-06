@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbt_version: ["1.*"]
+        dbt_version: ["1.11.0b3"]
         warehouse: ["postgres", "bigquery", "snowflake", "databricks", "redshift", "spark_iceberg"] # TODO: Add RS self-hosted runner
     services:
       postgres:
@@ -147,9 +147,9 @@ jobs:
       # Install latest patch version. Upgrade if cache contains old patch version.
       - name: Install dependencies
         run: |
-          pip install wheel setuptools
-          pip install dbt-core==${{ matrix.dbt_version }}
-          pip install dbt-${{ env.WAREHOUSE_PLATFORM }}
+          pip install --upgrade pip wheel setuptools
+          pip install dbt-core==${{ matrix.dbt_version }} --upgrade
+          pip install dbt-${{ env.WAREHOUSE_PLATFORM }} --upgrade
           dbt deps
         if: ${{ env.WAREHOUSE_PLATFORM != 'spark' }}
 
