@@ -4,5 +4,5 @@ models:
   - name: test_update_incremental_manifest_table
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_update_incremental_manifest_table')
-
+          arguments:
+            compare_model: ref('expected_update_incremental_manifest_table')

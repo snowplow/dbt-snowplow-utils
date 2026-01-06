@@ -4,12 +4,15 @@ models:
   - name: test_app_id_filter
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_app_id_filter')
+          arguments:
+            compare_model: ref('expected_app_id_filter')
   - name: test_snowplow_delete_from_manifest
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_snowplow_delete_from_manifest')
+          arguments:
+            compare_model: ref('expected_snowplow_delete_from_manifest')
   - name: test_parse_agg_dict
     tests:
       - dbt_utils.equality:
-          compare_model: ref('expected_parse_agg_dict')
+          arguments:
+            compare_model: ref('expected_parse_agg_dict')
