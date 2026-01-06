@@ -7,13 +7,16 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {# Note this does not work for bigquery due to the role/IAM type approach they have to grants, so BQ users should not supply values to this var #}
 {% macro default__apply_grants(relation, grant_config={}, should_revoke=True) %}
+    {% set grant_config = grant_config or {} %}
     {# 
         We only want to enforce this if the package user is managing grants this way - if they are doing it in database we should 
         pass {} so that it's a no-op 
     #}
-    {% if (grant_config.get('select', []) or var('snowplow__grant_select_to', [])) and target.type != 'bigquery' %}
+    {% set select_grants = grant_config.get('meta', {}).get('select', grant_config.get('select', [])) %}
+    {% set snowplow_vars = var('snowplow__grant_select_to', []) %}
+    {% if (select_grants or snowplow_vars) and target.type != 'bigquery' %}
         {# Add our config to the grants from our variable #}
-        {% do grant_config.update({'select': grant_config.get('select', []) + var('snowplow__grant_select_to', [])}) %}
+        {% do grant_config.update({'select': select_grants + snowplow_vars}) %}
     {% endif %}
     {# Call the original macro so we don't have to keep this in sync ourselves #}
     {{ dbt.default__apply_grants(relation, grant_config, should_revoke=True) }}

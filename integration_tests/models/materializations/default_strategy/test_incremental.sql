@@ -10,11 +10,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
    TODO: Add tests that change the granularity of the partition #}
 
 {{ config(
-    materialized='incremental',
-    unique_key=['id','id2'],
-    upsert_date_key='start_tstamp',
-    tags=["requires_script"],
-    snowplow_optimize=true,
+    materialized="incremental", 
+    unique_key=['id','id2'], 
+    tags=["requires_script"], 
+    meta={'upsert_date_key': 'start_tstamp', 'snowplow_optimize': True}
 ) }}
 
 
