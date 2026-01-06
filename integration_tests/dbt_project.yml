@@ -842,3 +842,5 @@ seeds:
             end_tstamp: timestamp
 flags:
   require_generic_test_arguments_property: true
+  send_anonymous_usage_stats: false
+  use_colors: true
