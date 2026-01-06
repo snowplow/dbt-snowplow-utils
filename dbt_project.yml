@@ -2,7 +2,7 @@ name: 'snowplow_utils'
 version: '0.17.5'
 config-version: 2
 
-require-dbt-version: [">=1.4.0", "<2.0.0"]
+require-dbt-version: [">=1.10.0", "<2.0.0"]
 
 profile: 'default'
 
@@ -10,14 +10,19 @@ dispatch:
   - macro_namespace: dbt
     search_order: ['snowplow_utils', 'dbt']
 
+model-paths: []
+seed-paths: []
+analysis-paths: []
+snapshot-paths: []
+test-paths: []
 macro-paths: ["macros"]
 docs-paths: ["docs"]
-
-target-path: "target"
 clean-targets:
-    - "target"
-    - "dbt_modules"
-    - "dbt_packages"
+  - "target"
+  - "dbt_modules"
+  - "dbt_packages"
 
 vars:
-    surrogate_key_treat_nulls_as_empty_strings: true #turn on legacy behavior
+  surrogate_key_treat_nulls_as_empty_strings: true   #turn on legacy behavior
+flags:
+  require_generic_test_arguments_property: true

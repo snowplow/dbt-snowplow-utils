@@ -11,9 +11,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         We only want to enforce this if the package user is managing grants this way - if they are doing it in database we should 
         pass {} so that it's a no-op 
     #}
-    {% if (grant_config.get('select', []) or var('snowplow__grant_select_to', [])) and target.type != 'bigquery' %}
+    {% if (grant_config.meta_get('select', []) or var('snowplow__grant_select_to', [])) and target.type != 'bigquery' %}
         {# Add our config to the grants from our variable #}
-        {% do grant_config.update({'select': grant_config.get('select', []) + var('snowplow__grant_select_to', [])}) %}
+        {% do grant_config.update({'select': grant_config.meta_get('select', []) + var('snowplow__grant_select_to', [])}) %}
     {% endif %}
     {# Call the original macro so we don't have to keep this in sync ourselves #}
     {{ dbt.default__apply_grants(relation, grant_config, should_revoke=True) }}
