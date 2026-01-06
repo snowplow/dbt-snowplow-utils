@@ -13,7 +13,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     incremental_strategy='delete+insert', 
     unique_key="id", 
     tags=["requires_script"], 
-    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': true, 'snowplow_optimize': true}
+    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': True, 'snowplow_optimize': True}
 ) }}
 
 with data as (

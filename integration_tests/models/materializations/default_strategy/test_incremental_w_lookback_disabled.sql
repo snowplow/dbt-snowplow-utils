@@ -17,7 +17,7 @@ incremental materialization with lookback disabled.
       "data_type": "timestamp"
     }), 
     tags=["requires_script"], 
-    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': true, 'snowplow_optimize': true}
+    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': True, 'snowplow_optimize': True}
 ) }}
 
 
