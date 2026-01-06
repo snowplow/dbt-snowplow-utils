@@ -118,12 +118,13 @@ models:
 
 tests:
   snowplow_utils_integration_tests:
-    materializations:
-      snowflake_delete_insert:
-        +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
     utils:
       bigquery:
         +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
+    +meta:
+      materializations:
+        snowflake_delete_insert:
+          enabled: "{{ target.type == 'snowflake' | as_bool() }}"
 seeds:
   +quote_columns: false
   snowplow_utils_integration_tests:
