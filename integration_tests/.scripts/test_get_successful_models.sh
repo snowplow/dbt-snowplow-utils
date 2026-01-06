@@ -12,7 +12,7 @@ done
 
 echo "Test get_successful_models."
 
-OUTPUT=$(eval "dbt run --models incremental_hooks.test_get_successful_models --target $DATABASE --vars '{enabled_test_get_successful_models: true}'") || true
+OUTPUT=$(eval "dbt run --select incremental_hooks.test_get_successful_models --target $DATABASE --vars '{enabled_test_get_successful_models: true}'") || true
 
 if [[ $OUTPUT == *"Pass: test_get_successful_models()"* ]]; then
   TEST_PASS=true

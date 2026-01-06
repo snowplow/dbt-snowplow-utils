@@ -9,20 +9,16 @@ incremental materialization with lookback disabled.
    upsert_date_key: RS/PG/Databricks only. Key used to limit the table scan
    partition_by: BQ only. Key used to limit table scan #}
 
-{{
-  config(
-    materialized='incremental',
-    unique_key='id',
-    upsert_date_key='start_tstamp',
-    disable_upsert_lookback=true,
-    partition_by = snowplow_utils.get_value_by_target_type(bigquery_val={
+{{ config(
+    materialized="incremental", 
+    unique_key="id", 
+    partition_by=snowplow_utils.get_value_by_target_type(bigquery_val={
       "field": "start_tstamp",
       "data_type": "timestamp"
-    }),
-    tags=["requires_script"],
-    snowplow_optimize=true
-  )
-}}
+    }), 
+    tags=["requires_script"], 
+    meta={'upsert_date_key': 'start_tstamp', 'disable_upsert_lookback': True, 'snowplow_optimize': True}
+) }}
 
 
 WITH data as (

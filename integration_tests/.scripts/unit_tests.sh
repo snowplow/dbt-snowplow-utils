@@ -28,7 +28,7 @@ for db in ${DATABASES[@]}; do
 
   # Run dbt seed to set up the database, this prepares the ground for int tests that come after unit tests
 
-  echo "Snowplow unified unit tests: Seeding data"
+  echo "Snowplow utils unit tests: Seeding data"
   eval "dbt seed --full-refresh --target $db" || exit 1;
 
     # In order to test this macro we need a model reference first and also a timestamp column which the macro takes the min and max of
@@ -38,7 +38,7 @@ for db in ${DATABASES[@]}; do
   if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
     echo "Snowplow-utils unit tests: Run test_return_limits_from_model_macro"
     eval "dbt run --select +test_return_limits_from_model_macro expected_return_limits_from_model_macro  --target $db --full-refresh" || exit 1;
-    eval "dbt test --select test_return_limits_from_model_macro --store-failures --target $db" || exit 1;
+    eval "dbt test --select test_return_limits_from_model_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
   
     # This macro returns different queries for different states which will be used to create the base_new_event_limits table
@@ -50,7 +50,7 @@ for db in ${DATABASES[@]}; do
   if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
     echo "Snowplow-utils unit tests: Run test_get_run_limits_macro"
     eval "dbt run --select test_get_run_limits_macro  --target $db --full-refresh" || exit 1;
-    eval "dbt test --select test_get_run_limits_macro --store-failures --target $db" || exit 1;
+    eval "dbt test --select test_get_run_limits_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
 
     # This macro returns different queries for different states which will be used to create the base_new_event_limits table
@@ -62,7 +62,7 @@ for db in ${DATABASES[@]}; do
   if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
     echo "Snowplow-utils unit tests: Run test_get_run_limits_t_macro"
     eval "dbt run --select test_get_run_limits_t_macro --target $db --full-refresh" || exit 1;
-    eval "dbt test --select test_get_run_limits_t_macro --store-failures --target $db" || exit 1;
+    eval "dbt test --select test_get_run_limits_t_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
   
     # This macro returns returns the array: [min_last_success, max_last_success, models_matched_from_manifest, has_matched_all_models]
@@ -72,7 +72,7 @@ for db in ${DATABASES[@]}; do
   if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
     echo "Snowplow-utils unit tests: Run test_get_incremental_manifest_status_macro"
     eval "dbt run --select test_get_incremental_manifest_status_macro --target $db --full-refresh" || exit 1;
-    eval "dbt test --select test_get_incremental_manifest_status_macro --store-failures --target $db" || exit 1;
+    eval "dbt test --select test_get_incremental_manifest_status_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
   
     # This macro returns returns the array: [min_first_success, max_first_success, min_last_success, max_last_success, models_matched_from_manifest, sync_count, has_matched_all_models]
@@ -82,7 +82,7 @@ for db in ${DATABASES[@]}; do
   if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
     echo "Snowplow-utils unit tests: Run test_get_incremental_manifest_status_t_macro"
     eval "dbt run --select test_get_incremental_manifest_status_t_macro --target $db --full-refresh" || exit 1;
-    eval "dbt test --select test_get_incremental_manifest_status_t_macro --store-failures --target $db" || exit 1;
+    eval "dbt test --select test_get_incremental_manifest_status_t_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
 
 done

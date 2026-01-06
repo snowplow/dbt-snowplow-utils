@@ -35,7 +35,7 @@ for db in ${DATABASES[@]}; do
 
   echo "Snowplow-utils native dbt tests: Test models"
 
-  eval "dbt test --exclude tag:requires_script --target $db --store-failures" || exit 1;
+  eval "dbt test --exclude tag:requires_script --target $db --vars '{store_failures: true}'" || exit 1;
 
   echo "Snowplow-utils native dbt tests: Run custom base macro models"
 
@@ -43,7 +43,7 @@ for db in ${DATABASES[@]}; do
 
   echo "Snowplow-utils native dbt tests: Test custom base macro models"
 
-  eval "dbt test --select tag:base_macro --target $db --vars 'snowplow__custom_test: true' --store-failures" || exit 1;
+  eval "dbt test --select tag:base_macro --target $db --vars '{snowplow__custom_test: true, store_failures: true}'" || exit 1;
 
   echo "Snowplow-utils native dbt tests: Run custom session sql base macro models"
 
@@ -51,7 +51,7 @@ for db in ${DATABASES[@]}; do
 
   echo "Snowplow-utils native dbt tests: Test custom base macro models"
 
-  eval "dbt test --select tag:base_macro --exclude snowplow_base_quarantined_sessions_actual --target $db --vars 'snowplow__session_test: true' --store-failures" || exit 1;
+  eval "dbt test --select tag:base_macro --exclude snowplow_base_quarantined_sessions_actual --target $db --vars '{snowplow__session_test: true, store_failures: true}'" || exit 1;
 
   echo "Snowplow utils integration tests part 2: Run script based tests"
 
