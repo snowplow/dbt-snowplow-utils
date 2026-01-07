@@ -106,6 +106,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     -- standard merge from here
     {% if target.type in ['databricks', 'spark'] -%}
         {% set merge_sql = spark__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
+    {% elif target.type == 'redshift' %}
+        {% set merge_sql = dbt.redshift__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
     {% else %}
         {% set merge_sql = dbt.default__get_delete_insert_merge_sql(target_tb, source, unique_key, dest_columns, predicates) %}
     {% endif %}
