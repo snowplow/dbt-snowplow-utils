@@ -25,14 +25,14 @@ fi
 
 echo "Test materializations: Refresh models"
 
-eval "dbt run --models materializations --target $DATABASE --full-refresh " || exit 1;
+eval "dbt run --select materializations --target $DATABASE --full-refresh " || exit 1;
 
 echo "Test materializations: Execute models"
 
-eval "dbt run --models materializations --target $DATABASE" || exit 1;
+eval "dbt run --select materializations --target $DATABASE" || exit 1;
 
 echo "Test materializations: Test models"
 
-eval "dbt test --models materializations --target $DATABASE" || exit 1;
+eval "dbt test --select materializations --target $DATABASE" || exit 1;
 
 echo "Test materializations: All tests passed"
