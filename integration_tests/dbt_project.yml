@@ -676,7 +676,7 @@ seeds:
             true_tstamp: timestamp
             load_tstamp: timestamp
             contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferenc: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
