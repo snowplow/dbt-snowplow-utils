@@ -117,6 +117,7 @@ models:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
 
 tests:
+  +store_failures: "{{ var('store_failures', false) }}"
   snowplow_utils_integration_tests:
     utils:
       bigquery:
