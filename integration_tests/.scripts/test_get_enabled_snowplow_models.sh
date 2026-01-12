@@ -12,7 +12,7 @@ done
 
 echo "Test get_enabled_snowplow_models: Untagged model"
 
-OUTPUT=$(eval "dbt test --select test_get_enabled_snowplow_models --target $DATABASE --vars \"{'tag_var': 'random_tag'}\"")
+OUTPUT=$(eval "dbt test --select test_get_enabled_snowplow_models --target $DATABASE --vars \"{'tag_var': 'random_tag'}\"" 2>&1)
 EXIT_CODE=$?
 
 if [[ $OUTPUT == *"Snowplow Warning: Untagged models referencing"* ]]; then
