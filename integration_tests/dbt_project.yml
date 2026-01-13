@@ -86,15 +86,15 @@ models:
         +enabled: "{{ target.type == 'bigquery' | as_bool() }}"
       cross_db:
         data_get_field:
-          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['snowflake', 'bigquery', 'databricks', 'spark']) | as_bool() }}"
         test_get_field:
-          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['snowflake', 'bigquery', 'databricks', 'spark']) | as_bool() }}"
         expected_get_field:
-          +enabled: "{{ target.type in ['snowflake', 'bigquery', 'databricks', 'spark'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['snowflake', 'bigquery', 'databricks', 'spark']) | as_bool() }}"
         test_get_field_bq:
-          +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['bigquery']) | as_bool() }}"
         expected_get_field_bq:
-          +enabled: "{{ target.type in ['bigquery'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['bigquery']) | as_bool() }}"
         data_get_string_agg_grp:
           +materialized: table
     incremental_hooks:
@@ -108,7 +108,7 @@ models:
         databricks:
           +enabled: "{{ target.type == 'databricks' | as_bool() }}"
         default:
-          +enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['redshift', 'postgres']) | as_bool() }}"
         snowflake:
           +enabled: "{{ target.type == 'snowflake' | as_bool() }}"
         spark:
@@ -117,6 +117,7 @@ models:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
 
 tests:
+  +store_failures: "{{ var('store_failures', false) }}"
   snowplow_utils_integration_tests:
     utils:
       bigquery:
@@ -182,7 +183,7 @@ seeds:
           +column_types:
             id: integer
             start_tstamp: timestamp
-        +enabled: "{{ target.type in ['redshift', 'postgres'] | as_bool() }}"
+        +enabled: "{{ (target.type in ['redshift', 'postgres']) | as_bool() }}"
       bigquery:
         data_incremental_expected:
           +column_types:
@@ -206,7 +207,7 @@ seeds:
             id: integer
             id2: integer
             start_tstamp: timestamp
-        +enabled: "{{ target.type in ['databricks', 'spark'] | as_bool() }}"
+        +enabled: "{{ (target.type in ['databricks', 'spark']) | as_bool() }}"
     utils:
       data_return_limits_from_models:
         +meta:
@@ -217,39 +218,39 @@ seeds:
           start_tstamp: timestamp
           end_tstamp: timestamp
       data_get_sde_or_context:
-        +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+        +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
     base:
       source:
         contexts_com_snowplowanalytics_session_identifier_1_0_0:
-          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             session_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_session_identifier_2_0_0:
-          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             session_identifier: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_1_0_0:
-          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             user_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_user_identifier_2_0_0:
-          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
             user_id: character varying
             schema_name: character varying
         contexts_com_snowplowanalytics_custom_entity_1_0_0:
-          +enabled: "{{ target.type in ['postgres', 'redshift'] | as_bool() }}"
+          +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
           +column_types:
             root_tstamp: timestamp
             root_id: character varying
@@ -675,7 +676,7 @@ seeds:
             true_tstamp: timestamp
             load_tstamp: timestamp
             contexts_com_snowplowanalytics_snowplow_web_page_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            unstruct_event_com_snowplowanalytics_snowplow_consent_preferences_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
+            unstruct_event_com_snowplowanalytics_snowplow_consent_preferenc: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             unstruct_event_com_snowplowanalytics_snowplow_cmp_visible_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             contexts_com_iab_snowplow_spiders_and_robots_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             contexts_com_snowplowanalytics_snowplow_ua_parser_context_1_0_0: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
