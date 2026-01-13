@@ -280,8 +280,8 @@ seeds:
             geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            geo_latitude: float
-            geo_longitude: float
+            geo_latitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            geo_longitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -314,12 +314,12 @@ seeds:
             se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            se_value: float
+            se_value: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total: float
-            tr_tax: float
-            tr_shipping: float
+            tr_total: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -327,7 +327,7 @@ seeds:
             ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price: float
+            ti_price: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
@@ -365,11 +365,11 @@ seeds:
             doc_width: integer
             doc_height: integer
             tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total_base: float
-            tr_tax_base: float
-            tr_shipping_base: float
+            tr_total_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price_base: float
+            ti_price_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -419,8 +419,8 @@ seeds:
             geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            geo_latitude: float
-            geo_longitude: float
+            geo_latitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            geo_longitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -453,12 +453,12 @@ seeds:
             se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            se_value: float
+            se_value: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total: float
-            tr_tax: float
-            tr_shipping: float
+            tr_total: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -466,7 +466,7 @@ seeds:
             ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price: float
+            ti_price: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
@@ -504,11 +504,11 @@ seeds:
             doc_width: integer
             doc_height: integer
             tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total_base: float
-            tr_tax_base: float
-            tr_shipping_base: float
+            tr_total_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price_base: float
+            ti_price_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -568,8 +568,8 @@ seeds:
             geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            geo_latitude: float
-            geo_longitude: float
+            geo_latitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            geo_longitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -602,12 +602,12 @@ seeds:
             se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            se_value: float
+            se_value: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total: float
-            tr_tax: float
-            tr_shipping: float
+            tr_total: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -615,7 +615,7 @@ seeds:
             ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price: float
+            ti_price: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
@@ -653,11 +653,11 @@ seeds:
             doc_width: integer
             doc_height: integer
             tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total_base: float
-            tr_tax_base: float
-            tr_shipping_base: float
+            tr_total_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price_base: float
+            ti_price_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -717,8 +717,8 @@ seeds:
             geo_region: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_zipcode: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            geo_latitude: float
-            geo_longitude: float
+            geo_latitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            geo_longitude: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             geo_region_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_isp: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ip_organization: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -751,12 +751,12 @@ seeds:
             se_action: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_label: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             se_property: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            se_value: float
+            se_value: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_orderid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_affiliation: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total: float
-            tr_tax: float
-            tr_shipping: float
+            tr_total: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             tr_city: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_state: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             tr_country: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
@@ -764,7 +764,7 @@ seeds:
             ti_sku: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_name: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             ti_category: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price: float
+            ti_price: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_quantity: integer
             pp_xoffset_min: integer
             pp_xoffset_max: integer
@@ -802,11 +802,11 @@ seeds:
             doc_width: integer
             doc_height: integer
             tr_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            tr_total_base: float
-            tr_tax_base: float
-            tr_shipping_base: float
+            tr_total_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_tax_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
+            tr_shipping_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             ti_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
-            ti_price_base: float
+            ti_price_base: "{{ 'float64' if target.type == 'bigquery' else 'float' }}"
             base_currency: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             geo_timezone: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
             mkt_clickid: "{{ 'string' if target.type in ['bigquery', 'databricks', 'spark'] else 'character varying(65535)' }}"
