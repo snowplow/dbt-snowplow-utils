@@ -15,12 +15,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
     {# If parent column is an array then take element [array_index].  #}
     {% set delimiter = '[safe_offset(%s)].'|format(array_index) if parent.mode == 'REPEATED' else '.' %}
-    {% set path = path~delimiter~field.name %}
-    {% set field_name = field_name~'.'~field.name if field_name != '' else field_name~field.name %}
+    {% set parent_path = path~delimiter~field.name %}
+    {% set parent_field_name = field_name~'.'~field.name if field_name != '' else field_name~field.name %}
 
     {% set field_dict = {
-                          'field_name': field_name,
-                          'path': path,
+                          'field_name': parent_field_name,
+                          'path': parent_path,
                           'nested_level': level_counter
                           } %}
 
@@ -34,9 +34,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                                   parent=field,
                                   level_limit=level_limit,
                                   level_counter=level_counter+1,
-                                  path=path,
+                                  path=parent_path,
                                   flattened_fields=flattened_fields,
-                                  field_name=field_name
+                                  field_name=parent_field_name
                                   ) }}
 
     {% endif %}
