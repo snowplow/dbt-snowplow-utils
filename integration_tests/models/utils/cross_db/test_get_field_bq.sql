@@ -10,9 +10,11 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     )
 }}
 
+{% if execute %}
 {% set test_1_actual = snowplow_utils.combine_column_versions(relation=ref('data_combine_column_versions'),
                                                               column_prefix='staff_v',
                                                               array_index=1) %}
+{% endif %}
 {% if target.type == 'bigquery' %}
 select
     {{snowplow_utils.get_field('staff_v_*', 'first_name', 'a', dbt.type_string(), 0, relation = ref('data_combine_column_versions'))}} as combined_column,
