@@ -8,7 +8,10 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     {{ return(adapter.dispatch('test_return_limits_from_models', 'snowplow_utils')()) }}
 {% endmacro %}
 {% macro default__test_return_limits_from_models() %}
-    {% set expected = ["cast('2023-01-25t09:58:02' as TIMESTAMP)", "cast('2023-01-26t09:58:02' as TIMESTAMP)"] %}
+    {% set expected = ["cast('2023-01-25 09:58:02' as TIMESTAMP)", "cast('2023-01-26 09:58:02' as TIMESTAMP)"] %}
+    {% if target.name == 'snowflake_fusion' %}
+        {% set expected = ["cast('2023-01-25t09:58:02' as TIMESTAMP)", "cast('2023-01-26t09:58:02' as TIMESTAMP)"] %}
+    {% endif %}
     {% set results = snowplow_utils.return_limits_from_model(ref('data_return_limits_from_models'), 'start_tstamp', 'end_tstamp')
     %}
 
