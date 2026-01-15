@@ -86,3 +86,36 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
   {% endif %}
 
 {%- endmacro %}
+
+{% macro redshift__update_incremental_manifest_table(manifest_table, base_events_table, models, session_timestamp) -%}
+
+  {% if models %}
+
+    {% set last_success_query %}
+      select
+        mod.model,
+        ls.last_success
+      from
+        (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
+        ({% for model in models %} 
+          select '{{model}}' as model 
+          {%- if not loop.last %} union all {% endif %} 
+        {% endfor %}) as mod
+      where ls.last_success is not null
+    {% endset %}
+
+    {% set merge_sql %}
+      merge into {{ manifest_table }}
+      using ( {{ last_success_query }} ) as s
+      on {{ manifest_table }}.model = s.model
+      when matched then
+        update set last_success = greatest({{ manifest_table }}.last_success, s.last_success)
+      when not matched then
+        insert (model, last_success) values (s.model, s.last_success);
+    {% endset %}
+
+    {% do run_query(merge_sql) %}
+
+  {% endif %}
+
+{%- endmacro %}
