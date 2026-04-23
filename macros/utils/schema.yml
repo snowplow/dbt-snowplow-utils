@@ -5,7 +5,7 @@ macros:
     description: '{{ doc("macro_app_id_filter") }}'
     arguments:
       - name: app_ids
-        type: list
+        type: list[any]
         description: List of app_ids to filter to include
   - name: get_columns_in_relation_by_column_prefix
     description: '{{ doc("macro_get_columns_in_relation_by_column_prefix") }}'
@@ -75,7 +75,7 @@ macros:
     description: '{{ doc("macro_print_list") }}'
     arguments:
       - name: list
-        type: array
+        type: list[any]
         description: Array object to print the (quoted) items of
       - name: separator
         type: string
