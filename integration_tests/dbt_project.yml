@@ -115,6 +115,10 @@ models:
           +enabled: "{{ target.type == 'spark' | as_bool() }}"
     unit_tests:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
+    incrementalize_by_tstamp:
+      # the _t base macros use QUALIFY, which postgres/redshift do not support and have no override for
+      +enabled: "{{ (target.type not in ['postgres', 'redshift']) | as_bool() }}"
+
 
 tests:
   +store_failures: "{{ var('store_failures', false) }}"
@@ -168,6 +172,16 @@ seeds:
           last_success: timestamp
           collector_tstamp: timestamp
           expected_last_success: timestamp
+    incrementalize_by_tstamp:
+      data_base_create_snowplow_events_this_run_t_limits:
+        +column_types:
+          lower_limit: timestamp
+          upper_limit: timestamp
+      data_base_create_snowplow_events_this_run_t_events:
+        +column_types:
+          load_tstamp: timestamp
+          dvce_created_tstamp: timestamp
+          should_be_included: boolean
     materializations:
       data_incremental:
         +column_types:
