@@ -115,6 +115,8 @@ models:
           +enabled: "{{ target.type == 'spark' | as_bool() }}"
     unit_tests:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
+      test_base_create_snowplow_events_this_run_t_macro:
+        +enabled: "{{ target.type not in ['redshift', 'postgres'] | as_bool() }}"
 
 tests:
   +store_failures: "{{ var('store_failures', false) }}"
@@ -160,6 +162,14 @@ seeds:
           min_last_success: timestamp
           max_last_success: timestamp
           start_date: date
+          lower_limit: timestamp
+          upper_limit: timestamp
+      data_base_events_boundary_t:
+        +column_types:
+          load_tstamp: timestamp
+          dvce_created_tstamp: timestamp
+      data_run_limits_boundary_t:
+        +column_types:
           lower_limit: timestamp
           upper_limit: timestamp
       data_update_incremental_manifest_table:

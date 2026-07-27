@@ -85,4 +85,15 @@ for db in ${DATABASES[@]}; do
     eval "dbt test --select test_get_incremental_manifest_status_t_macro --vars '{store_failures: true}' --target $db" || exit 1;
   fi
 
+    # Tests the boundary semantics of base_create_snowplow_events_this_run_t:
+    # - event at lower_limit excluded (exclusive lower bound: load_tstamp > lower_limit)
+    # - event at upper_limit included (inclusive upper bound: load_tstamp <= upper_limit)
+    # Uses qualify which is not supported on redshift/postgres; those targets skip via +enabled config.
+
+  if [[ $BRANCH == "release" || $BRANCH == "utils_revamp" ]]; then
+    echo "Snowplow-utils unit tests: Run test_base_create_snowplow_events_this_run_t_macro"
+    eval "dbt run --select +test_base_create_snowplow_events_this_run_t_macro expected_base_create_snowplow_events_this_run_t --target $db --full-refresh" || exit 1;
+    eval "dbt test --select test_base_create_snowplow_events_this_run_t_macro --vars '{store_failures: true}' --target $db" || exit 1;
+  fi
+
 done

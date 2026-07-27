@@ -1,0 +1,5 @@
+event_id,load_tstamp,dvce_created_tstamp
+evt-before-lower,2021-06-01 09:59:59,2021-06-01 09:59:59
+evt-at-lower,2021-06-01 10:00:00,2021-06-01 10:00:00
+evt-inside-window,2021-06-01 11:00:00,2021-06-01 11:00:00
+evt-at-upper,2021-06-01 12:00:00,2021-06-01 12:00:00
