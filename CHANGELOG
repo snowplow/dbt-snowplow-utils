@@ -1,3 +1,14 @@
+snowplow-utils 1.0.1 (2026-07-27)
+---------------------------------------
+## Summary
+This release fixes a bug in the time-based incremental manifest macros (`_t` macros) where models could get permanently stuck reporting 0 rows processed after a partial model failure left the incremental manifest out of sync. It does not impact the Snowplow dbt packages relying on the session-based incremental macros (e.g. unified / ecommerce / attribution / media-player etc.)
+
+## Fixes
+- Fix out of sync incremental manifest deadlock in base_create_snowplow_events_this_run_t
+
+## Upgrading
+Update the snowplow-utils version in your `packages.yml` file. If you were previously stuck in this state, upgrading and re-running should allow the incremental models to resync automatically; no manual manifest changes needed.
+
 snowplow-utils 1.0.0 (2026-01-20)
 ---------------------------------------
 ## Summary
