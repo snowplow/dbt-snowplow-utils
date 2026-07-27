@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: test_base_create_snowplow_events_this_run_t
+    tests:
+      - dbt_utils.equality:
+          arguments:
+            compare_model: ref('expected_base_create_snowplow_events_this_run_t')
