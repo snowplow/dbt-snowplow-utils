@@ -1,3 +1,4 @@
+
 {#
 Copyright (c) 2021-present Snowplow Analytics Ltd. All rights reserved.
 This program is licensed to you under the Snowplow Personal and Academic License Version 1.0,
@@ -8,6 +9,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% macro base_create_snowplow_events_this_run(sessions_this_run_table='snowplow_base_sessions_this_run', session_identifiers=[{"schema" : "atomic", "field" : "domain_sessionid"}], session_sql=none, session_timestamp='load_tstamp', derived_tstamp_partitioned=true, days_late_allowed=3, max_session_days=3, app_ids=[], snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', entities_or_sdes=none, custom_sql=none, allow_null_dvce_tstamps=false) %}
     {{ return(adapter.dispatch('base_create_snowplow_events_this_run', 'snowplow_utils')(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps)) }}
 {% endmacro %}
+
 
 {% macro default__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
@@ -37,6 +39,14 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 e.*
 
             from {{ snowplow_events }} e
+            where
+            {% if var('snowplow__enable_keyhole_backfill',false) %}
+                e.{{ session_timestamp }} >= {{ lower_limit }}
+                and e.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, upper_limit) }}
+            {% else %}
+                e.{{ session_timestamp }} >= {{ lower_limit }}
+                and e.{{ session_timestamp }} <= {{ upper_limit }}
+            {% endif %}
 
         )
 
@@ -51,24 +61,30 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         inner join {{ sessions_this_run }} as b
         on a.session_identifier = b.session_identifier
 
-        where a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
-        
+        where 
         {% if allow_null_dvce_tstamps %}
             and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
         {% else %}
             and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
         {% endif %}
-        
-        and a.{{ session_timestamp }} >= {{ lower_limit }}
-        and a.{{ session_timestamp }} <= {{ upper_limit }}
-        and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
-        {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
-            and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
-            and a.derived_tstamp <= {{ upper_limit }}
+        {% if not var('snowplow__enable_keyhole_backfill',false) %}
+            
+            a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+            
+            and a.{{ session_timestamp }} >= {{ lower_limit }}
+            and a.{{ session_timestamp }} <= {{ upper_limit }}
+            and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
+
+            {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
+                and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
+                and a.derived_tstamp <= {{ upper_limit }}
+            {% endif %}
+
+            and 
         {% endif %}
 
-        and {{ snowplow_utils.app_id_filter(app_ids) }}
+        {{ snowplow_utils.app_id_filter(app_ids) }}
 
         qualify row_number() over (partition by a.event_id order by a.{{ session_timestamp }}, a.dvce_created_tstamp) = 1
     {% endset %}
@@ -197,7 +213,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             inner join {{ sessions_this_run }} as b
             on a.session_identifier = b.session_identifier
 
-            where a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+            where 
+            {% if not var('snowplow__enable_keyhole_backfill',false) %}
+            a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
             {% if allow_null_dvce_tstamps %}
                 and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
             {% else %}
@@ -206,7 +224,9 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             and a.{{ session_timestamp }} >= {{ lower_limit }}
             and a.{{ session_timestamp }} <= {{ upper_limit }}
             and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
-            and {{ snowplow_utils.app_id_filter(app_ids) }}
+            and 
+            {% endif %}
+            {{ snowplow_utils.app_id_filter(app_ids) }}
 
         )
 
@@ -284,8 +304,14 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
                 {%- endif %}
                 e.*
             from {{ snowplow_events }} e
-            WHERE e.{{ session_timestamp }} >= {{ lower_limit }}
-            and e.{{ session_timestamp }} <= {{ upper_limit }}
+            WHERE 
+            {% if var('snowplow__enable_keyhole_backfill',false) %}
+                e.{{ session_timestamp }} >= {{ lower_limit }}
+                and e.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, upper_limit) }}
+            {% else %}
+                e.{{ session_timestamp }} >= {{ lower_limit }}
+                and e.{{ session_timestamp }} <= {{ upper_limit }}
+            {% endif %}
 
         ),
         main_logic as (
@@ -301,22 +327,25 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         inner join {{ sessions_this_run }} as b
         on a.session_identifier = b.session_identifier
 
-        where a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+        where 1=1
         {% if allow_null_dvce_tstamps %}
             and coalesce(a.dvce_sent_tstamp, a.collector_tstamp) <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'coalesce(a.dvce_created_tstamp, a.collector_tstamp)') }}
         {% else %}
             and a.dvce_sent_tstamp <= {{ snowplow_utils.timestamp_add('day', days_late_allowed, 'a.dvce_created_tstamp') }}
         {% endif %}
-        and a.{{ session_timestamp }} >= {{ lower_limit }}
-        and a.{{ session_timestamp }} <= {{ upper_limit }}
-        and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
 
-        {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
-            and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
-            and a.derived_tstamp <= {{ upper_limit }}
+        {% if not var('snowplow__enable_keyhole_backfill',false) %}
+            and a.{{ session_timestamp }} <= {{ snowplow_utils.timestamp_add('day', max_session_days, 'b.start_tstamp') }}
+            and a.{{ session_timestamp }} >= {{ lower_limit }}
+            and a.{{ session_timestamp }} <= {{ upper_limit }}
+            and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
+
+            {% if derived_tstamp_partitioned and target.type == 'bigquery' | as_bool() %}
+                and a.derived_tstamp >= {{ snowplow_utils.timestamp_add('hour', -1, lower_limit) }}
+                and a.derived_tstamp <= {{ upper_limit }}
+            {% endif %}
         {% endif %}
-
-        and {{ snowplow_utils.app_id_filter(app_ids) }}
+            and {{ snowplow_utils.app_id_filter(app_ids) }}
     )
     SELECT * 
     FROM main_logic
