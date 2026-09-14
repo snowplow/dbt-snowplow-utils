@@ -95,6 +95,8 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
         where start_tstamp >= {{ session_lookback_limit }}
         and {{ is_run_with_new_events }} --don't reprocess sessions that have already been processed.
+
+        qualify row_number() over (partition by session_identifier order by start_tstamp desc, end_tstamp desc, user_identifier desc) = 1 -- Edge case 2: dedupe on session_identifier in case of duplicate rows in the manifest, e.g. from session ID reuse.
         )
 
         , session_lifecycle as (
@@ -253,13 +255,20 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
         {% if is_incremental() %}
 
-        , previous_sessions as (
-        select *
+        , previous_sessions_ranked as (
+        select *,
+            row_number() over (partition by session_identifier order by start_tstamp desc, end_tstamp desc, user_identifier desc) as session_identifier_dedupe_index -- Edge case 2: dedupe on session_identifier in case of duplicate rows in the manifest, e.g. from session ID reuse.
 
         from {{ this }}
 
         where start_tstamp >= {{ session_lookback_limit }}
         and {{ is_run_with_new_events }} --don't reprocess sessions that have already been processed.
+        )
+
+        , previous_sessions as (
+        select *
+        from previous_sessions_ranked
+        where session_identifier_dedupe_index = 1
         )
 
         , session_lifecycle as (
