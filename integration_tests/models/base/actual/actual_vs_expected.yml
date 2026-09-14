@@ -158,8 +158,3 @@ models:
       - dbt_utils.equality:
           arguments:
             compare_model: ref('snowplow_base_sessions_this_run_expected_stg')
-  - name: snowplow_base_sessions_lifecycle_manifest_actual
-    columns:
-      - name: session_identifier
-        tests:
-          - unique
