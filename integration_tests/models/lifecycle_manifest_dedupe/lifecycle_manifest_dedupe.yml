@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: test_lifecycle_manifest_dedupe_actual
+    description: >
+      Regression coverage for AISP-1714 (previous_sessions not deduplicated on
+      session_identifier). See test_lifecycle_manifest_dedupe_actual.sql and
+      .scripts/test_lifecycle_manifest_dedupe.sh for the full scenario.
+    columns:
+      - name: session_identifier
+        tests:
+          - unique:
+              config:
+                # default__ (BigQuery/Snowflake/Databricks/Spark) uses a native MERGE: without the
+                # fix the second run errors outright (asserted via the run's exit code in
+                # test_lifecycle_manifest_dedupe.sh), so uniqueness can't be checked afterwards -
+                # the run never gets that far. postgres__ (Redshift too, dispatch inherits from
+                # postgres) uses delete+insert, which never errors, so uniqueness after the second
+                # run is the only observable signal there.
+                enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"

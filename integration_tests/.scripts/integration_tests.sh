@@ -71,6 +71,10 @@ for db in ${DATABASES[@]}; do
 
   source "${BASH_SOURCE%/*}/test_snowplow_delete_from_manifest.sh" -d $db || exit 1;
 
+  echo "Snowplow-utils integration tests: Testing sessions lifecycle manifest dedupe on duplicate manifest rows"
+
+  source "${BASH_SOURCE%/*}/test_lifecycle_manifest_dedupe.sh" -d $db || exit 1;
+
   echo "Snowplow-utils integration tests: Testing return_limits_from_model"
 
   eval "dbt run-operation test_return_limits_from_models --target $db"  || exit 1;

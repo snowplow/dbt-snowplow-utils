@@ -233,6 +233,12 @@ seeds:
           end_tstamp: timestamp
       data_get_sde_or_context:
         +enabled: "{{ (target.type in ['postgres', 'redshift']) | as_bool() }}"
+    lifecycle_manifest_dedupe:
+      data_lifecycle_manifest_dedupe_events:
+        +column_types:
+          collector_tstamp: timestamp
+          dvce_created_tstamp: timestamp
+          dvce_sent_tstamp: timestamp
     base:
       source:
         contexts_com_snowplowanalytics_session_identifier_1_0_0:
