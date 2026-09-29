@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: test_update_incremental_manifest_table_t_missing_relation_macro
+    tests:
+      - dbt_utils.equality:
+          arguments:
+            compare_model: ref('expected_update_incremental_manifest_table_t_missing_relation_macro')

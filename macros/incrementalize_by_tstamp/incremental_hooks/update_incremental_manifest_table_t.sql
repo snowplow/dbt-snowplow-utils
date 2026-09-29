@@ -15,33 +15,46 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
   {% if models %}
 
-    {% set last_success_query %}
-      select
-        b.model,
-        a.last_success,
-        a.first_success
+    {% set target_relation = adapter.get_relation(
+          database=base_events_table.database,
+          schema=base_events_table.schema,
+          identifier=base_events_table.name) %}
 
-      from
-        (select max(load_tstamp) as last_success,
-                min(load_tstamp) as first_success from {{ base_events_table }}) a,
-        ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
+    {% if target_relation is not none %}
 
-      where a.last_success is not null -- if run contains no data don't add to manifest
-    {% endset %}
+      {% set last_success_query %}
+        select
+          b.model,
+          a.last_success,
+          a.first_success
 
-    merge into {{ manifest_table }} m
-    using ( {{ last_success_query }} ) s
-    on m.model = s.model
-    when matched then
-        update set last_success = greatest(m.last_success, s.last_success),
-                    first_success = coalesce(m.first_success, s.first_success)
-        
-    when not matched then
-          insert (model, last_success, first_success)
-          values (s.model, s.last_success, s.first_success);
+        from
+          (select max(load_tstamp) as last_success,
+                  min(load_tstamp) as first_success from {{ base_events_table }}) a,
+          ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
-    {% if target.type == 'snowflake' %}
-      commit;
+        where a.last_success is not null -- if run contains no data don't add to manifest
+      {% endset %}
+
+      merge into {{ manifest_table }} m
+      using ( {{ last_success_query }} ) s
+      on m.model = s.model
+      when matched then
+          update set last_success = greatest(m.last_success, s.last_success),
+                      first_success = coalesce(m.first_success, s.first_success)
+
+      when not matched then
+            insert (model, last_success, first_success)
+            values (s.model, s.last_success, s.first_success);
+
+      {% if target.type == 'snowflake' %}
+        commit;
+      {% endif %}
+
+    {% else %}
+
+      {% do exceptions.warn("Snowplow Warning: " ~ base_events_table ~ " does not exist. This is expected if you are running a scoped/selective dbt build that did not select this model.") %}
+
     {% endif %}
 
   {% endif %}

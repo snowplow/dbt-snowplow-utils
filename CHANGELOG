@@ -1,10 +1,11 @@
 snowplow-utils x.x.x (xxxx-xx-xx)
 ---------------------------------------
 ## Summary
-This release fixes a bug where `update_incremental_manifest_table` could fail with a "relation does not exist" error during a scoped/selective `dbt build --select` run that executed some `snowplow_unified_incremental`-tagged models without materializing the base events table.
+This release fixes a bug where `update_incremental_manifest_table` and `update_incremental_manifest_table_t` could fail with a "relation does not exist" error during a scoped/selective `dbt build --select` run that executed some `snowplow_unified_incremental`-tagged models without materializing the base events table.
 
 ## Fixes
 - Fix update_incremental_manifest_table failing on scoped dbt builds when the base events table is absent
+- Fix update_incremental_manifest_table_t failing on scoped dbt builds when the base events table is absent
 
 ## Upgrading
 Update the snowplow-utils version in your `packages.yml` file.
