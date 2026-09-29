@@ -15,28 +15,41 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
   {% if models %}
 
-    {% set last_success_query %}
-      select
-        b.model,
-        a.last_success
+    {% set target_relation = adapter.get_relation(
+          database=base_events_table.database,
+          schema=base_events_table.schema,
+          identifier=base_events_table.name) %}
 
-      from
-        (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) a,
-        ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
+    {% if target_relation is not none %}
 
-      where a.last_success is not null -- if run contains no data don't add to manifest
-    {% endset %}
+      {% set last_success_query %}
+        select
+          b.model,
+          a.last_success
 
-    merge into {{ manifest_table }} m
-    using ( {{ last_success_query }} ) s
-    on m.model = s.model
-    when matched then
-        update set last_success = greatest(m.last_success, s.last_success)
-    when not matched then
-        insert (model, last_success) values(model, last_success);
+        from
+          (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) a,
+          ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) b
 
-    {% if target.type == 'snowflake' %}
-      commit;
+        where a.last_success is not null -- if run contains no data don't add to manifest
+      {% endset %}
+
+      merge into {{ manifest_table }} m
+      using ( {{ last_success_query }} ) s
+      on m.model = s.model
+      when matched then
+          update set last_success = greatest(m.last_success, s.last_success)
+      when not matched then
+          insert (model, last_success) values(model, last_success);
+
+      {% if target.type == 'snowflake' %}
+        commit;
+      {% endif %}
+
+    {% else %}
+
+      {% do exceptions.warn("Snowplow Warning: " ~ base_events_table ~ " does not exist. This is expected if you are running a scoped/selective dbt build that did not select this model.") %}
+
     {% endif %}
 
   {% endif %}
@@ -47,41 +60,54 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
   {% if models %}
 
-    begin transaction;
-      --temp table to find the greatest last_success per model.
-      --this protects against partial backfills causing the last_success to move back in time.
-      create temporary table snowplow_models_last_success (
-        model varchar,
-        last_success {{type_timestamp()}}
-      );
-      insert into snowplow_models_last_success (
-        select
-          a.model,
-          greatest(a.last_success, b.last_success) as last_success
+    {% set target_relation = adapter.get_relation(
+          database=base_events_table.database,
+          schema=base_events_table.schema,
+          identifier=base_events_table.name) %}
 
-        from (
+    {% if target_relation is not none %}
 
-          select
-            model,
-            last_success
-
-          from
-            (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
-            ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) as mod
-
-          where last_success is not null -- if run contains no data don't add to manifest
-
-        ) a
-        left join {{ manifest_table }} b
-        on a.model = b.model
+      begin transaction;
+        --temp table to find the greatest last_success per model.
+        --this protects against partial backfills causing the last_success to move back in time.
+        create temporary table snowplow_models_last_success (
+          model varchar,
+          last_success {{type_timestamp()}}
         );
+        insert into snowplow_models_last_success (
+          select
+            a.model,
+            greatest(a.last_success, b.last_success) as last_success
 
-      delete from {{ manifest_table }} where model in (select model from snowplow_models_last_success);
-      insert into {{ manifest_table }} (select * from snowplow_models_last_success);
+          from (
 
-    end transaction;
+            select
+              model,
+              last_success
 
-    drop table snowplow_models_last_success;
+            from
+              (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
+              ({% for model in models %} select '{{model}}' as model {%- if not loop.last %} union all {% endif %} {% endfor %}) as mod
+
+            where last_success is not null -- if run contains no data don't add to manifest
+
+          ) a
+          left join {{ manifest_table }} b
+          on a.model = b.model
+          );
+
+        delete from {{ manifest_table }} where model in (select model from snowplow_models_last_success);
+        insert into {{ manifest_table }} (select * from snowplow_models_last_success);
+
+      end transaction;
+
+      drop table snowplow_models_last_success;
+
+    {% else %}
+
+      {% do exceptions.warn("Snowplow Warning: " ~ base_events_table ~ " does not exist. This is expected if you are running a scoped/selective dbt build that did not select this model.") %}
+
+    {% endif %}
 
   {% endif %}
 
@@ -91,30 +117,43 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
   {% if models %}
 
-    {% set last_success_query %}
-      select
-        mod.model,
-        ls.last_success
-      from
-        (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
-        ({% for model in models %} 
-          select '{{model}}' as model 
-          {%- if not loop.last %} union all {% endif %} 
-        {% endfor %}) as mod
-      where ls.last_success is not null
-    {% endset %}
+    {% set target_relation = adapter.get_relation(
+          database=base_events_table.database,
+          schema=base_events_table.schema,
+          identifier=base_events_table.name) %}
 
-    {% set merge_sql %}
-      merge into {{ manifest_table }}
-      using ( {{ last_success_query }} ) as s
-      on {{ manifest_table }}.model = s.model
-      when matched then
-        update set last_success = greatest({{ manifest_table }}.last_success, s.last_success)
-      when not matched then
-        insert (model, last_success) values (s.model, s.last_success);
-    {% endset %}
+    {% if target_relation is not none %}
 
-    {% do run_query(merge_sql) %}
+      {% set last_success_query %}
+        select
+          mod.model,
+          ls.last_success
+        from
+          (select max({{ session_timestamp }}) as last_success from {{ base_events_table }}) as ls,
+          ({% for model in models %}
+            select '{{model}}' as model
+            {%- if not loop.last %} union all {% endif %}
+          {% endfor %}) as mod
+        where ls.last_success is not null
+      {% endset %}
+
+      {% set merge_sql %}
+        merge into {{ manifest_table }}
+        using ( {{ last_success_query }} ) as s
+        on {{ manifest_table }}.model = s.model
+        when matched then
+          update set last_success = greatest({{ manifest_table }}.last_success, s.last_success)
+        when not matched then
+          insert (model, last_success) values (s.model, s.last_success);
+      {% endset %}
+
+      {% do run_query(merge_sql) %}
+
+    {% else %}
+
+      {% do exceptions.warn("Snowplow Warning: " ~ base_events_table ~ " does not exist. This is expected if you are running a scoped/selective dbt build that did not select this model.") %}
+
+    {% endif %}
 
   {% endif %}
 
