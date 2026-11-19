@@ -5,11 +5,11 @@ and you may not use this file except in compliance with the Snowplow Personal an
 You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 at https://docs.snowplow.io/personal-and-academic-license-1.0/
 #}
 
-{% macro base_create_snowplow_events_this_run(sessions_this_run_table='snowplow_base_sessions_this_run', session_identifiers=[{"schema" : "atomic", "field" : "domain_sessionid"}], session_sql=none, session_timestamp='load_tstamp', derived_tstamp_partitioned=true, days_late_allowed=3, max_session_days=3, app_ids=[], snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', entities_or_sdes=none, custom_sql=none, allow_null_dvce_tstamps=false) %}
-    {{ return(adapter.dispatch('base_create_snowplow_events_this_run', 'snowplow_utils')(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps)) }}
+{% macro base_create_snowplow_events_this_run(sessions_this_run_table='snowplow_base_sessions_this_run', session_identifiers=[{"schema" : "atomic", "field" : "domain_sessionid"}], session_sql=none, session_timestamp='load_tstamp', derived_tstamp_partitioned=true, days_late_allowed=3, max_session_days=3, app_ids=[], snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', entities_or_sdes=none, custom_sql=none, allow_null_dvce_tstamps=false, event_names=none, custom_filter=none) %}
+    {{ return(adapter.dispatch('base_create_snowplow_events_this_run', 'snowplow_utils')(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps, event_names, custom_filter)) }}
 {% endmacro %}
 
-{% macro default__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps) %}
+{% macro default__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps, event_names, custom_filter) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
                                                                             'start_tstamp',
                                                                             'end_tstamp') %}
@@ -69,6 +69,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% endif %}
 
         and {{ snowplow_utils.app_id_filter(app_ids) }}
+        {%- if event_names %}
+        and {{ snowplow_utils.event_name_filter(event_names) }}
+        {%- endif %}
+        {%- if custom_filter %}
+        and {{ snowplow_utils.custom_filter(custom_filter) }}
+        {%- endif %}
 
         qualify row_number() over (partition by a.event_id order by a.{{ session_timestamp }}, a.dvce_created_tstamp) = 1
     {% endset %}
@@ -77,7 +83,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% endmacro %}
 
-{% macro postgres__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps) %}
+{% macro postgres__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps, event_names, custom_filter) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
                                                                             'start_tstamp',
                                                                             'end_tstamp') %}
@@ -207,6 +213,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             and a.{{ session_timestamp }} <= {{ upper_limit }}
             and a.{{ session_timestamp }} >= b.start_tstamp -- deal with late loading events
             and {{ snowplow_utils.app_id_filter(app_ids) }}
+            {%- if event_names %}
+            and {{ snowplow_utils.event_name_filter(event_names) }}
+            {%- endif %}
+            {%- if custom_filter %}
+            and {{ snowplow_utils.custom_filter(custom_filter) }}
+            {%- endif %}
 
         )
 
@@ -257,7 +269,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 {% endmacro %}
 
 
-{% macro spark__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps) %}
+{% macro spark__base_create_snowplow_events_this_run(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps, event_names, custom_filter) %}
     {%- set lower_limit, upper_limit = snowplow_utils.return_limits_from_model(ref(sessions_this_run_table),
                                                                             'start_tstamp',
                                                                             'end_tstamp') %}
@@ -317,6 +329,12 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
         {% endif %}
 
         and {{ snowplow_utils.app_id_filter(app_ids) }}
+        {%- if event_names %}
+        and {{ snowplow_utils.event_name_filter(event_names) }}
+        {%- endif %}
+        {%- if custom_filter %}
+        and {{ snowplow_utils.custom_filter(custom_filter) }}
+        {%- endif %}
     )
     SELECT * 
     FROM main_logic
