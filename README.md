@@ -831,6 +831,8 @@ This macro generates the events this run table that Snowplow leverages.
 - `entities_or_sdes`: In Redshift & Postgres, due to the shredded table design (meaning each context is loaded separately into a table), you need to specify which contexts you want to be included in the snowplow_base_events_this_run table, which you can do using this variable. This needs to be an array of key:value maps with the following properties: `name`, `prefix`, `alias`, `single_entity`
 - `custom_sql`: Any custom SQL you want to include within your `events_this_run` table
 - `allow_null_dvce_tstamps`: A boolean to allow nulls for the dvce_created_tstamp or dvce_sent_tstamp fields for certain tracker users when it is safe to bypass the events sent late check/filter using days_late_allowed
+- `event_names`: An optional list of event names (exact, case-sensitive match on `event_name`) to filter the events table on. The filter is applied when the events table is scanned, before the join to sessions and the dedupe, so a package that only needs some event types avoids processing the rest. Session start and end times are unaffected, as they come from the sessions lifecycle manifest. Defaults to none (all events).
+- `custom_filter`: An optional SQL predicate, applied at the same point as `event_names`, for filters that `event_names` can't express (e.g. `"(event_name in ('a', 'b') or event_vendor = 'com.acme')"`). It is wrapped in parentheses and rejected if it contains `;`, comments or DDL/DML keywords. Defaults to none.
 
 **Usage:**
 

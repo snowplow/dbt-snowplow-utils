@@ -22,4 +22,9 @@ from {{ ref('snowplow_base_events_this_run_expected_sessions_custom') }}
 select *
 
 from {{ ref('snowplow_base_events_this_run_expected') }}
+{% if var('snowplow__test_event_names', none) %}
+where event_name in ('{{ var('snowplow__test_event_names') | join("','") }}')
+{% elif var('snowplow__custom_filter_test', false) %}
+where {{ var('snowplow__test_custom_filter') }}
+{% endif %}
 {% endif %}
