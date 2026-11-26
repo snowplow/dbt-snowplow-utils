@@ -42,7 +42,7 @@ env:
   # Snowflake Connection
   SNOWFLAKE_TEST_ACCOUNT: ${{ secrets.SNOWFLAKE_TEST_ACCOUNT }}
   SNOWFLAKE_TEST_USER: ${{ secrets.SNOWFLAKE_TEST_USER }}
-  SNOWFLAKE_TEST_PASSWORD: ${{ secrets.SNOWFLAKE_TEST_PASSWORD }}
+  SNOWFLAKE_TEST_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_TEST_PRIVATE_KEY }}
   SNOWFLAKE_TEST_ROLE: ${{ secrets.SNOWFLAKE_TEST_ROLE }}
   SNOWFLAKE_TEST_DATABASE: ${{ secrets.SNOWFLAKE_TEST_DATABASE }}
   SNOWFLAKE_TEST_WAREHOUSE: ${{ secrets.SNOWFLAKE_TEST_WAREHOUSE }}
@@ -158,15 +158,10 @@ jobs:
           pip install "dbt-core==${{ matrix.dbt_version }}" "$ADAPTER"
           dbt deps
 
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
       - name: Build and start Spark cluster
         working-directory: .github/workflows/spark_deployment
         run: |
-          docker-compose up -d
+          docker compose up -d --build
           echo "Waiting for Spark services to start..."
           sleep 90
         if: ${{env.WAREHOUSE_PLATFORM == 'spark'}}

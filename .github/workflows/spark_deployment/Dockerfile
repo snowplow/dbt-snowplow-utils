@@ -1,7 +1,7 @@
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:17-jre
 
 # Set environment variables
-ENV SPARK_VERSION=3.5.1
+ENV SPARK_VERSION=3.5.8
 ENV HADOOP_VERSION=3.3.4
 ENV ICEBERG_VERSION=1.4.2
 ENV AWS_SDK_VERSION=1.12.581
@@ -10,7 +10,7 @@ ENV AWS_SDK_VERSION=1.12.581
 RUN apt-get update && apt-get install -y curl wget procps rsync ssh
 
 # Download and install Spark
-RUN wget https://downloads.apache.org/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
+RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
     tar -xvzf spark-${SPARK_VERSION}-bin-hadoop3.tgz && \
     mv spark-${SPARK_VERSION}-bin-hadoop3 /spark && \
     rm spark-${SPARK_VERSION}-bin-hadoop3.tgz
