@@ -50,7 +50,11 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
     snowplow_events_schema=var('snowplow__events_schema', 'snplw_utils_int_tests'),
     snowplow_events_table=var('snowplow__events_table', 'snowplow_events_stg'),
     entities_or_sdes=snowplow_entities_or_sdes,
-    custom_sql=snowplow_custom_sql
+    custom_sql=snowplow_custom_sql,
+    event_filter={
+      'event_names': ['LINK_CLICK', 'playlist_deleted'],
+      'event_vendor': 'COM.SNOWPLOWANALYTICS.SNOWPLOW-WEBSITE'
+    } if var('snowplow__test_event_filter', false) else none
 ) %}
 
 with base_events AS (

@@ -22,4 +22,7 @@ from {{ ref('snowplow_base_events_this_run_expected_sessions_custom') }}
 select *
 
 from {{ ref('snowplow_base_events_this_run_expected') }}
+{% if var('snowplow__test_event_filter', false) %}
+where event_name = 'link_click' or event_vendor = 'com.snowplowanalytics.snowplow-website'
+{% endif %}
 {% endif %}

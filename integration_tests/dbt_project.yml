@@ -35,6 +35,7 @@ vars:
     snowplow__disable_errors: true
     snowplow__custom_test: false
     snowplow__session_test: false
+    snowplow__test_event_filter: false
     snowplow__start_date: "2021-02-20"
     snowplow__session_identifiers: [{"schema": "atomic", "field": "domain_sessionid"}]
     snowplow__bigquery_session_identifiers: [{"schema": "contexts_com_snowplowanalytics_session_identifier_2_0_0", "field": "session_identifier"}, {"schema": "contexts_com_snowplowanalytics_session_identifier_1_0_0", "field": "session_id"}]
@@ -116,6 +117,7 @@ models:
     unit_tests:
       +materialized: "{{ 'table' if target.type in ['spark'] else 'view' }}"
     incrementalize_by_tstamp:
+      +materialized: "{{ 'table' if target.type == 'spark' else 'view' }}"
       # the _t base macros use QUALIFY, which postgres/redshift do not support and have no override for
       +enabled: "{{ (target.type not in ['postgres', 'redshift']) | as_bool() }}"
 

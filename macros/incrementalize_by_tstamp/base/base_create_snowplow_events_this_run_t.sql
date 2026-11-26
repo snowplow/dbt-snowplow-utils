@@ -39,11 +39,21 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
             {% endif %}
         )
 
+        {% if target.type == 'spark' %}
+        select event_row.*
+        from (
+            select struct(a.*) as event_row,
+                   row_number() over (partition by a.event_id order by a.load_tstamp, a.dvce_created_tstamp) as event_rank
+            from new_events a
+        ) ranked_events
+        where event_rank = 1
+        {% else %}
         select
         *
         from new_events a
 
         qualify row_number() over (partition by a.event_id order by a.load_tstamp, a.dvce_created_tstamp) = 1
+        {% endif %}
     {% endset %}
     
     {{ return(events_this_run_query) }}
