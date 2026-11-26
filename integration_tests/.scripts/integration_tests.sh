@@ -52,16 +52,10 @@ for db in ${DATABASES[@]}; do
   echo "Snowplow-utils native dbt tests: Test custom base macro models"
 
   eval "dbt test --select tag:base_macro --exclude snowplow_base_quarantined_sessions_actual --target $db --vars '{snowplow__session_test: true, store_failures: true}'" || exit 1;
-  echo "Snowplow-utils native dbt tests: Run event_names base macro models"
-  eval "dbt run --select tag:base_macro --target $db --full-refresh --vars '{snowplow__test_event_names: [page_view, page_ping]}'" || exit 1;
-  echo "Snowplow-utils native dbt tests: Test event_names base macro models"
-  eval "dbt test --select snowplow_base_events_this_run_actual --target $db --vars '{snowplow__test_event_names: [page_view, page_ping], store_failures: true}'" || exit 1;
-  echo "Snowplow-utils native dbt tests: Run custom_filter base macro models"
-  eval "dbt run --select tag:base_macro --target $db --full-refresh --vars '{snowplow__custom_filter_test: true}'" || exit 1;
-  echo "Snowplow-utils native dbt tests: Test custom_filter base macro models"
-  eval "dbt test --select snowplow_base_events_this_run_actual --target $db --vars '{snowplow__custom_filter_test: true, store_failures: true}'" || exit 1;
-  echo "Snowplow-utils native dbt tests: custom_filter rejects unsafe SQL"
-  if dbt compile --select snowplow_base_events_this_run_actual --target $db --vars '{snowplow__custom_filter_test: true, snowplow__test_custom_filter: "1 = 1; drop table x"}' > /dev/null 2>&1; then echo "custom_filter accepted unsafe SQL"; exit 1; fi
+
+  echo "Snowplow-utils native dbt tests: Filter base events by event name or vendor"
+  dbt run --select tag:base_macro --target "$db" --full-refresh --vars '{snowplow__test_event_filter: true}' || exit 1
+  dbt test --select snowplow_base_events_this_run_actual --target "$db" --vars '{snowplow__test_event_filter: true, store_failures: true}' || exit 1
 
   echo "Snowplow utils integration tests part 2: Run script based tests"
 
