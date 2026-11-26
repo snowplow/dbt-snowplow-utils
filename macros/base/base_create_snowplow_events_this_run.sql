@@ -7,6 +7,7 @@ You may obtain a copy of the Snowplow Personal and Academic License Version 1.0 
 
 {% macro base_create_snowplow_events_this_run(sessions_this_run_table='snowplow_base_sessions_this_run', session_identifiers=[{"schema" : "atomic", "field" : "domain_sessionid"}], session_sql=none, session_timestamp='load_tstamp', derived_tstamp_partitioned=true, days_late_allowed=3, max_session_days=3, app_ids=[], snowplow_events_database=none, snowplow_events_schema='atomic', snowplow_events_table='events', entities_or_sdes=none, custom_sql=none, allow_null_dvce_tstamps=false, event_filter=none) %}
     {# Keep the original signature for projects overriding the unfiltered macro. #}
+    {% do snowplow_utils.validate_event_filter(event_filter) %}
     {% set filter_args = {'event_filter': event_filter} if event_filter and event_filter.get('event_names') else {} %}
     {{ return(adapter.dispatch('base_create_snowplow_events_this_run', 'snowplow_utils')(sessions_this_run_table, session_identifiers, session_sql, session_timestamp, derived_tstamp_partitioned, days_late_allowed, max_session_days, app_ids, snowplow_events_database, snowplow_events_schema, snowplow_events_table, entities_or_sdes, custom_sql, allow_null_dvce_tstamps, **filter_args)) }}
 {% endmacro %}

@@ -57,6 +57,15 @@ for db in ${DATABASES[@]}; do
   dbt run --select tag:base_macro --target "$db" --full-refresh --vars '{snowplow__test_event_filter: true}' || exit 1
   dbt test --select snowplow_base_events_this_run_actual --target "$db" --vars '{snowplow__test_event_filter: true, store_failures: true}' || exit 1
 
+  echo "Snowplow-utils native dbt tests: Reject invalid event_filter values"
+  dbt run-operation test_event_filter_validation --target "$db" --args '{case: valid}' || exit 1
+  for case in names_string vendor_names_string names_not_strings vendor_list not_mapping; do
+    if output=$(dbt run-operation test_event_filter_validation --target "$db" --args "{case: $case}" 2>&1); then
+      echo "event_filter case '$case' should have failed to compile"; exit 1
+    fi
+    echo "$output" | grep -q "snowplow_utils: event_filter" || { echo "$output"; echo "event_filter case '$case' failed without the expected message"; exit 1; }
+  done
+
   echo "Snowplow utils integration tests part 2: Run script based tests"
 
   echo "Snowplow-utils integration tests: Testing get_successful_models"
